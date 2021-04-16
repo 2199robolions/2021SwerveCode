@@ -10,38 +10,32 @@ public class Drive {
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     private enum WheelProperties {
         // TODO: All of the below 0's should be replaced with real ID numbers
-        FRONT_RIGHT_WHEEL(0, // DRIVE MOTOR ID
-                          MotorType.kBrushless, // DRIVE MOTOR TYPE
-                          0, // ROTATE MOTOR ID
-                          0, // ROTATE SENSOR ID
+        FRONT_RIGHT_WHEEL(15, // DRIVE MOTOR ID
+                          1, // ROTATE MOTOR ID
+                          5, // ROTATE SENSOR ID
                           (-1 * rotateMotorAngle)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-        FRONT_LEFT_WHEEL(0, // DRIVE MOTOR ID
-                         MotorType.kBrushless, // DRIVE MOTOR TYPE
-                         0, // ROTATE MOTOR ID
-                         0, // ROTATE SENSOR ID
+        FRONT_LEFT_WHEEL(12, // DRIVE MOTOR ID
+                         2, // ROTATE MOTOR ID
+                         6, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle - (Math.PI/2))), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-        REAR_RIGHT_WHEEL(0, // DRIVE MOTOR ID
-                         MotorType.kBrushless, // DRIVE MOTOR TYPE
-                         0, // ROTATE MOTOR ID
-                         0, // ROTATE SENSOR ID
+        REAR_RIGHT_WHEEL(14, // DRIVE MOTOR ID
+                         4, // ROTATE MOTOR ID
+                         8, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle + (Math.PI/2))), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-        REAR_LEFT_WHEEL(0, // DRIVE MOTOR ID
-                        MotorType.kBrushless, // DRIVE MOTOR TYPE
-                        0, // ROTATE MOTOR ID
-                        0, // ROTATE SENSOR ID
+        REAR_LEFT_WHEEL(13, // DRIVE MOTOR ID
+                        3, // ROTATE MOTOR ID
+                        7, // ROTATE SENSOR ID
                         (-1 * rotateMotorAngle + (Math.PI))); // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
 
         private int driveMotorId;
-        private MotorType driveMotorType;
         private int rotateMotorId;
         private int rotateSensorId;
         private double targetRadians;
         private double targetVoltage;
 
         // Each item in the enum will now have to be instantiated with a constructor with the all of the ids and the motor type constants. Look few lines above, where FRONT_RIGHT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), REAR_LEFT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), etc... are. These are what the constructor is for.
-        private WheelProperties(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians) {
+        private WheelProperties(int driveMotorId, int rotateMotorId, int rotateSensorId, double targetRadians) {
             this.driveMotorId = driveMotorId;
-            this.driveMotorType = driveMotorType;
             this.rotateMotorId = rotateMotorId;
             this.rotateSensorId = rotateSensorId;
             this.targetRadians = targetRadians;
@@ -50,10 +44,6 @@ public class Drive {
 
         private int getDriveMotorId() {
             return this.driveMotorId;
-        }
-
-        private MotorType getDriveMotorType() {
-            return this.driveMotorType;
         }
 
         private int getRotateMotorId() {
@@ -74,10 +64,18 @@ public class Drive {
     }
 
     // TODO: Should the wheel objects be injected using the constructor when instantiating a drive object in Robot.java? Answer: I don't think so. The goal is to encapsulate, not to make everything accessible.
-    private Wheel frontRightWheel = new Wheel(WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorId(), WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorType(), WheelProperties.FRONT_RIGHT_WHEEL.getRotateMotorId(), WheelProperties.FRONT_RIGHT_WHEEL.getRotateSensorId());
-    private Wheel frontLeftWheel = new Wheel(WheelProperties.FRONT_LEFT_WHEEL.getDriveMotorId(), WheelProperties.FRONT_LEFT_WHEEL.getDriveMotorType(), WheelProperties.FRONT_LEFT_WHEEL.getRotateMotorId(), WheelProperties.FRONT_LEFT_WHEEL.getRotateSensorId());
-    private Wheel rearRightWheel = new Wheel(WheelProperties.REAR_RIGHT_WHEEL.getDriveMotorId(), WheelProperties.REAR_RIGHT_WHEEL.getDriveMotorType(), WheelProperties.REAR_RIGHT_WHEEL.getRotateMotorId(), WheelProperties.REAR_RIGHT_WHEEL.getRotateSensorId());
-    private Wheel rearLeftWheel = new Wheel(WheelProperties.REAR_LEFT_WHEEL.getDriveMotorId(), WheelProperties.REAR_LEFT_WHEEL.getDriveMotorType(), WheelProperties.REAR_LEFT_WHEEL.getRotateMotorId(), WheelProperties.REAR_LEFT_WHEEL.getRotateSensorId());
+    private Wheel frontRightWheel = new Wheel(WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorId(),
+                                              WheelProperties.FRONT_RIGHT_WHEEL.getRotateMotorId(), 
+                                              WheelProperties.FRONT_RIGHT_WHEEL.getRotateSensorId());
+    private Wheel frontLeftWheel  = new Wheel(WheelProperties.FRONT_LEFT_WHEEL.getDriveMotorId(), 
+                                              WheelProperties.FRONT_LEFT_WHEEL.getRotateMotorId(), 
+                                              WheelProperties.FRONT_LEFT_WHEEL.getRotateSensorId());
+    private Wheel rearRightWheel  = new Wheel(WheelProperties.REAR_RIGHT_WHEEL.getDriveMotorId(), 
+                                              WheelProperties.REAR_RIGHT_WHEEL.getRotateMotorId(), 
+                                              WheelProperties.REAR_RIGHT_WHEEL.getRotateSensorId());
+    private Wheel rearLeftWheel   = new Wheel(WheelProperties.REAR_LEFT_WHEEL.getDriveMotorId(), 
+                                              WheelProperties.REAR_LEFT_WHEEL.getRotateMotorId(), 
+                                              WheelProperties.REAR_LEFT_WHEEL.getRotateSensorId());
 
     // The literal lengths and widths of the robot. Look to the swerve drive Google Doc
     // Note: these fields are static because they must be. They are referenced in the enum, which is in and of itself, static.
@@ -132,6 +130,10 @@ public class Drive {
             rearLeftWheel.powerRotateMotor(0);
         }
 
+    }
+
+    public void testWheel(){
+        rearRightWheel.powerRotateMotor(-0.5);
     }
 
 }

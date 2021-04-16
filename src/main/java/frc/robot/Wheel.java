@@ -18,7 +18,7 @@ public class Wheel {
     private AnalogInput rotateMotorSensor;
 
     // PID Controller Declaration
-    private PIDController pidController = new PIDController(kP, kI, kD);
+  //  private PIDController pidController = new PIDController(kP, kI, kD);
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
@@ -26,13 +26,14 @@ public class Wheel {
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
-    public Wheel(int driveMotorID, MotorType driveMotorType, int rotateMotorID, int rotateMotorSensorID) {
+    public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID) {
         // Motor Controllers Instantiation
-        this.driveMotor = new CANSparkMax(driveMotorID, driveMotorType);
+        this.driveMotor = new CANSparkMax(driveMotorID, MotorType.kBrushless);
         this.rotateMotor = new VictorSP(rotateMotorID);
 
         // Rotate Sensor Instantiation
-        this.rotateMotorSensor = new AnalogInput(rotateMotorSensorID);
+        System.out.println("analog id:" + rotateMotorSensorID);
+    //    this.rotateMotorSensor = new AnalogInput(rotateMotorSensorID);
     }
 
     public void powerRotateMotor(double power) {

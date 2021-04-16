@@ -13,6 +13,7 @@ public class Robot extends TimedRobot {
   private Drive drive = new Drive();
   private Controls controls = new Controls();
 
+
   @Override
   public void robotInit() {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
@@ -46,7 +47,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
     // TODO: Test the teleop rotate. Teleop rotate will most likely be packaged in a single teleop control method, so this is just to package it in one place.
-    drive.teleopRotate(controls.getJoystickZ());
+    //drive.teleopRotate(controls.getJoystickZ());
   }
 
   @Override
@@ -59,8 +60,12 @@ public class Robot extends TimedRobot {
   public void disabledPeriodic() {}
 
   @Override
-  public void testInit() {}
+  public void testInit() {
+  }
 
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+    drive.testWheel();
+   
+  }
 }

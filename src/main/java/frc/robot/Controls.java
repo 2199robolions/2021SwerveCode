@@ -7,7 +7,7 @@ public class Controls {
 
     private enum ControllerIDs {
         JOYSTICK(0), // TODO: Need actual values for these
-        XBOXCONTROLLER(0); // TODO: Need actual values for these
+        XBOXCONTROLLER(1); // TODO: Need actual values for these
         
         private int id;
 
