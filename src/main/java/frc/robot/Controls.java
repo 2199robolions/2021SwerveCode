@@ -2,12 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
 
     private enum ControllerIDs {
-        JOYSTICK(0), // TODO: Need actual values for these
-        XBOXCONTROLLER(1); // TODO: Need actual values for these
+        JOYSTICK(1), // TODO: Need actual values for these
+        XBOXCONTROLLER(0); // TODO: Need actual values for these
         
         private int id;
 
@@ -32,6 +33,24 @@ public class Controls {
 
     public double getJoystickZ() {
         return joystick.getZ();
+    }
+
+    /**
+     * 0 degrees is forward on the Joystick
+     * this method returns values from -180 to +180
+     */
+    public double getDriveAngle(){
+        double x = joystick.getX();
+        double y = joystick.getY() * -1;
+        double rad = Math.atan2(x, y);
+        return Math.toDegrees(rad);
+    }
+
+    public double getDrivePower(){
+        double x = joystick.getX();
+        double y = joystick.getY() * -1;
+        double hyp = Math.sqrt(x*x + y*y);
+        return MathUtil.clamp(hyp, -1, 1);
     }
     
 }
