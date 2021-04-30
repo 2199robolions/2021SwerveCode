@@ -8,29 +8,29 @@ import frc.robot.enums.RobotStatus;
 public class Drive {
 
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
-    private enum WheelProperties {
+    public enum WheelProperties {
         // TODO: All of the below 0's should be replaced with real ID numbers
         //Need offset var
         FRONT_RIGHT_WHEEL(15, // DRIVE MOTOR ID
                           1, // ROTATE MOTOR ID
                           1, // ROTATE SENSOR ID
                           (-1 * rotateMotorAngle), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                          0),
+                          248), //Offset
         FRONT_LEFT_WHEEL(12, // DRIVE MOTOR ID
                          2, // ROTATE MOTOR ID
                          2, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle - (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         306),
+                         306), //Offset
         REAR_RIGHT_WHEEL(14, // DRIVE MOTOR ID
                          4, // ROTATE MOTOR ID
                          0, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle + (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         0),
+                         115), //Offset
         REAR_LEFT_WHEEL(13, // DRIVE MOTOR ID
                         3, // ROTATE MOTOR ID
                         3, // ROTATE SENSOR ID
                         (-1 * rotateMotorAngle + (Math.PI)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                        0);
+                        259); //Offset
 
         private int driveMotorId;
         private int rotateMotorId;
@@ -79,19 +79,23 @@ public class Drive {
     private Wheel frontRightWheel = new Wheel(WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorId(),
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateSensorId(),
-                                              WheelProperties.FRONT_RIGHT_WHEEL.getOffsetDegrees());
+                                              WheelProperties.FRONT_RIGHT_WHEEL.getOffsetDegrees(),
+                                              WheelProperties.FRONT_RIGHT_WHEEL);
     private Wheel frontLeftWheel  = new Wheel(WheelProperties.FRONT_LEFT_WHEEL.getDriveMotorId(), 
                                               WheelProperties.FRONT_LEFT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.FRONT_LEFT_WHEEL.getRotateSensorId(),
-                                              WheelProperties.FRONT_LEFT_WHEEL.getOffsetDegrees());
+                                              WheelProperties.FRONT_LEFT_WHEEL.getOffsetDegrees(),
+                                              WheelProperties.FRONT_LEFT_WHEEL);
     private Wheel rearRightWheel  = new Wheel(WheelProperties.REAR_RIGHT_WHEEL.getDriveMotorId(), 
                                               WheelProperties.REAR_RIGHT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.REAR_RIGHT_WHEEL.getRotateSensorId(),
-                                              WheelProperties.REAR_RIGHT_WHEEL.getOffsetDegrees());
+                                              WheelProperties.REAR_RIGHT_WHEEL.getOffsetDegrees(),
+                                              WheelProperties.REAR_RIGHT_WHEEL);
     private Wheel rearLeftWheel   = new Wheel(WheelProperties.REAR_LEFT_WHEEL.getDriveMotorId(), 
                                               WheelProperties.REAR_LEFT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.REAR_LEFT_WHEEL.getRotateSensorId(),
-                                              WheelProperties.REAR_LEFT_WHEEL.getOffsetDegrees());
+                                              WheelProperties.REAR_LEFT_WHEEL.getOffsetDegrees(),
+                                              WheelProperties.REAR_LEFT_WHEEL);
 
     // The literal lengths and widths of the robot. Look to the swerve drive Google Doc
     // Note: these fields are static because they must be. They are referenced in the enum, which is in and of itself, static.
@@ -105,6 +109,16 @@ public class Drive {
     public Drive() {
     }
 
+    public void teleopCrabDrive(double power, double rotation){
+        frontRightWheel.powerDriveMotor(power);
+        frontLeftWheel.powerDriveMotor(power);
+        rearRightWheel.powerDriveMotor(power);
+        rearLeftWheel.powerDriveMotor(power);
+
+        /*if(frontRightWheel.getRotateMotorPosition() > rotation + 2){
+            
+        }*/
+    }
     public void teleopRotate(double joystickZValue) {
         /**
          * Check at what voltage the rotateSensor is at
@@ -152,7 +166,7 @@ public class Drive {
         rearRightWheel.powerRotateMotor(-0.5);
     }
     public void testRotate(){
-        System.out.println("Degrees: " + frontRightWheel.getRotateMotorPosition());
+        System.out.println("Degrees: " + rearLeftWheel.getRotateMotorPosition());
     }
 
 }

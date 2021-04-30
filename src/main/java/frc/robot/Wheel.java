@@ -14,6 +14,8 @@ public class Wheel {
     private CANSparkMax driveMotor;
     private VictorSP rotateMotor;
 
+    private Drive.WheelProperties name;
+
     // Rotate Sensor Declaration (instantiated in the constructor in order to dependency inject the ID of the sensor)
     // The sensor is just a 0V to 5V voltage signal that plugs into the analog inputs in the RoboRio, hence the AnalogInput objects.
   //  private AnalogInput rotateMotorSensor;
@@ -29,10 +31,11 @@ public class Wheel {
     private static final double kI = 0.0;
     private static final double kD = 0.0;
 
-    public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID, int offsetDegrees) {
+    public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID, int offsetDegrees, Drive.WheelProperties motorName) {
         // Motor Controllers Instantiation
         this.driveMotor = new CANSparkMax(driveMotorID, MotorType.kBrushless);
         this.rotateMotor = new VictorSP(rotateMotorID);
+        this.name = motorName;
 
         // Rotate Sensor Instantiation
         System.out.println("analog id:" + rotateMotorSensorID + " wheel: " + driveMotorID);
@@ -46,11 +49,25 @@ public class Wheel {
     }
 
     public void powerDriveMotor(double power) {
-        driveMotor.set(power);
+        //Wheels always go forward. To go reverse, rotate wheels
+        if ((name == Drive.WheelProperties.FRONT_LEFT_WHEEL) || 
+            (name == Drive.WheelProperties.REAR_LEFT_WHEEL))    {
+            driveMotor.set(power * -1);
+        } 
+        else {
+            driveMotor.set(power);
+        }
     }
 
     public double getRotateMotorPosition() {
-        return rotateMotorSensor.get();
+        double adjustedValue = rotateMotorSensor.get();
+        if(adjustedValue > 360){
+            adjustedValue -= 360;
+        }
+        if(adjustedValue < 0){
+            adjustedValue += 360;
+        }
+        return adjustedValue;
     }
 
     

@@ -51,7 +51,9 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    wheelControl();
+  }
 
   @Override
   public void disabledInit() {}
@@ -65,7 +67,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    //drive.testRotate();
-    System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
+    drive.testRotate();
+    //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
+  }
+
+
+  public void wheelControl(){
+    double power = controls.getDrivePower();
+    double rotation = controls.getDriveAngle();
+    drive.teleopCrabDrive(power, rotation);
   }
 }
