@@ -44,6 +44,25 @@ public class Wheel {
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);
     }
 
+
+/*  public void rotateAndDrive(double targetWheelAngle, double drivePower)
+    {
+        setDriveMotorPower(drivePower);
+
+        // I'm thinking the P for the PID may be around .01
+        // if error greater than 100 output clamped at 1.00
+        // error    output
+        // >=100    1.00
+        // 90       .9
+        // 45       .45
+        // 20       .2
+        // 10       .1
+        // 5        .05
+        currWheelAngle = getRotateMotorPosition();
+        rotatePower = rotatePid.calculate(currWheelAngle, targetWheelAngle);
+        setRotateMotorPower = rotatePower;
+    }
+*/
     public void powerRotateMotor(double power) {
         rotateMotor.set(power);
     }
