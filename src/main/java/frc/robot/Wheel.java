@@ -18,12 +18,13 @@ public class Wheel {
 
     // Rotate Sensor Declaration (instantiated in the constructor in order to dependency inject the ID of the sensor)
     // The sensor is just a 0V to 5V voltage signal that plugs into the analog inputs in the RoboRio, hence the AnalogInput objects.
+
   //  private AnalogInput rotateMotorSensor;
     //private AnalogInput rotateMotorSensor;
     private AnalogPotentiometer rotateMotorSensor;
 
-    // PID Controller Declaration
-  //  private PIDController pidController = new PIDController(kP, kI, kD);
+    //PID Controller Declaration
+    //private PIDController pidController = new PIDController(kP, kI, kD);
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
@@ -41,8 +42,7 @@ public class Wheel {
         System.out.println("analog id:" + rotateMotorSensorID + " wheel: " + driveMotorID);
         //this.rotateMotorSensor = new AnalogInput(rotateMotorSensorID);
         //Sensor measures from above going Counter clockwise
-        rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);
-    }
+        rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);    }
 
 
 /*  public void rotateAndDrive(double targetWheelAngle, double drivePower)
@@ -88,6 +88,4 @@ public class Wheel {
         }
         return adjustedValue;
     }
-
-    
 }
