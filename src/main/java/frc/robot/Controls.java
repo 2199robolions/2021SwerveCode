@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
@@ -61,6 +62,7 @@ public class Controls {
            This will probably cause getDrivePower to be called twice so we may
            want to combine these calls into 1?
            */
+        /*
         if ((x < positiveDeadZone) && (y < positiveDeadZone)){
             return 0;
         }
@@ -69,7 +71,30 @@ public class Controls {
         }
         else {
             return deg;
+        }*/
+
+        /**
+         * I think that this logic should resolve the issue with the logic that has been commented above.
+         * However, I realize that this  is not the nicest code.
+         */
+        if ((x < positiveDeadZone) && (y < positiveDeadZone)) {
+            if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
+                return 0;
+            }
+
+            return deg;
         }
+        else if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
+            if ((x < positiveDeadZone) && (y < positiveDeadZone)) {
+                return 0;
+            }
+
+            return deg;
+        }
+        else {
+            return deg;
+        }
+        
     }
 
     public double getDrivePower(){
