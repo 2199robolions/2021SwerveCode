@@ -43,14 +43,25 @@ public class Controls {
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         double rad = Math.atan2(x, y);
-        return Math.toDegrees(rad);
+        double deg = Math.toDegrees(rad);
+        
+        if ((x < 0.1) && (y < 0.1)){
+            return 0;
+        }
+        else {
+            return deg;
+        }
     }
 
     public double getDrivePower(){
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         double hyp = Math.sqrt(x*x + y*y);
-        return MathUtil.clamp(hyp, -1, 1);
+        double hypClamp;
+
+        hypClamp = MathUtil.clamp(hyp, -1, 1);
+        
+        return hypClamp;
     }
     
 }

@@ -73,8 +73,8 @@ public class Robot extends TimedRobot {
 
 
   public void wheelControl(){
-    double power = controls.getDrivePower();
-    double rotation = controls.getDriveAngle();
-    drive.teleopCrabDrive(power, rotation);
+    double drivePower = controls.getDrivePower();
+    double wheelAngle = controls.getDriveAngle();
+    drive.teleopCrabDrive(wheelAngle, drivePower);
   }
 }

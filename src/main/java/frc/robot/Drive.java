@@ -109,18 +109,26 @@ public class Drive {
     public Drive() {
     }
 
-    public void teleopCrabDrive(double power, double rotation){
-        frontRightWheel.powerDriveMotor(power);
+    public void teleopCrabDrive(double wheelAngle, double drivePower){
+        /*frontRightWheel.powerDriveMotor(power);
         frontLeftWheel.powerDriveMotor(power);
         rearRightWheel.powerDriveMotor(power);
         rearLeftWheel.powerDriveMotor(power);
 
-// frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
+        // frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
 
         /*if(frontRightWheel.getRotateMotorPosition() > rotation + 2){
             
         }*/
+
+        frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
+        frontLeftWheel.rotateAndDrive(wheelAngle, drivePower);
+        rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
+        rearLeftWheel.rotateAndDrive(wheelAngle, drivePower);
     }
+
+
+    
     public void teleopRotate(double joystickZValue) {
         /**
          * Check at what voltage the rotateSensor is at
@@ -132,40 +140,40 @@ public class Drive {
         // TODO: Check whether the signs of the voltages are correct as well.
         if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) && (frontLeftWheel.getRotateMotorPosition() >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) && (rearRightWheel.getRotateMotorPosition() >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) && (rearLeftWheel.getRotateMotorPosition() >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerDriveMotor(double power) calls as well.
-            frontRightWheel.powerDriveMotor(joystickZValue);
-            frontLeftWheel.powerDriveMotor(joystickZValue);
-            rearRightWheel.powerDriveMotor(joystickZValue);
-            rearLeftWheel.powerDriveMotor(joystickZValue);
+            frontRightWheel.setDriveMotorPower(joystickZValue);
+            frontLeftWheel.setDriveMotorPower(joystickZValue);
+            rearRightWheel.setDriveMotorPower(joystickZValue);
+            rearLeftWheel.setDriveMotorPower(joystickZValue);
             return;
         }
 
         if (frontRightWheel.getRotateMotorPosition() < WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) {
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerRotateMotor(double power) calls as well.
             // TODO: Check whether the signs of the voltages are correct as well.
-            frontRightWheel.powerRotateMotor(1);
+            frontRightWheel.setRotateMotorPower(1);
         } else {
-            frontRightWheel.powerRotateMotor(0);
+            frontRightWheel.setRotateMotorPower(0);
         }
         if (frontLeftWheel.getRotateMotorPosition() < WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) {
-            frontLeftWheel.powerRotateMotor(1);
+            frontLeftWheel.setRotateMotorPower(1);
         } else {
-            frontLeftWheel.powerRotateMotor(0);
+            frontLeftWheel.setRotateMotorPower(0);
         }
         if (rearRightWheel.getRotateMotorPosition() < WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) {
-            rearRightWheel.powerRotateMotor(1);
+            rearRightWheel.setRotateMotorPower(1);
         } else {
-            rearRightWheel.powerRotateMotor(0);
+            rearRightWheel.setRotateMotorPower(0);
         }
         if (rearLeftWheel.getRotateMotorPosition() < WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage()) {
-            rearLeftWheel.powerRotateMotor(1);
+            rearLeftWheel.setRotateMotorPower(1);
         } else {
-            rearLeftWheel.powerRotateMotor(0);
+            rearLeftWheel.setRotateMotorPower(0);
         }
 
     }
 
     public void testWheel(){
-        rearRightWheel.powerRotateMotor(-0.5);
+        rearRightWheel.setDriveMotorPower(-0.5);
     }
     public void testRotate(){
         System.out.println("Degrees: " + rearLeftWheel.getRotateMotorPosition());
