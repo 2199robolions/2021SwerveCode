@@ -66,13 +66,19 @@ public class Wheel {
         // 5        .05
 
         currWheelAngle = getRotateMotorPosition();
+
+        rotationPID.setSetpoint(targetWheelAngle);
+        rotationPID.setTolerance(2.5);
+
         rotatePower = rotationPID.calculate(currWheelAngle, targetWheelAngle);
         rotatePower = MathUtil.clamp(rotatePower, -1, 1);
+        
         setRotateMotorPower(rotatePower);
 
         //setDriveMotorPower(drivePower);
 
-        System.out.println("Pwr " + rotatePower
+        System.out.println(
+          "Pwr " + rotatePower
         + " Cur " + currWheelAngle
         + " Tgt " + targetWheelAngle);        
     }

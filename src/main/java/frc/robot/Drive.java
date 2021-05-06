@@ -144,6 +144,7 @@ public class Drive {
             frontLeftWheel.setDriveMotorPower(joystickZValue);
             rearRightWheel.setDriveMotorPower(joystickZValue);
             rearLeftWheel.setDriveMotorPower(joystickZValue);
+            
             return;
         }
 
@@ -175,6 +176,7 @@ public class Drive {
     public void testWheel(){
         rearRightWheel.setDriveMotorPower(-0.5);
     }
+    
     public void testRotate(){
         System.out.println("Degrees: " + rearLeftWheel.getRotateMotorPosition());
     }
