@@ -67,10 +67,21 @@ public class Wheel {
 
         currWheelAngle = getRotateMotorPosition();
 
+        /* Maybe move setTolerance to wheels constructor since it only needs to be done once
+           setSetpoint is redundent with the 2nd param to calculate
+           we don't need the setSetPoint() call */
         rotationPID.setSetpoint(targetWheelAngle);
         rotationPID.setTolerance(2.5);
 
+        /* We need to make sure that the controller and the PID are both working on
+        +-180 or 0 to 360
+        */
         rotatePower = rotationPID.calculate(currWheelAngle, targetWheelAngle);
+
+        /* I think you want to call atSetpoint() here
+           if at the setpoint rotatePower = 0
+           else calculate the rotatePower as below
+           */
         rotatePower = MathUtil.clamp(rotatePower, -1, 1);
         
         setRotateMotorPower(rotatePower);

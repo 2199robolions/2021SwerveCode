@@ -50,6 +50,17 @@ public class Controls {
         double positiveDeadZone = 0.1;
         double negativeDeadZone = positiveDeadZone * -1;
         
+        /* if x and y are both -1 we would return 0
+           I don't think that is what we want
+           We are having problems when the joystick is not being touched,
+           but we are calculating an angle the wheels should go to.
+           Maybe what we want is If the drive power (hyponenouse) is 
+           small then the angle returned is 0.  We need to do measurements on
+           the joystick to determine what small is.  We also don't want to make the
+           deadzone to large and limit how we can drive.
+           This will probably cause getDrivePower to be called twice so we may
+           want to combine these calls into 1?
+           */
         if ((x < positiveDeadZone) && (y < positiveDeadZone)){
             return 0;
         }
