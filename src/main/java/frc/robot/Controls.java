@@ -42,10 +42,18 @@ public class Controls {
     public double getDriveAngle(){
         double x = joystick.getX();
         double y = joystick.getY() * -1;
+        
         double rad = Math.atan2(x, y);
         double deg = Math.toDegrees(rad);
+        //double degClamp = MathUtil.clamp(deg, -180, 180);
+
+        double positiveDeadZone = 0.1;
+        double negativeDeadZone = positiveDeadZone * -1;
         
-        if ((x < 0.1) && (y < 0.1)){
+        if ((x < positiveDeadZone) && (y < positiveDeadZone)){
+            return 0;
+        }
+        else if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
             return 0;
         }
         else {
@@ -56,6 +64,7 @@ public class Controls {
     public double getDrivePower(){
         double x = joystick.getX();
         double y = joystick.getY() * -1;
+        
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
 

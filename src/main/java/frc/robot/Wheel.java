@@ -20,7 +20,7 @@ public class Wheel {
     // Rotate Sensor Declaration (instantiated in the constructor in order to dependency inject the ID of the sensor)
     // The sensor is just a 0V to 5V voltage signal that plugs into the analog inputs in the RoboRio, hence the AnalogInput objects.
 
-  //  private AnalogInput rotateMotorSensor;
+    //private AnalogInput rotateMotorSensor;
     //private AnalogInput rotateMotorSensor;
     private AnalogPotentiometer rotateMotorSensor;
     private PIDController rotationPID;
@@ -92,7 +92,7 @@ public class Wheel {
         }
     }
 
-    //Makes the returned value -180 to 180 ??
+    //Makes the returned value 0 to 360
     public double getRotateMotorPosition() {
         double adjustedValue = rotateMotorSensor.get();
         if(adjustedValue > 360){
@@ -101,6 +101,7 @@ public class Wheel {
         if(adjustedValue < 0){
             adjustedValue += 360;
         }
+        
         return adjustedValue;
     }
 }
