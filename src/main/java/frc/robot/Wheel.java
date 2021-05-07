@@ -30,7 +30,7 @@ public class Wheel {
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
-    private static final double kP = 0.0005;
+    private static final double kP = 0.002;
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
@@ -49,6 +49,7 @@ public class Wheel {
         //PID Controller
         rotationPID = new PIDController(kP, kI, kD);
         rotationPID.enableContinuousInput(0, 360);
+        rotationPID.setTolerance(1.5);
     }
 
     public void rotateAndDrive(double targetWheelAngle, double drivePower) {
@@ -67,31 +68,23 @@ public class Wheel {
 
         currWheelAngle = getRotateMotorPosition();
 
-        /* Maybe move setTolerance to wheels constructor since it only needs to be done once
-           setSetpoint is redundent with the 2nd param to calculate
-           we don't need the setSetPoint() call */
-        rotationPID.setSetpoint(targetWheelAngle);
-        rotationPID.setTolerance(2.5);
-
         /* We need to make sure that the controller and the PID are both working on
         +-180 or 0 to 360
         */
         rotatePower = rotationPID.calculate(currWheelAngle, targetWheelAngle);
 
-        /* I think you want to call atSetpoint() here
-           if at the setpoint rotatePower = 0
-           else calculate the rotatePower as below
-           */
-        rotatePower = MathUtil.clamp(rotatePower, -1, 1);
-        
+        if (rotationPID.atSetpoint() == true) {
+            rotatePower = 0;
+        }
+        else {
+            rotatePower = MathUtil.clamp(rotatePower, -1, 1);
+        }
+
         setRotateMotorPower(rotatePower);
 
-        //setDriveMotorPower(drivePower);
+        setDriveMotorPower(drivePower);
 
-        System.out.println(
-          "Pwr " + rotatePower
-        + " Cur " + currWheelAngle
-        + " Tgt " + targetWheelAngle);        
+        System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);        
     }
 
     public void setRotateMotorPower(double power) {
@@ -115,7 +108,7 @@ public class Wheel {
         if(adjustedValue > 360){
             adjustedValue -= 360;
         }
-        if(adjustedValue < 0){
+        else if(adjustedValue < 0){
             adjustedValue += 360;
         }
         

@@ -2,14 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
 
     private enum ControllerIDs {
-        JOYSTICK(1), // TODO: Need actual values for these
-        XBOXCONTROLLER(0); // TODO: Need actual values for these
+        JOYSTICK(1),
+        XBOXCONTROLLER(0);
         
         private int id;
 
@@ -48,53 +47,22 @@ public class Controls {
         double deg = Math.toDegrees(rad);
         //double degClamp = MathUtil.clamp(deg, -180, 180);
 
-        double positiveDeadZone = 0.1;
-        double negativeDeadZone = positiveDeadZone * -1;
-        
-        /* if x and y are both -1 we would return 0
-           I don't think that is what we want
-           We are having problems when the joystick is not being touched,
-           but we are calculating an angle the wheels should go to.
-           Maybe what we want is If the drive power (hyponenouse) is 
-           small then the angle returned is 0.  We need to do measurements on
-           the joystick to determine what small is.  We also don't want to make the
-           deadzone to large and limit how we can drive.
-           This will probably cause getDrivePower to be called twice so we may
-           want to combine these calls into 1?
-           */
-        /*
-        if ((x < positiveDeadZone) && (y < positiveDeadZone)){
-            return 0;
+        // This makes all the values, from the controller, 0 to 360
+        if (deg < 0) {
+            deg += 360;
         }
-        else if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
+
+        // Drive Power is always positive
+        double drivePower = getDrivePower();
+
+        //System.out.println("Dr Pwr " + drivePower + " x " + x + " y " + y);
+
+        if (drivePower < 0.1) {
             return 0;
         }
         else {
             return deg;
-        }*/
-
-        /**
-         * I think that this logic should resolve the issue with the logic that has been commented above.
-         * However, I realize that this  is not the nicest code.
-         */
-        if ((x < positiveDeadZone) && (y < positiveDeadZone)) {
-            if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
-                return 0;
-            }
-
-            return deg;
         }
-        else if ((x > negativeDeadZone) && (y > negativeDeadZone)) {
-            if ((x < positiveDeadZone) && (y < positiveDeadZone)) {
-                return 0;
-            }
-
-            return deg;
-        }
-        else {
-            return deg;
-        }
-        
     }
 
     public double getDrivePower(){
@@ -104,7 +72,9 @@ public class Controls {
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
 
+        //This will make it reach power 1 faster at a 45 
         hypClamp = MathUtil.clamp(hyp, -1, 1);
+        //hypClamp = hyp / Math.sqrt(2);
         
         return hypClamp;
     }
