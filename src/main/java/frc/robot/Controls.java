@@ -39,20 +39,22 @@ public class Controls {
      * 0 degrees is forward on the Joystick
      * this method returns values from -180 to +180
      */
-    public double getDriveAngle(){
+    public double getDriveAngle() {
+        double deadZone = 0.1;
+
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         
         double rad = Math.atan2(x, y);
         double deg = Math.toDegrees(rad);
-        //double degClamp = MathUtil.clamp(deg, -180, 180);
+        //double degClamp;
+        //degClamp = MathUtil.clamp(deg, 0, 360);
 
         // Drive Power is always positive
         double drivePower = getDrivePower();
 
         //System.out.println("Dr Pwr " + drivePower + " x " + x + " y " + y);
-
-        if (drivePower < 0.1) {
+        if ((drivePower < deadZone) && (drivePower > -deadZone)) {
             return 0;
         }
         else {
@@ -66,8 +68,7 @@ public class Controls {
         
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
-
-        //This will make it reach power 1 faster at a 45 
+        //This will make it reach power 1 faster at a 45 degrees
         hypClamp = MathUtil.clamp(hyp, -1, 1);
         //hypClamp = hyp / Math.sqrt(2);
         
