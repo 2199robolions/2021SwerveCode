@@ -30,7 +30,7 @@ public class Wheel {
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
-    private static final double kP = 0.002;
+    private static final double kP = 0.03; //0.002
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
@@ -48,8 +48,7 @@ public class Wheel {
 
         //PID Controller
         rotationPID = new PIDController(kP, kI, kD);
-        rotationPID.enableContinuousInput(0, 360);
-        rotationPID.setTolerance(1.5);
+        rotationPID.enableContinuousInput(-180, 180);
     }
 
     public void rotateAndDrive(double targetWheelAngle, double drivePower) {
@@ -68,25 +67,39 @@ public class Wheel {
 
         currWheelAngle = getRotateMotorPosition();
 
-        /* We need to make sure that the controller and the PID are both working on
-        +-180 or 0 to 360
-        */
+        /**
+         * If PID is 0 to 360
+         * Current = 0, Target = 90, Final Power = 0.18
+         * Current = 0, Target = 270, Final Power = 0.54
+         * Current = 0, Target = -90, Final Power = 0.54
+         * 
+         * If PID is -180 to 180
+         * Current = 0, Target = 90, Final Power = 0.18
+         * Current = 0, Target = -90, Final Power = -0.18
+         */
         rotatePower = rotationPID.calculate(currWheelAngle, targetWheelAngle);
+        
+        System.out.println("Pwr " + rotatePower + " curr " + (int)currWheelAngle + " tgt " + (int)targetWheelAngle);
 
-        if (rotationPID.atSetpoint() == true) {
-            rotatePower = 0;
-        }
-        else {
-            rotatePower = MathUtil.clamp(rotatePower, -1, 1);
-        }
+        rotatePower = MathUtil.clamp(rotatePower, -1, 1);
 
-        setRotateMotorPower(rotatePower);
+        /**
+         * If PID output is positive you want to rotate the wheel clockwise
+         * In order to rotate clockwise, a negative power is required
+         * And vise-versa.
+         */
+        setRotateMotorPower(-1 * rotatePower);
 
         setDriveMotorPower(drivePower);
 
-        System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);        
+        //System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);        
     }
 
+
+    /**
+     * If power is negative then the wheels rotate clockwise
+     * If power is positive then the wheels rotate counter-clockwise
+     */
     public void setRotateMotorPower(double power) {
         rotateMotor.set(power);
     }
@@ -102,16 +115,26 @@ public class Wheel {
         }
     }
 
-    //Makes the returned value 0 to 360
+    //Makes the returned value -180 to 180
     public double getRotateMotorPosition() {
         double adjustedValue = rotateMotorSensor.get();
-        if(adjustedValue > 360){
+        
+        if ((adjustedValue >= 0) && (adjustedValue <= 180)) {
+            //Does nothing to adjustedValue
+        }
+        else if ((adjustedValue <= 0) && (adjustedValue >= -180)) {
+            //Does nothing to adjustedValue
+        }
+        else if(adjustedValue > 180) {
+            //Makes all values greater than 180 less than it
             adjustedValue -= 360;
         }
-        else if(adjustedValue < 0){
+        else if(adjustedValue < -180) {
+            //Makes all values less than -180 greater than it
             adjustedValue += 360;
         }
         
         return adjustedValue;
     }
+
 }

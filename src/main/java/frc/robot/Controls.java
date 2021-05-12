@@ -47,11 +47,6 @@ public class Controls {
         double deg = Math.toDegrees(rad);
         //double degClamp = MathUtil.clamp(deg, -180, 180);
 
-        // This makes all the values, from the controller, 0 to 360
-        if (deg < 0) {
-            deg += 360;
-        }
-
         // Drive Power is always positive
         double drivePower = getDrivePower();
 

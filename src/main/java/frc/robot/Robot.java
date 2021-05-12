@@ -67,7 +67,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    drive.testRotate();
+    drive.testPID();
+    //drive.testRotate();
     //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
   }
 

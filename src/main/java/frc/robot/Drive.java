@@ -178,7 +178,16 @@ public class Drive {
     }
     
     public void testRotate(){
+        double power = -.2;
+        frontLeftWheel.setRotateMotorPower(power);
+        frontRightWheel.setRotateMotorPower(power);
+        rearLeftWheel.setRotateMotorPower(power);
+        rearRightWheel.setRotateMotorPower(power);
         System.out.println("Degrees: " + rearLeftWheel.getRotateMotorPosition());
+    }
+
+    public void testPID() {
+        frontLeftWheel.rotateAndDrive(0, 0);
     }
 
 }
