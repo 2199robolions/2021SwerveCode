@@ -107,28 +107,35 @@ public class Drive {
     private static final double rotateMotorAngle = Math.atan2(robotLength, robotWidth);
 
     public Drive() {
+        //
     }
 
+    /**
+     * The unfinished Swerve Drive program.
+     * @param targetWheelAngle
+     * @param drivePower
+     * @param joystickZ
+     */
+    public void swerveDrive(double targetWheelAngle, double drivePower, double joystickZ) {
+        //
+    }
+
+    /**
+     * The current Crab Drive program.
+     * @param wheelAngle
+     * @param drivePower
+     */
     public void teleopCrabDrive(double wheelAngle, double drivePower){
-        /*frontRightWheel.powerDriveMotor(power);
-        frontLeftWheel.powerDriveMotor(power);
-        rearRightWheel.powerDriveMotor(power);
-        rearLeftWheel.powerDriveMotor(power);
-
-        // frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
-
-        /*if(frontRightWheel.getRotateMotorPosition() > rotation + 2){
-            
-        }*/
-
-        frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
-        frontLeftWheel.rotateAndDrive(wheelAngle, drivePower);
-        rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
-        rearLeftWheel.rotateAndDrive(wheelAngle, drivePower);
+        frontRightWheel.crabDrive(wheelAngle, drivePower);
+        frontLeftWheel.crabDrive(wheelAngle, drivePower);
+        rearRightWheel.crabDrive(wheelAngle, drivePower);
+        rearLeftWheel.crabDrive(wheelAngle, drivePower);
     }
 
-
-    
+    /**
+     * The drive program that should reorient the robot.
+     * @param joystickZValue
+     */
     public void teleopRotate(double joystickZValue) {
         /**
          * Check at what voltage the rotateSensor is at
@@ -138,7 +145,11 @@ public class Drive {
          */
 
         // TODO: Check whether the signs of the voltages are correct as well.
-        if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) && (frontLeftWheel.getRotateMotorPosition() >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) && (rearRightWheel.getRotateMotorPosition() >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) && (rearLeftWheel.getRotateMotorPosition() >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
+        if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) &&
+            (frontLeftWheel.getRotateMotorPosition()  >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) &&
+            (rearRightWheel.getRotateMotorPosition()  >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) &&
+            (rearLeftWheel.getRotateMotorPosition()   >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
+            
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerDriveMotor(double power) calls as well.
             frontRightWheel.setDriveMotorPower(joystickZValue);
             frontLeftWheel.setDriveMotorPower(joystickZValue);
@@ -152,22 +163,29 @@ public class Drive {
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerRotateMotor(double power) calls as well.
             // TODO: Check whether the signs of the voltages are correct as well.
             frontRightWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             frontRightWheel.setRotateMotorPower(0);
         }
+
         if (frontLeftWheel.getRotateMotorPosition() < WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) {
             frontLeftWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             frontLeftWheel.setRotateMotorPower(0);
         }
+
         if (rearRightWheel.getRotateMotorPosition() < WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) {
             rearRightWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             rearRightWheel.setRotateMotorPower(0);
         }
+
         if (rearLeftWheel.getRotateMotorPosition() < WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage()) {
             rearLeftWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             rearLeftWheel.setRotateMotorPower(0);
         }
 
@@ -187,7 +205,7 @@ public class Drive {
     }
 
     public void testPID() {
-        frontLeftWheel.rotateAndDrive(0, 0);
+        frontLeftWheel.crabDrive(0, 0);
     }
 
 }

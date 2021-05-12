@@ -46,13 +46,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    // TODO: Test the teleop rotate. Teleop rotate will most likely be packaged in a single teleop control method, so this is just to package it in one place.
-    //drive.teleopRotate(controls.getJoystickZ());
+    wheelInit();
   }
 
   @Override
   public void teleopPeriodic() {
-    wheelControl();
+    crabDrive();
   }
 
   @Override
@@ -73,9 +72,29 @@ public class Robot extends TimedRobot {
   }
 
 
-  public void wheelControl(){
-    double drivePower = controls.getDrivePower();
+  public void wheelInit() {
+    drive.teleopCrabDrive(0, 0);
+  }
+
+  public void crabDrive() {
     double wheelAngle = controls.getDriveAngle();
+    double drivePower = controls.getDrivePower();
+    
     drive.teleopCrabDrive(wheelAngle, drivePower);
   }
+
+  public void robotReorient() {
+    double joystickZValue = controls.getJoystickZ();
+
+    drive.teleopRotate(joystickZValue);
+  }
+
+  public void wheelControl() {
+    double wheelAngle     = controls.getDriveAngle();
+    double drivePower     = controls.getDrivePower();
+    double joystickZValue = controls.getJoystickZ();
+    
+    drive.swerveDrive(wheelAngle, drivePower, joystickZValue);
+  }
+
 }

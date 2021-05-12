@@ -31,16 +31,13 @@ public class Controls {
     public Controls() {
     }
 
-    public double getJoystickZ() {
-        return joystick.getZ();
-    }
-
     /**
      * 0 degrees is forward on the Joystick
      * this method returns values from -180 to +180
      */
     public double getDriveAngle() {
         double deadZone = 0.1;
+        //double degClamp;
 
         double x = joystick.getX();
         double y = joystick.getY() * -1;
@@ -54,6 +51,7 @@ public class Controls {
         double drivePower = getDrivePower();
 
         //System.out.println("Dr Pwr " + drivePower + " x " + x + " y " + y);
+        
         if ((drivePower < deadZone) && (drivePower > -deadZone)) {
             return 0;
         }
@@ -73,6 +71,10 @@ public class Controls {
         //hypClamp = hyp / Math.sqrt(2);
         
         return hypClamp;
+    }
+
+    public double getJoystickZ() {
+        return joystick.getZ();
     }
     
 }
