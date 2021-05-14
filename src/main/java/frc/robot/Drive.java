@@ -96,17 +96,29 @@ public class Drive {
                                               WheelProperties.REAR_LEFT_WHEEL.getRotateSensorId(),
                                               WheelProperties.REAR_LEFT_WHEEL.getOffsetDegrees(),
                                               WheelProperties.REAR_LEFT_WHEEL);
-
-    // The literal lengths and widths of the robot. Look to the swerve drive Google Doc
-    // Note: these fields are static because they must be. They are referenced in the enum, which is in and of itself, static.
-    private static final double robotLength = 0.0; // TODO: make sure to replace the 0.0's with actual values
-    private static final double robotWidth = 0.0; // TODO: make sure to replace the 0.0's with actual values
+    
+    /**
+     * The literal lengths and widths of the robot. Look to the swerve drive Google Doc
+     * Note: these fields are static because they must be. They are referenced in the enum, which is in and of itself, static.
+     * In inches
+     */
+    private static final double robotLength = 30.0;
+    private static final double robotWidth  = 18.0;
 
     // TODO: Question for any one of the mentors, are these declarations and instantiations in memory done only once at the start when the robot is started and the code loads? I would assume so, which is why I'm not putting these in the constructor, to save unnecessary compute power if we would ever instantiate more than one of the Drive objects
     // Note: this field is static because it must be. It is referenced in the enum, which is in and of itself, static.
     private static final double rotateMotorAngle = Math.atan2(robotLength, robotWidth);
+    private static final double rotateMotorAngleRad = Math.atan2(robotLength, robotWidth);
+    private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
+
+    // These numbers were selected to make the angles between -180 and +180
+    private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg;
+    private static final double rotateLeftFrontMotorAngle = rotateRightFrontMotorAngle - 90;
+    private static final double rotateRightRearMotorAngle = rotateRightFrontMotorAngle + 90;
+    private static final double rotateLeftRearMotorAngle =  rotateRightFrontMotorAngle + 180;
 
     public Drive() {
+        //
     }
 
     public void teleopCrabDrive(double wheelAngle, double drivePower){
@@ -128,8 +140,14 @@ public class Drive {
     }
 
 
+    public void teleopRotate(double rotatePower) {
+        frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, rotatePower);
+        frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower);
+        rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower);
+        rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower);
+    }
     
-    public void teleopRotate(double joystickZValue) {
+    public void teleopRotateOld(double joystickZValue) {
         /**
          * Check at what voltage the rotateSensor is at
          * Calculate what angle that voltage correlates to
