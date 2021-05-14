@@ -104,7 +104,6 @@ public class Drive {
      */
     private static final double robotLength = 30.0;
     private static final double robotWidth  = 18.0;
-
     // TODO: Question for any one of the mentors, are these declarations and instantiations in memory done only once at the start when the robot is started and the code loads? I would assume so, which is why I'm not putting these in the constructor, to save unnecessary compute power if we would ever instantiate more than one of the Drive objects
     // Note: this field is static because it must be. It is referenced in the enum, which is in and of itself, static.
     private static final double rotateMotorAngle = Math.atan2(robotLength, robotWidth);
@@ -121,30 +120,35 @@ public class Drive {
         //
     }
 
+    /**
+     * The unfinished Swerve Drive program.
+     * @param targetWheelAngle
+     * @param drivePower
+     * @param joystickZ
+     */
+    public void swerveDrive(double targetWheelAngle, double drivePower, double joystickZ) {
+        //
+    }
+
+    /**
+     * The current Crab Drive program.
+     * @param wheelAngle
+     * @param drivePower
+     */
     public void teleopCrabDrive(double wheelAngle, double drivePower){
-        /*frontRightWheel.powerDriveMotor(power);
-        frontLeftWheel.powerDriveMotor(power);
-        rearRightWheel.powerDriveMotor(power);
-        rearLeftWheel.powerDriveMotor(power);
-
-        // frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
-
-        /*if(frontRightWheel.getRotateMotorPosition() > rotation + 2){
-            
-        }*/
-
-        frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
-        frontLeftWheel.rotateAndDrive(wheelAngle, drivePower);
-        rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
         rearLeftWheel.rotateAndDrive(wheelAngle, drivePower);
     }
 
-
+    /**
+     * A positive rotate power will make it rotate counter-clockwise and a negative will make it rotate clockwise
+     * We don't want this therefore the motors will RECIEVE a negated power. 
+     * @param rotatePower
+     */
     public void teleopRotate(double rotatePower) {
-        frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, rotatePower);
-        frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower);
-        rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower);
-        rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower);
+        frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, rotatePower * -1);
+        frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower * -1);
+        rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
+        rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
     
     public void teleopRotateOld(double joystickZValue) {
@@ -156,7 +160,11 @@ public class Drive {
          */
 
         // TODO: Check whether the signs of the voltages are correct as well.
-        if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) && (frontLeftWheel.getRotateMotorPosition() >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) && (rearRightWheel.getRotateMotorPosition() >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) && (rearLeftWheel.getRotateMotorPosition() >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
+        if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) &&
+            (frontLeftWheel.getRotateMotorPosition()  >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) &&
+            (rearRightWheel.getRotateMotorPosition()  >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) &&
+            (rearLeftWheel.getRotateMotorPosition()   >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
+            
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerDriveMotor(double power) calls as well.
             frontRightWheel.setDriveMotorPower(joystickZValue);
             frontLeftWheel.setDriveMotorPower(joystickZValue);
@@ -170,22 +178,29 @@ public class Drive {
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerRotateMotor(double power) calls as well.
             // TODO: Check whether the signs of the voltages are correct as well.
             frontRightWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             frontRightWheel.setRotateMotorPower(0);
         }
+
         if (frontLeftWheel.getRotateMotorPosition() < WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) {
             frontLeftWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             frontLeftWheel.setRotateMotorPower(0);
         }
+
         if (rearRightWheel.getRotateMotorPosition() < WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) {
             rearRightWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             rearRightWheel.setRotateMotorPower(0);
         }
+
         if (rearLeftWheel.getRotateMotorPosition() < WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage()) {
             rearLeftWheel.setRotateMotorPower(1);
-        } else {
+        }
+        else {
             rearLeftWheel.setRotateMotorPower(0);
         }
 

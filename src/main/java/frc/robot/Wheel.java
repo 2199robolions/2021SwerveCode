@@ -30,7 +30,7 @@ public class Wheel {
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
-    private static final double kP = 0.03; //0.002
+    private static final double kP = 0.03;
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
@@ -51,6 +51,11 @@ public class Wheel {
         rotationPID.enableContinuousInput(-180, 180);
     }
 
+    /**
+     * This is the Crab Drive program that the robot currently opperates with.
+     * @param targetWheelAngle
+     * @param drivePower
+     */
     public void rotateAndDrive(double targetWheelAngle, double drivePower) {
         double currWheelAngle;
         double rotatePower;
@@ -64,7 +69,6 @@ public class Wheel {
         // 20       .2
         // 10       .1
         // 5        .05
-
         currWheelAngle = getRotateMotorPosition();
 
         /**
@@ -95,15 +99,19 @@ public class Wheel {
         //System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);        
     }
 
-
     /**
-     * If power is negative then the wheels rotate clockwise
-     * If power is positive then the wheels rotate counter-clockwise
+     * If power is negative then the wheels rotate clockwise.
+     * If power is positive then the wheels rotate counter-clockwise.
+     * @param power
      */
     public void setRotateMotorPower(double power) {
         rotateMotor.set(power);
     }
 
+    /**
+     * Sets the power of the drive motors.
+     * @param power
+     */
     public void setDriveMotorPower(double power) {
         //Wheels always go forward. To go reverse, rotate wheels
         if ((name == Drive.WheelProperties.FRONT_LEFT_WHEEL) || 
@@ -115,7 +123,10 @@ public class Wheel {
         }
     }
 
-    //Makes the returned value -180 to 180
+    /**
+     * Makes the returned value -180 to 180 degrees.
+     * @return degrees
+     */
     public double getRotateMotorPosition() {
         double adjustedValue = rotateMotorSensor.get();
         

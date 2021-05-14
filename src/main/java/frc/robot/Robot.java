@@ -10,6 +10,8 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  private double rotatePower;
+
   private Drive drive = new Drive();
   private Controls controls = new Controls();
 
@@ -46,12 +48,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    // TODO: Test the teleop rotate. Teleop rotate will most likely be packaged in a single teleop control method, so this is just to package it in one place.
-    //drive.teleopRotate(controls.getJoystickZ());
+    //
   }
 
   @Override
   public void teleopPeriodic() {
+    rotatePower = controls.getRotatePower();
     //wheelControl();
     drive.teleopRotate(rotatePower);
   }
@@ -69,14 +71,19 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
     //drive.testPID();
-    /drive.testRotate();
+    //drive.testRotate();
     //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
   }
 
 
-  public void wheelControl(){
-    double drivePower = controls.getDrivePower();
+  public void wheelControl() {
+    drive.teleopCrabDrive(0, 0);
+  }
+
+  public void crabDrive() {
     double wheelAngle = controls.getDriveAngle();
+    double drivePower = controls.getDrivePower();
+    
     drive.teleopCrabDrive(wheelAngle, drivePower);
   }
 }
