@@ -136,7 +136,10 @@ public class Drive {
      * @param drivePower
      */
     public void teleopCrabDrive(double wheelAngle, double drivePower){
+        frontLeftWheel.rotateAndDrive(wheelAngle, drivePower);
+        frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
         rearLeftWheel.rotateAndDrive(wheelAngle, drivePower);
+        rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
     }
 
     /**

@@ -38,15 +38,13 @@ public class Controls {
      */
     public double getDriveAngle() {
         double deadZone = 0.1;
-        //double degClamp;
 
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         
         double rad = Math.atan2(x, y);
         double deg = Math.toDegrees(rad);
-        //double degClamp;
-        //degClamp = MathUtil.clamp(deg, 0, 360);
+        //double = MathUtil.clamp(deg, 0, 360);
 
         // Drive Power is always positive
         double drivePower = getDrivePower();
@@ -61,6 +59,23 @@ public class Controls {
         }
     }
 
+    /**
+     * Positive values are from clockwise rotation 
+     * and negative values are from conter-clockwise
+     */
+    public double getRotatePower() {
+        double deadZone = 0.05;
+
+        double power = joystick.getZ();
+
+        if ((power < deadZone) && (power > -deadZone)) {
+            return 0;
+        }
+        else {
+            return power;
+        }
+    }
+
     public double getDrivePower(){
         double x = joystick.getX();
         double y = joystick.getY() * -1;
@@ -72,18 +87,6 @@ public class Controls {
         //hypClamp = hyp / Math.sqrt(2);
         
         return hypClamp;
-    }
-
-    /**
-     * Positive values are from clockwise rotation 
-     * and negative values are from conter-clockwise
-     */
-    public double getRotatePower() {
-        return joystick.getZ();
-    }
-
-    public double getJoystickZ() {
-        return joystick.getZ();
     }
     
 }
