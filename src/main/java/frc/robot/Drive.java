@@ -62,6 +62,7 @@ public class Drive {
             return this.rotateSensorId;
         }
 
+        //We prefer to use degrees
         private double getTargetRadians() {
             return this.targetRadians;
         }
@@ -100,7 +101,7 @@ public class Drive {
     /**
      * The literal lengths and widths of the robot. Look to the swerve drive Google Doc
      * Note: these fields are static because they must be. They are referenced in the enum, which is in and of itself, static.
-     * In inches
+     * These measurements are in inches
      */
     private static final double robotLength = 30.0;
     private static final double robotWidth  = 18.0;
@@ -124,9 +125,9 @@ public class Drive {
      * The unfinished Swerve Drive program.
      * @param targetWheelAngle
      * @param drivePower
-     * @param joystickZ
+     * @param rotatePower
      */
-    public void swerveDrive(double targetWheelAngle, double drivePower, double joystickZ) {
+    public void swerveDrive(double targetWheelAngle, double drivePower, double rotatePower) {
         //
     }
 
@@ -154,7 +155,7 @@ public class Drive {
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
     
-    public void teleopRotateOld(double joystickZValue) {
+    public void teleopRotateOld(double rotatePower) {
         /**
          * Check at what voltage the rotateSensor is at
          * Calculate what angle that voltage correlates to
@@ -169,10 +170,10 @@ public class Drive {
             (rearLeftWheel.getRotateMotorPosition()   >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
             
             // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerDriveMotor(double power) calls as well.
-            frontRightWheel.setDriveMotorPower(joystickZValue);
-            frontLeftWheel.setDriveMotorPower(joystickZValue);
-            rearRightWheel.setDriveMotorPower(joystickZValue);
-            rearLeftWheel.setDriveMotorPower(joystickZValue);
+            frontRightWheel.setDriveMotorPower(rotatePower);
+            frontLeftWheel.setDriveMotorPower(rotatePower);
+            rearRightWheel.setDriveMotorPower(rotatePower);
+            rearLeftWheel.setDriveMotorPower(rotatePower);
             
             return;
         }

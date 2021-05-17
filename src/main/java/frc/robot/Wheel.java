@@ -83,7 +83,7 @@ public class Wheel {
          */
         rotatePower = rotationPID.calculate(currWheelAngle, targetWheelAngle);
         
-        System.out.println("Pwr " + rotatePower + " curr " + (int)currWheelAngle + " tgt " + (int)targetWheelAngle);
+        //System.out.println("Pwr " + rotatePower + " curr " + (int)currWheelAngle + " tgt " + (int)targetWheelAngle);
 
         rotatePower = MathUtil.clamp(rotatePower, -1, 1);
 
@@ -124,7 +124,7 @@ public class Wheel {
     }
 
     /**
-     * Makes the returned value -180 to 180 degrees.
+     * Makes the returned value of the sensors -180 to 180 degrees.
      * @return degrees
      */
     public double getRotateMotorPosition() {
