@@ -11,7 +11,10 @@ public class Robot extends TimedRobot {
   public static final int DONE =  2;
   public static final int CONT =  3;
 
-  //AUTO SELECTOR
+  /**
+   * AUTO SELECTORS
+   */
+  //Auto Modes
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
@@ -37,6 +40,10 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    /**
+     * AUTO CHOOSERS
+     */
+    //Auto Modes
     m_autoSelected = m_chooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
