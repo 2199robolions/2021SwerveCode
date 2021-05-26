@@ -125,6 +125,15 @@ public class Drive {
             this.power = powerParam;
             this.angle = angleParam;
         }
+
+        // added getters
+        public double getPower()  {
+            return power;
+        }
+
+        public double getAngle()  {
+            return angle;
+        }
     }
 
 
@@ -145,7 +154,9 @@ public class Drive {
         swerveY = driveY + (rotatePower * Math.cos(Math.toRadians(rotateAngle)));
         //Issue occurs around here
         swervePower = Math.sqrt((swerveX*swerveX) + (swerveY*swerveY));
-        swerveAngle = Math.atan2(swerveX, swerveY);
+        // should this be (y,x) ???
+        // converted radians to degrees
+        swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
 
         PowerAndAngle swerveNums = new PowerAndAngle(swervePower, swerveAngle);
 
@@ -162,18 +173,18 @@ public class Drive {
         PowerAndAngle coor;
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle);
-        frontRightWheel.rotateAndDrive(coor.angle, coor.power);
+        frontRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
         //System.out.println("FR angle: " + coor.angle + " FR power " + coor.power);
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftFrontMotorAngle);
-        frontLeftWheel.rotateAndDrive(coor.angle, coor.power);
+        frontLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
         //System.out.println("FL angle: " + coor.angle + " FR power " + coor.power);
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateRightRearMotorAngle);
-        rearRightWheel.rotateAndDrive(coor.angle, coor.power);
+        rearRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftRearMotorAngle);
-        rearLeftWheel.rotateAndDrive(coor.angle, coor.power);
+        rearLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
     }
 
     /**
