@@ -110,15 +110,46 @@ public class Drive {
     private static final double rotateMotorAngle = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleRad = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
-
+ 
     // These numbers were selected to make the angles between -180 and +180
     private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg;
     private static final double rotateLeftFrontMotorAngle = rotateRightFrontMotorAngle - 90;
     private static final double rotateRightRearMotorAngle = rotateRightFrontMotorAngle + 90;
     private static final double rotateLeftRearMotorAngle =  rotateRightFrontMotorAngle + 180;
 
+    public class PowerAndAngle{
+        public double power;
+        public double angle;
+
+        public PowerAndAngle(double powerParam, double angleParam){
+            this.power = powerParam;
+            this.angle = angleParam;
+        }
+    }
+
+
     public Drive() {
         //
+    }
+
+    public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
+        double swerveX;
+        double swerveY;
+        double swervePower;
+        double swerveAngle;
+        //System.out.println("X:" + (float)driveX + " Y:" + (float)driveY);
+        //System.out.println("RotatePower:" + rotatePower + " RotateAngle:" + rotateAngle);
+        System.out.println("RotateX:" + rotatePower * Math.sin(Math.toRadians(rotateAngle)));
+
+        swerveX = driveX + (rotatePower * Math.sin(Math.toRadians(rotateAngle)));
+        swerveY = driveY + (rotatePower * Math.cos(Math.toRadians(rotateAngle)));
+        //Issue occurs around here
+        swervePower = Math.sqrt((swerveX*swerveX) + (swerveY*swerveY));
+        swerveAngle = Math.atan2(swerveX, swerveY);
+
+        PowerAndAngle swerveNums = new PowerAndAngle(swervePower, swerveAngle);
+
+        return swerveNums;
     }
 
     /**
@@ -127,8 +158,22 @@ public class Drive {
      * @param drivePower
      * @param rotatePower
      */
-    public void swerveDrive(double targetWheelAngle, double drivePower, double rotatePower) {
-        //
+    public void teleopSwerve(double driveX, double driveY, double rotatePower) {
+        PowerAndAngle coor;
+
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle);
+        frontRightWheel.rotateAndDrive(coor.angle, coor.power);
+        //System.out.println("FR angle: " + coor.angle + " FR power " + coor.power);
+
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftFrontMotorAngle);
+        frontLeftWheel.rotateAndDrive(coor.angle, coor.power);
+        //System.out.println("FL angle: " + coor.angle + " FR power " + coor.power);
+
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightRearMotorAngle);
+        rearRightWheel.rotateAndDrive(coor.angle, coor.power);
+
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftRearMotorAngle);
+        rearLeftWheel.rotateAndDrive(coor.angle, coor.power);
     }
 
     /**

@@ -22,6 +22,8 @@ public class Robot extends TimedRobot {
 
   //VARIABLES
   private double rotatePower;
+  private double driveX;
+  private double driveY;
 
   //OBJECT CREATION
   private Drive    drive    = new Drive();
@@ -70,8 +72,13 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     rotatePower = controls.getRotatePower();
+    driveX      = controls.getDriveX();
+    driveY      = controls.getDriveY();
+    drive.teleopSwerve(driveX, driveY, rotatePower);
+
     //wheelControl();
-    drive.teleopRotate(rotatePower);
+    //drive.teleopRotate(rotatePower);
+
   }
 
   @Override

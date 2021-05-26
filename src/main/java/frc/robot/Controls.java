@@ -88,5 +88,12 @@ public class Controls {
         
         return hypClamp;
     }
-    
+
+    public double getDriveX(){
+        return joystick.getX();
+    }
+
+    public double getDriveY(){
+        return joystick.getY() * -1;
+    }
 }
