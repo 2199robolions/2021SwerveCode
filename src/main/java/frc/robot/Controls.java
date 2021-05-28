@@ -66,7 +66,7 @@ public class Controls {
      * @return rotatePower
      */
     public double getRotatePower() {
-        double deadZone = 0.1;
+        double deadZone = 0.2;
 
         double powerCubed;
         double power = joystick.getZ();
@@ -76,8 +76,8 @@ public class Controls {
         }
         else {
             //Cubing power because the rotate is SUPER sensitive
-            
             powerCubed = Math.pow(power, 3); 
+            
             return powerCubed;
         }        
     }
