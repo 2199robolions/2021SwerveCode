@@ -26,9 +26,18 @@ public class Robot extends TimedRobot {
   private double driveY;
 
   //OBJECT CREATION
-  private Drive    drive    = new Drive();
-  private Controls controls = new Controls();
+  private LedLights led;
+  private Drive     drive;
+  private Controls  controls;
 
+  public Robot() {
+    //Instance Creation
+    led      = new LedLights();
+    drive    = new Drive();
+    controls = new Controls();
+
+    //Set Variables
+  }
 
   @Override
   public void robotInit() {
@@ -111,4 +120,5 @@ public class Robot extends TimedRobot {
     
     drive.teleopCrabDrive(wheelAngle, drivePower);
   }
-}
+
+} // End of the Robot Class

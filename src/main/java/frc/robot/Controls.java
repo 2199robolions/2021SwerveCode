@@ -130,4 +130,5 @@ public class Controls {
             return power;
         }        
     }
-}
+
+} // End of the Controls class

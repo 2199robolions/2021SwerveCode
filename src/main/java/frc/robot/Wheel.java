@@ -151,4 +151,4 @@ public class Wheel {
         return adjustedValue;
     }
 
-}
+} // End of the Wheel Class
