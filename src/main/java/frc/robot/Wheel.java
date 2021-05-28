@@ -70,6 +70,7 @@ public class Wheel {
         // 10       .1
         // 5        .05
         currWheelAngle = getRotateMotorPosition();
+        
 
         /**
          * If PID is 0 to 360
@@ -94,9 +95,11 @@ public class Wheel {
          */
         setRotateMotorPower(-1 * rotatePower);
 
+
+        drivePower = MathUtil.clamp(drivePower, -1, 1);
         setDriveMotorPower(drivePower);
 
-        //System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);        
+        //System.out.println(" Cur " + currWheelAngle + " Tgt " + targetWheelAngle);
     }
 
     /**

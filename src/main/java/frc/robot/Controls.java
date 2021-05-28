@@ -35,6 +35,7 @@ public class Controls {
     /**
      * 0 degrees is forward on the Joystick
      * this method returns values from -180 to +180
+     * @return driveAngle
      */
     public double getDriveAngle() {
         double deadZone = 0.1;
@@ -61,21 +62,30 @@ public class Controls {
 
     /**
      * Positive values are from clockwise rotation 
-     * and negative values are from conter-clockwise
+     * and negative values are from counter-clockwise
+     * @return rotatePower
      */
     public double getRotatePower() {
-        double deadZone = 0.05;
+        double deadZone = 0.1;
 
+        double powerCubed;
         double power = joystick.getZ();
 
-        if ((power < deadZone) && (power > -deadZone)) {
+        if ((power < deadZone) && (power > (deadZone * -1))) {
             return 0;
         }
         else {
-            return power;
-        }
+            //Cubing power because the rotate is SUPER sensitive
+            
+            powerCubed = Math.pow(power, 3); 
+            return powerCubed;
+        }        
     }
 
+    /**
+     * Gets the drive power
+     * @return drivePower
+     */
     public double getDrivePower(){
         double x = joystick.getX();
         double y = joystick.getY() * -1;
@@ -89,11 +99,35 @@ public class Controls {
         return hypClamp;
     }
 
+    /**
+     * Gets the drive X
+     * @return driveX
+     */
     public double getDriveX(){
-        return joystick.getX();
+        double power = joystick.getX();
+        double deadZone = 0.1;
+
+        if ((power < deadZone) && (power > (deadZone * -1))) {
+            return 0;
+        }
+        else {
+            return power;
+        }
     }
 
+    /**
+     * Gets the drive Y
+     * @return driveY
+     */
     public double getDriveY(){
-        return joystick.getY() * -1;
+        double power = joystick.getY() * -1;
+        double deadZone = 0.1;
+
+        if ((power < deadZone) && (power > (deadZone * -1))) {
+            return 0;
+        }
+        else {
+            return power;
+        }        
     }
 }

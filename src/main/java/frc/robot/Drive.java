@@ -146,17 +146,32 @@ public class Drive {
         double swerveY;
         double swervePower;
         double swerveAngle;
+        double rotateX;
+        double rotateY;
+
         //System.out.println("X:" + (float)driveX + " Y:" + (float)driveY);
         //System.out.println("RotatePower:" + rotatePower + " RotateAngle:" + rotateAngle);
-        System.out.println("RotateX:" + rotatePower * Math.sin(Math.toRadians(rotateAngle)));
+        //System.out.println("RotateX:" + rotatePower * Math.sin(Math.toRadians(rotateAngle)));
 
-        swerveX = driveX + (rotatePower * Math.sin(Math.toRadians(rotateAngle)));
-        swerveY = driveY + (rotatePower * Math.cos(Math.toRadians(rotateAngle)));
+        /**
+         * The incomming rotate angle will cause the robot to rotate counter-clockwise
+         * the incomming power is negative for a counter-clockwise rotation and vise versa for clockwise
+         * therefore, we want power to be positive to achieve a counter-clockwise rotation
+         * which means that we have to multiply the power by negative 1  
+         */ 
+        rotateX = (-1 * rotatePower) * Math.sin(Math.toRadians(rotateAngle));
+        rotateY = (-1 * rotatePower) * Math.cos(Math.toRadians(rotateAngle));
+
+        swerveX = driveX + rotateX;
+        swerveY = driveY + rotateY;
+
+        //System.out.println("swerveX:" + swerveX + " swerveY:" + swerveY);
         //Issue occurs around here
-        swervePower = Math.sqrt((swerveX*swerveX) + (swerveY*swerveY));
-        // should this be (y,x) ???
+        swervePower = Math.sqrt((swerveX * swerveX) + (swerveY * swerveY));
         // converted radians to degrees
+        //Definetely x, y
         swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
+        //System.out.println("swerveAngle:" + swerveAngle);
 
         PowerAndAngle swerveNums = new PowerAndAngle(swervePower, swerveAngle);
 
