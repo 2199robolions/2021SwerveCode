@@ -12,13 +12,20 @@ public class Robot extends TimedRobot {
   public static final int CONT =  3;
 
   /**
-   * AUTO SELECTORS
+   * SMART DASHBOARD CHOICES
    */
   //Auto Modes
   private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
+  private static final String kCustomAuto  = "My Auto";
+  private              String m_autoSelected;
+  private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
+
+  //Alliance Color
+  private static final String kDefaultColor = "Default";
+  private static final String kRedAlliance  = "Red";
+  private static final String kBlueAlliance = "Blue";
+  private              String m_colorSelected;
+  private final SendableChooser<String> m_colorChooser = new SendableChooser<>();
 
   //VARIABLES
   private double rotatePower;
@@ -41,9 +48,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
+    /**
+     * SMART DASHBOARD CHOICES
+     */
+    //Auto Modes
+    m_pathChooser.setDefaultOption("Default Auto", kDefaultAuto);
+    m_pathChooser.addOption("My Auto", kCustomAuto);
+    SmartDashboard.putData("Auto choices", m_pathChooser);
+
+    //Alliance Color
+    m_colorChooser.setDefaultOption("Default Color", kDefaultColor);
+    m_colorChooser.addOption("Blue Alliance", kBlueAlliance);
+    m_colorChooser.addOption("Red Alliance", kRedAlliance);
+    SmartDashboard.putData("Auto choices", m_colorChooser);
   }
 
   @Override
@@ -57,9 +74,11 @@ public class Robot extends TimedRobot {
      * AUTO CHOOSERS
      */
     //Auto Modes
-    m_autoSelected = m_chooser.getSelected();
+    m_autoSelected = m_pathChooser.getSelected();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
     System.out.println("Auto selected: " + m_autoSelected);
+    //LED Color Set
+    led.autoMode();
   }
 
   @Override
@@ -77,17 +96,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
-    //
+    //Alliance Color Selected
+    m_colorSelected = m_colorChooser.getSelected();
+    System.out.println("Alliance selected: " + m_colorSelected);
   }
 
   @Override
   public void teleopPeriodic() {
-    rotatePower = controls.getRotatePower();
-    driveX      = controls.getDriveX();
-    driveY      = controls.getDriveY();
-    drive.teleopSwerve(driveX, driveY, rotatePower);
 
-    //wheelControl();
+    //Controls the wheels
+    wheelControl();
+
+    //Sets the color of the LED's (when we get them)
+    led.defaultMode(m_colorSelected);
     //drive.teleopRotate(rotatePower);
 
   }
@@ -100,6 +121,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
+    m_colorSelected = m_colorChooser.getSelected();
+    System.out.println("Alliance selected: " + m_colorSelected);
   }
 
   @Override
@@ -109,9 +132,14 @@ public class Robot extends TimedRobot {
     //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
   }
 
-
+  /**
+   * The program to control the wheels in swerve drive
+   */
   public void wheelControl() {
-    drive.teleopCrabDrive(0, 0);
+    rotatePower = controls.getRotatePower();
+    driveX      = controls.getDriveX();
+    driveY      = controls.getDriveY();
+    drive.teleopSwerve(driveX, driveY, rotatePower);
   }
 
   public void crabDrive() {

@@ -13,7 +13,7 @@ package frc.robot;
 //import jdk.nashorn.internal.ir.BreakableNode;
 
 public class Auto {
-	//Variables
+	// Variables
 	private int          step;
 	private long         startMs; 
 	private boolean      firstTime = true;
@@ -26,6 +26,7 @@ public class Auto {
 	//private Conveyer    conveyer;
 	//private Shooter     shooter;
 
+	// Consants
 	private final int TEST_DELAY = 1000;
 	private final int SHOOT_TIME = 5000;
 
