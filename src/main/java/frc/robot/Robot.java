@@ -149,4 +149,11 @@ public class Robot extends TimedRobot {
     drive.teleopCrabDrive(wheelAngle, drivePower);
   }
 
+  public static void getFieldDrive(){
+    return controls.fieldDrive();
+  }
+  public static void getYaw(){
+    return drive.getYaw();
+  }
+
 } // End of the Robot Class

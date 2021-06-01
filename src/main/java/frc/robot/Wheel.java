@@ -69,7 +69,14 @@ public class Wheel {
         // 20       .2
         // 10       .1
         // 5        .05
-        currWheelAngle = getRotateMotorPosition();
+
+        if (Robot.getFieldDrive() == false) {
+            currWheelAngle = getRotateMotorPosition();
+        }
+        else if (Robot.getFieldDrive() == true){
+            //In field drive, the wheels' angles will be the robot's direction + the wheels' directions
+            currWheelAngle = adjustValue(getRotateMotorPosition() + Robot.getYaw());
+        }
         
 
         /**
@@ -126,10 +133,34 @@ public class Wheel {
         }
     }
 
+    //Brings angle values from -180 to 180
+    public double adjustValue(double input){
+        double adjustedValue = input;
+
+        if ((adjustedValue >= 0) && (adjustedValue <= 180)) {
+            //Does nothing to adjustedValue
+        }
+        else if ((adjustedValue <= 0) && (adjustedValue >= -180)) {
+            //Does nothing to adjustedValue
+        }
+        else if(adjustedValue > 180) {
+            //Makes all values greater than 180 less than it
+            adjustedValue -= 360;
+        }
+        else if(adjustedValue < -180) {
+            //Makes all values less than -180 greater than it
+            adjustedValue += 360;
+        }
+        
+        return adjustedValue;
+    }
+
     /**
      * Makes the returned value of the sensors -180 to 180 degrees.
      * @return degrees
      */
+
+    //To-do: use adjustValue function above in this function
     public double getRotateMotorPosition() {
         double adjustedValue = rotateMotorSensor.get();
         
