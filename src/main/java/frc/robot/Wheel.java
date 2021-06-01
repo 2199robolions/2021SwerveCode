@@ -40,7 +40,27 @@ public class Wheel {
     private PIDController rotationPID;
 
     //NAVX
-    private AHRS ahrs;
+    private static AHRS ahrs;
+	try {
+		ahrs = new AHRS(SPI.Port.kMXP);
+	} catch (RuntimeException ex) {
+		System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
+	}
+
+	ahrs.reset();
+
+	while (ahrs.isConnected() == false) {
+		// System.out.println("Connecting navX");
+	}
+	System.out.println("navX Connected");
+
+	while (ahrs.isCalibrating() == true) {
+		System.out.println("Calibrating navX");
+	}
+	System.out.println("navx Ready");
+
+	// At Start, Set navX to ZERO
+    ahrs.zeroYaw();
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
@@ -59,28 +79,6 @@ public class Wheel {
         //this.rotateMotorSensor = new AnalogInput(rotateMotorSensorID);
         //Sensor measures from above going Counter clockwise
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);
-
-        //NAVX
-		try {
-			ahrs = new AHRS(SPI.Port.kMXP);
-		} catch (RuntimeException ex) {
-			System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
-		}
-
-		ahrs.reset();
-
-		while (ahrs.isConnected() == false) {
-			// System.out.println("Connecting navX");
-		}
-		System.out.println("navX Connected");
-
-		while (ahrs.isCalibrating() == true) {
-			System.out.println("Calibrating navX");
-		}
-		System.out.println("navx Ready");
-
-		// At Start, Set navX to ZERO
-        ahrs.zeroYaw();
         
         //PID Controller
         rotationPID = new PIDController(kP, kI, kD);
@@ -231,12 +229,13 @@ public class Wheel {
 
     public boolean fieldDrive() {
         oldButton3State  = currbutton3State;
-        currbutton3State = controls.getFieldDrive();
+        currbutton3State = controls.toggleFieldDrive();
 
         //If the button was just pressed
         if((currbutton3State == true) && (oldButton3State == false)) {
             fieldDrive =! fieldDrive; //Switch the fieldDrive value
         }
+        System.out.println("Field Drive toggled to " + fieldDrive);
 
         return fieldDrive;
     }

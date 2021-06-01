@@ -135,7 +135,7 @@ public class Controls {
      * 
      * @return Whether or not field oriented drive should be activated
      */
-    public boolean getFieldDrive() {
+    public boolean toggleFieldDrive() {
         boolean fieldDrive;
         fieldDrive = joystick.getRawButton(3);
 
