@@ -2,12 +2,12 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.enums.RobotStatus;
-import com.kauailabs.navx.frc.AHRS;
 
 public class Drive {
-
+    
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
         // TODO: All of the below 0's should be replaced with real ID numbers
@@ -39,7 +39,6 @@ public class Drive {
         private double targetRadians;
         private double targetVoltage;
         private int offsetDegrees; //Inverse of the reading when wheel is physically at 0 degrees
-        private AHRS ahrs;
 
         // Each item in the enum will now have to be instantiated with a constructor with the all of the ids and the motor type constants. Look few lines above, where FRONT_RIGHT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), REAR_LEFT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), etc... are. These are what the constructor is for.
         private WheelProperties(int driveMotorId, int rotateMotorId, int rotateSensorId, double targetRadians, int offsetDegrees) {
@@ -138,28 +137,11 @@ public class Drive {
         }
     }
 
-
+    /**
+     * Contructor for the Drive class
+     */
     public Drive() {
-        try {
-			ahrs = new AHRS(SPI.Port.kMXP);
-		} catch (RuntimeException ex) {
-			System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
-		}
-
-		ahrs.reset();
-
-		while (ahrs.isConnected() == false) {
-			// System.out.println("Connecting navX");
-		}
-		System.out.println("navX Connected");
-
-		while (ahrs.isCalibrating() == true) {
-			System.out.println("Calibrating navX");
-		}
-		System.out.println("navx Ready");
-
-		// At Start, Set navX to ZERO
-		ahrs.zeroYaw();
+        //
     }
 
     public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
@@ -245,10 +227,6 @@ public class Drive {
         frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower * -1);
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
-    }
-
-    public double getYaw(){
-        return ahrs.getYaw();
     }
     
     public void teleopRotateOld(double rotatePower) {

@@ -5,10 +5,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
-    private boolean button3State = false;
-    private boolean oldButton3State = false;
-    private boolean fieldDrive = false;
-
+    
     private enum ControllerIDs {
         JOYSTICK(1),
         XBOXCONTROLLER(0);
@@ -89,7 +86,7 @@ public class Controls {
      * Gets the drive power
      * @return drivePower
      */
-    public double getDrivePower(){
+    public double getDrivePower() {
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         
@@ -106,7 +103,7 @@ public class Controls {
      * Gets the drive X
      * @return driveX
      */
-    public double getDriveX(){
+    public double getDriveX() {
         double power = joystick.getX();
         double deadZone = 0.1;
 
@@ -122,7 +119,7 @@ public class Controls {
      * Gets the drive Y
      * @return driveY
      */
-    public double getDriveY(){
+    public double getDriveY() {
         double power = joystick.getY() * -1;
         double deadZone = 0.1;
 
@@ -134,14 +131,14 @@ public class Controls {
         }        
     }
 
-    public boolean fieldDrive(){
-        oldState = currState;
-        currState = joystick.getRawButton(3);
+    /**
+     * 
+     * @return Whether or not field oriented drive should be activated
+     */
+    public boolean getFieldDrive() {
+        boolean fieldDrive;
+        fieldDrive = joystick.getRawButton(3);
 
-        //If the button was just pressed
-        if((currState == true) && (oldState == false)) {
-            fieldDrive != fieldDrive; //Switch the fieldDrive value
-        }
         return fieldDrive;
     }
 

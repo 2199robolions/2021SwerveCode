@@ -110,7 +110,6 @@ public class Robot extends TimedRobot {
     //Sets the color of the LED's (when we get them)
     led.defaultMode(m_colorSelected);
     //drive.teleopRotate(rotatePower);
-
   }
 
   @Override
@@ -147,13 +146,6 @@ public class Robot extends TimedRobot {
     double drivePower = controls.getDrivePower();
     
     drive.teleopCrabDrive(wheelAngle, drivePower);
-  }
-
-  public static void getFieldDrive(){
-    return controls.fieldDrive();
-  }
-  public static void getYaw(){
-    return drive.getYaw();
   }
 
 } // End of the Robot Class
