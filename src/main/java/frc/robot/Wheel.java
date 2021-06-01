@@ -41,26 +41,6 @@ public class Wheel {
 
     //NAVX
     private static AHRS ahrs;
-	try {
-		ahrs = new AHRS(SPI.Port.kMXP);
-	} catch (RuntimeException ex) {
-		System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
-	}
-
-	ahrs.reset();
-
-	while (ahrs.isConnected() == false) {
-		// System.out.println("Connecting navX");
-	}
-	System.out.println("navX Connected");
-
-	while (ahrs.isCalibrating() == true) {
-		System.out.println("Calibrating navX");
-	}
-	System.out.println("navx Ready");
-
-	// At Start, Set navX to ZERO
-    ahrs.zeroYaw();
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
@@ -86,6 +66,28 @@ public class Wheel {
 
         //Instance Creation
         controls = new Controls();
+
+        //NavX
+        try {
+            ahrs = new AHRS(SPI.Port.kMXP);
+        } catch (RuntimeException ex) {
+            System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
+        }
+    
+        ahrs.reset();
+    
+        while (ahrs.isConnected() == false) {
+            // System.out.println("Connecting navX");
+        }
+        System.out.println("navX Connected");
+    
+        while (ahrs.isCalibrating() == true) {
+            System.out.println("Calibrating navX");
+        }
+        System.out.println("navx Ready");
+    
+        // At Start, Set navX to ZERO
+        ahrs.zeroYaw();
     }
 
     /**
