@@ -2,12 +2,10 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.enums.RobotStatus;
 
 public class Drive {
-    
+
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
         // TODO: All of the below 0's should be replaced with real ID numbers

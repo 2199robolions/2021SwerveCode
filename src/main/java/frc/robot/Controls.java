@@ -2,6 +2,7 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
@@ -31,6 +32,10 @@ public class Controls {
     public Controls() {
         //
     }
+
+    /**
+     * Theses are all Functions of the JoyStick
+     */
 
     /**
      * 0 degrees is forward on the Joystick
@@ -141,5 +146,32 @@ public class Controls {
 
         return fieldDrive;
     }
+
+    /**
+     * 
+     * @return Whether or not the limelight should target
+     */
+    public boolean enableTargetLock() {
+        boolean isPressed;
+        isPressed = joystick.getRawButtonPressed(100); // This needs to become an actual button sonner or later
+        
+        return isPressed;
+    }
+
+    /**
+     * 
+     * @return Whether or not the shooter should fire
+     */
+    public boolean enableShooter() {
+        boolean isPressed;
+        isPressed = joystick.getTrigger();
+        
+        return isPressed;
+    }
+
+
+    /**
+     * These are all Functions of the Xbox controller
+     */
 
 } // End of the Controls class

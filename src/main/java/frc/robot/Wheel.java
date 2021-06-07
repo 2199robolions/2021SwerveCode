@@ -16,9 +16,9 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Wheel {
     // Variables
-    private boolean currbutton3State = false;
-    private boolean oldButton3State  = false;
-    private boolean fieldDrive       = false;
+    private boolean currButtonState = false;
+    private boolean oldButtonState  = false;
+    private boolean fieldDrive      = false;
 
     //private double currWheelAngle;
 
@@ -77,7 +77,7 @@ public class Wheel {
         ahrs.reset();
     
         while (ahrs.isConnected() == false) {
-            // System.out.println("Connecting navX");
+            System.out.println("Connecting navX");
         }
         System.out.println("navX Connected");
     
@@ -109,7 +109,7 @@ public class Wheel {
         // 10       .1
         // 5        .05
 
-        if (fieldDrive() == true){
+        if (fieldDrive() == true) {
             //In field drive, the wheels' angles will be the robot's direction + the wheels' directions
             currWheelAngle = adjustValue(getRotateMotorPosition() + getYaw());
         }
@@ -230,11 +230,11 @@ public class Wheel {
     }
 
     public boolean fieldDrive() {
-        oldButton3State  = currbutton3State;
-        currbutton3State = controls.toggleFieldDrive();
+        oldButtonState  = currButtonState;
+        currButtonState = controls.toggleFieldDrive();
 
         //If the button was just pressed
-        if((currbutton3State == true) && (oldButton3State == false)) {
+        if((currButtonState == true) && (oldButtonState == false)) {
             fieldDrive =! fieldDrive; //Switch the fieldDrive value
         }
         System.out.println("Field Drive toggled to " + fieldDrive);
