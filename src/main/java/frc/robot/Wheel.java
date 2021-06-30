@@ -3,13 +3,27 @@ package frc.robot;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.VictorSP;
+
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.VictorSP;
+import edu.wpi.first.wpilibj.SPI;
+
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.controller.PIDController;
+
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Wheel {
+    // Variables
+    private boolean currButtonState = false;
+    private boolean oldButtonState  = false;
+    private boolean fieldDrive      = false;
+
+    //private double currWheelAngle;
+
+    //Object Creation
+    Controls controls;
 
     // Motor Controllers Declaration (instantiated in the constructor in order to dependency inject the IDs of each respective controller)
     private CANSparkMax driveMotor;
@@ -25,8 +39,8 @@ public class Wheel {
     private AnalogPotentiometer rotateMotorSensor;
     private PIDController rotationPID;
 
-    //PID Controller Declaration
-    //private PIDController pidController = new PIDController(kP, kI, kD);
+    //NAVX
+    private static AHRS ahrs;
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
     // TODO: make sure to replace the 0.0's with actual values
@@ -45,10 +59,35 @@ public class Wheel {
         //this.rotateMotorSensor = new AnalogInput(rotateMotorSensorID);
         //Sensor measures from above going Counter clockwise
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);
-
+        
         //PID Controller
         rotationPID = new PIDController(kP, kI, kD);
         rotationPID.enableContinuousInput(-180, 180);
+
+        //Instance Creation
+        controls = new Controls();
+
+        //NavX
+        try {
+            ahrs = new AHRS(SPI.Port.kMXP);
+        } catch (RuntimeException ex) {
+            System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
+        }
+    
+        ahrs.reset();
+    
+        while (ahrs.isConnected() == false) {
+            System.out.println("Connecting navX");
+        }
+        System.out.println("navX Connected");
+    
+        while (ahrs.isCalibrating() == true) {
+            System.out.println("Calibrating navX");
+        }
+        System.out.println("navx Ready");
+    
+        // At Start, Set navX to ZERO
+        ahrs.zeroYaw();
     }
 
     /**
@@ -69,8 +108,15 @@ public class Wheel {
         // 20       .2
         // 10       .1
         // 5        .05
-        currWheelAngle = getRotateMotorPosition();
-        
+
+        if (fieldDrive() == true) {
+            //In field drive, the wheels' angles will be the robot's direction + the wheels' directions
+            currWheelAngle = adjustValue(getRotateMotorPosition() + getYaw());
+        }
+        else {
+            //This occurs whenever Field Drive is not enabled, and for any other strange cases
+            currWheelAngle = getRotateMotorPosition();
+        }
 
         /**
          * If PID is 0 to 360
@@ -126,10 +172,34 @@ public class Wheel {
         }
     }
 
+    //Brings angle values from -180 to 180
+    public double adjustValue(double input){
+        double adjustedValue = input;
+
+        if ((adjustedValue >= 0) && (adjustedValue <= 180)) {
+            //Does nothing to adjustedValue
+        }
+        else if ((adjustedValue <= 0) && (adjustedValue >= -180)) {
+            //Does nothing to adjustedValue
+        }
+        else if(adjustedValue > 180) {
+            //Makes all values greater than 180 less than it
+            adjustedValue -= 360;
+        }
+        else if(adjustedValue < -180) {
+            //Makes all values less than -180 greater than it
+            adjustedValue += 360;
+        }
+        
+        return adjustedValue;
+    }
+
     /**
      * Makes the returned value of the sensors -180 to 180 degrees.
      * @return degrees
      */
+
+    //To-do: use adjustValue function above in this function
     public double getRotateMotorPosition() {
         double adjustedValue = rotateMotorSensor.get();
         
@@ -149,6 +219,27 @@ public class Wheel {
         }
         
         return adjustedValue;
+    }
+
+    /**
+     * The getyYaw function for the NavX
+     * @return The NavX's Yaw
+     */
+    public double getYaw(){
+        return ahrs.getYaw();
+    }
+
+    public boolean fieldDrive() {
+        oldButtonState  = currButtonState;
+        currButtonState = controls.toggleFieldDrive();
+
+        //If the button was just pressed
+        if((currButtonState == true) && (oldButtonState == false)) {
+            fieldDrive =! fieldDrive; //Switch the fieldDrive value
+        }
+        System.out.println("Field Drive toggled to " + fieldDrive);
+
+        return fieldDrive;
     }
 
 } // End of the Wheel Class
