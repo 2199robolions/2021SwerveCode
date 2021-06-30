@@ -1,11 +1,6 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot;
+
+import frc.robot.enums.RobotStatus;
 
 //import frc.robot.Conveyer.ConveyerState;
 //import frc.robot.Grabber.GrabberDirection;
@@ -20,8 +15,8 @@ public class Auto {
 
 	// Object creation
 	private LedLights   led;
-	private Wheel       wheel;
-	private Drive       drive;
+	//private Wheel       wheel;
+	//private Drive       drive;
 	//private Grabber     grabber;
 	//private Conveyer    conveyer;
 	//private Shooter     shooter;
@@ -36,7 +31,8 @@ public class Auto {
 	 */
 	public Auto (LedLights ledLights, Wheel wheel/*, Shooter shooter, Conveyer conveyer, Grabber grabber*/) {
 		led             = ledLights;
-		this.wheel      = wheel;
+		//this.wheel      = wheel;
+		//this.drive      = drive;
 		//this.shooter    = shooter;
 		//this.conveyer   = conveyer;
 		//this.grabber    = grabber;
