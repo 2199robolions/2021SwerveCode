@@ -2,10 +2,11 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Controls {
-
+    
     private enum ControllerIDs {
         JOYSTICK(1),
         XBOXCONTROLLER(0);
@@ -90,7 +91,7 @@ public class Controls {
      * Gets the drive power
      * @return drivePower
      */
-    public double getDrivePower(){
+    public double getDrivePower() {
         double x = joystick.getX();
         double y = joystick.getY() * -1;
         
@@ -107,7 +108,7 @@ public class Controls {
      * Gets the drive X
      * @return driveX
      */
-    public double getDriveX(){
+    public double getDriveX() {
         double power = joystick.getX();
         double deadZone = 0.1;
 
@@ -123,7 +124,7 @@ public class Controls {
      * Gets the drive Y
      * @return driveY
      */
-    public double getDriveY(){
+    public double getDriveY() {
         double power = joystick.getY() * -1;
         double deadZone = 0.1;
 
@@ -136,8 +137,41 @@ public class Controls {
     }
 
     /**
-     * XBOX CONTROLLER METHODS
+     * 
+     * @return Whether or not field oriented drive should be activated
      */
+    public boolean toggleFieldDrive() {
+        boolean fieldDrive;
+        fieldDrive = joystick.getRawButton(3);
+
+        return fieldDrive;
     }
+
+    /**
+     * 
+     * @return Whether or not the limelight should target
+     */
+    public boolean enableTargetLock() {
+        boolean isPressed;
+        isPressed = joystick.getRawButtonPressed(100); // This needs to become an actual button sonner or later
+        
+        return isPressed;
+    }
+
+    /**
+     * 
+     * @return Whether or not the shooter should fire
+     */
+    public boolean enableShooter() {
+        boolean isPressed;
+        isPressed = joystick.getTrigger();
+        
+        return isPressed;
+    }
+
+
+    /**
+     * These are all Functions of the Xbox controller
+     */
 
 } // End of the Controls class
