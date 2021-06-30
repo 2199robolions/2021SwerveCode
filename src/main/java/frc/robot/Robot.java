@@ -110,7 +110,6 @@ public class Robot extends TimedRobot {
     //Sets the color of the LED's (when we get them)
     led.defaultMode(m_colorSelected);
     //drive.teleopRotate(rotatePower);
-
   }
 
   @Override
