@@ -3,7 +3,6 @@ package frc.robot;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.enums.RobotStatus;
 
 public class Drive {
 
@@ -136,7 +135,9 @@ public class Drive {
         }
     }
 
-
+    /**
+     * Contructor for the Drive class
+     */
     public Drive() {
         //
     }
