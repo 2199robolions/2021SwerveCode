@@ -33,6 +33,10 @@ public class Controls {
     }
 
     /**
+     * JOYSTICK METHODS
+     */
+    
+     /**
      * 0 degrees is forward on the Joystick
      * this method returns values from -180 to +180
      * @return driveAngle
@@ -129,6 +133,26 @@ public class Controls {
         else {
             return power;
         }        
+    }
+
+    /**
+     * XBOX CONTROLLER METHODS
+     */
+    // Upper left, Up, and Upper right on the DPad returns forward
+    // Lower left, Down, and Lower right on the DPad returns reverse 
+    public Grabber.GrabberDirection getGrabberDir() {
+        int selection = xbox.getPOV();
+
+        if ( (selection == 315) || (selection == 0) || (selection == 45) ) {
+            return Grabber.GrabberDirection.FORWARD;
+        }
+        else if ( (selection == 225) || (selection == 180) || (selection == 135) ) {
+            return Grabber.GrabberDirection.REVERSE;
+        }
+        else {
+            return Grabber.GrabberDirection.OFF;
+        }
+
     }
 
 } // End of the Controls class
