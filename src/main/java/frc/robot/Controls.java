@@ -173,5 +173,31 @@ public class Controls {
     /**
      * These are all Functions of the Xbox controller
      */
+    // Start Button Pressed
+    public boolean autoKill() {
+        return xboxController.getStartButtonPressed();
+    }
+    
+    // Y Deploys / Retracts Grabber
+    public boolean grabberDeployRetract() {
+        return xboxController.getYButtonPressed();
+    }
+
+    // Upper left, Up, and Upper right on the DPad returns forward
+    // Lower left, Down, and Lower right on the DPad returns reverse 
+    public Grabber.GrabberDirection getGrabberDir() {
+        int selection = xboxController.getPOV();
+
+        if ( (selection == 315) || (selection == 0) || (selection == 45) ) {
+            return Grabber.GrabberDirection.FORWARD;
+        }
+        else if ( (selection == 225) || (selection == 180) || (selection == 135) ) {
+            return Grabber.GrabberDirection.REVERSE;
+        }
+        else {
+            return Grabber.GrabberDirection.OFF;
+        }
+
+    }
 
 } // End of the Controls class
