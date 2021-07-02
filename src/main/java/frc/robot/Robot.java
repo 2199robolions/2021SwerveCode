@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -36,12 +37,14 @@ public class Robot extends TimedRobot {
   private LedLights led;
   private Drive     drive;
   private Controls  controls;
+  private Grabber   grabber;
 
   public Robot() {
     //Instance Creation
     led      = new LedLights();
     drive    = new Drive();
     controls = new Controls();
+    grabber  = new Grabber();
 
     //Set Variables
   }
@@ -128,7 +131,8 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     //drive.testPID();
     //drive.testRotate();
-    //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());   
+    //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());
+    ballControl();
   }
 
   /**
@@ -139,6 +143,25 @@ public class Robot extends TimedRobot {
     driveX      = controls.getDriveX();
     driveY      = controls.getDriveY();
     drive.teleopSwerve(driveX, driveY, rotatePower);
+  }
+
+  public void ballControl() {
+    //Variables
+    boolean grabberDeployRetract;
+    Grabber.GrabberDirection grabberDirection;
+
+    //
+    grabberDeployRetract          = controls.grabberDeployRetract();
+    grabberDirection              = controls.getGrabberDir();
+    
+    /*****   Grabber Deploy Retract   *****/
+		if (grabberDeployRetract == true) {
+			grabber.deployRetract();
+		}
+		
+		/******   Grabber motor Forward, Reverse or OFF   *****/
+		/******   Allows the grabber to be on when shooter on   *****/
+    grabber.grabberDirection(grabberDirection);    
   }
 
   public void crabDrive() {

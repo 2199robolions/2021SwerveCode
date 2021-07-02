@@ -19,9 +19,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 public class Grabber {
 
     //SPARK MAX ID's
-    private static final int SPARK_ID  = 11;
+    private static final int SPARK_ID  = 18;
 
-    private int GRABBER_CURRENT_LIMIT = 30;
+    private int GRABBER_CURRENT_LIMIT = 60;
 
     // Enumerator for Grabber States
     public static enum GrabberState {
@@ -30,7 +30,7 @@ public class Grabber {
     }
     private GrabberState grabberState;
 
-    private final double GRABBER_POWER = -0.8;  //0.7
+    private final double GRABBER_POWER = 0.8;  //0.7
 //    private final double GRABBER_POWER = 1.0;
 
     // Enumerater for Grabber State
@@ -43,8 +43,8 @@ public class Grabber {
     // SOLENOID CHANNELS
     private DoubleSolenoid grabberPiston;
 
-    private final int DEPLOY_ID     = 5;
-    private final int RETRACT_ID    = 6;
+    private final int DEPLOY_ID     = 2;
+    private final int RETRACT_ID    = 4;
     private final int PCM_CAN_ID    = 0;
 
     private CANSparkMax grabberMotor; 
@@ -53,11 +53,13 @@ public class Grabber {
      * CONSTRUCTOR
      */
     public Grabber()  {
+        //Grabber Motor Init
         grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushless);
         grabberMotor.setSmartCurrentLimit(GRABBER_CURRENT_LIMIT);
         grabberMotor.set(0.0);
 
-        grabberPiston = new DoubleSolenoid(PCM_CAN_ID, RETRACT_ID, DEPLOY_ID);
+        //Grabber Position Init
+        grabberPiston = new DoubleSolenoid(PCM_CAN_ID, DEPLOY_ID, RETRACT_ID);
         grabberPiston.set(Value.kReverse);
         grabberState = GrabberState.RETRACT;
     }
@@ -67,7 +69,6 @@ public class Grabber {
      * EXTEND / RETRACT FORWARDING PISTON
      */
     public void deployRetract() {
-        
         // Change the State of the Piston
         if (grabberState == GrabberState.DEPLOY) {
             grabberPiston.set(Value.kReverse);
@@ -82,7 +83,6 @@ public class Grabber {
     }
 
     public void grabberDirection(GrabberDirection dir) {
-
         //Don't allow grabber to turn if it's retracted
         if(grabberState == GrabberState.RETRACT)  {
             grabberMotor.set(0.0);
@@ -91,12 +91,11 @@ public class Grabber {
         
         // Grabber Intake (Negative Power Brings Ball In)
         if (dir == GrabberDirection.FORWARD) {
-            grabberMotor.set(GRABBER_POWER * -1);
-            
+            grabberMotor.set(GRABBER_POWER);
         }
         // Grabber Reverse
         else if (dir == GrabberDirection.REVERSE) {
-            grabberMotor.set(GRABBER_POWER);
+            grabberMotor.set(GRABBER_POWER * -1);
         }
         else {
             grabberMotor.set(0.0);
