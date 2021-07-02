@@ -9,6 +9,7 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+//import com.revrobotics.CANEncoder;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
@@ -21,15 +22,20 @@ public class Grabber {
     //SPARK MAX ID's
     private static final int SPARK_ID  = 18;
 
+    //SPARK MAX CURRENT LIMIT
     private int GRABBER_CURRENT_LIMIT = 60;
 
-    // Enumerator for Grabber States
+    //Enumerator for Grabber States
     public static enum GrabberState {
         DEPLOY,
         RETRACT;
     }
     private GrabberState grabberState;
 
+    //Variables
+    //
+
+    //CONSTANTS
     private final double GRABBER_POWER = 0.8;  //0.7
     //private final double GRABBER_POWER = 1.0;
 

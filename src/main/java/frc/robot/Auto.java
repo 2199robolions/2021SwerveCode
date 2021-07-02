@@ -13,6 +13,10 @@ public class Auto {
 	private long         startMs; 
 	private boolean      firstTime = true;
 
+	// Consants
+	private final int TEST_DELAY = 1000;
+	private final int SHOOT_TIME = 5000;
+
 	// Object creation
 	private LedLights   led;
 	//private Wheel       wheel;
@@ -20,11 +24,6 @@ public class Auto {
 	//private Grabber     grabber;
 	//private Conveyer    conveyer;
 	//private Shooter     shooter;
-
-	// Consants
-	private final int TEST_DELAY = 1000;
-	private final int SHOOT_TIME = 5000;
-
 
 	/**
 	 * CONTRUCTOR

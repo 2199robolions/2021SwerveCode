@@ -2,9 +2,20 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.SPI;
+import com.kauailabs.navx.frc.AHRS;
 
 public class Drive {
+    //Variables
+    private boolean currButtonState = false;
+    private boolean oldButtonState  = false;
+    private boolean fieldDrive      = false;
+
+    //Object creation
+    Controls controls;
+
+    //NAVX
+    private static AHRS ahrs;
 
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
@@ -139,7 +150,27 @@ public class Drive {
      * Contructor for the Drive class
      */
     public Drive() {
-        //
+        //NavX
+        try {
+            ahrs = new AHRS(SPI.Port.kMXP);
+        } catch (RuntimeException ex) {
+            System.out.println("Error Instantiating navX MXP: " + ex.getMessage());
+        }
+    
+        ahrs.reset();
+    
+        while (ahrs.isConnected() == false) {
+            System.out.println("Connecting navX");
+        }
+        System.out.println("navX Connected");
+    
+        while (ahrs.isCalibrating() == true) {
+            System.out.println("Calibrating navX");
+        }
+        System.out.println("navx Ready");
+    
+        // At Start, Set navX to ZERO
+        ahrs.zeroYaw();
     }
 
     public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
@@ -282,6 +313,30 @@ public class Drive {
 
     }
 
+    /**
+     * The getyYaw function for the NavX
+     * @return The NavX's Yaw
+     */
+    public double getYaw(){
+        return ahrs.getYaw();
+    }
+
+    public boolean fieldDrive() {
+        oldButtonState  = currButtonState;
+        currButtonState = controls.toggleFieldDrive();
+
+        //If the button was just pressed
+        if((currButtonState == true) && (oldButtonState == false)) {
+            fieldDrive =! fieldDrive; //Switch the fieldDrive value
+        }
+        System.out.println("Field Drive toggled to " + fieldDrive);
+
+        return fieldDrive;
+    }
+
+    /**
+     * TEST FUNCTIONS
+     */
     public void testWheel(){
         rearRightWheel.setDriveMotorPower(-0.5);
     }

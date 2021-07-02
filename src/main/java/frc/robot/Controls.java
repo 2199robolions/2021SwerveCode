@@ -1,9 +1,11 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
-
 import edu.wpi.first.wpiutil.math.MathUtil;
+
+import edu.wpi.first.wpilibj.Joystick;
+
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class Controls {
     
@@ -169,6 +171,14 @@ public class Controls {
         return isPressed;
     }
 
+    public boolean enableTrenchShot() {
+        return joystick.getRawButton(4);
+    }
+
+    public boolean hailMary() {
+        return joystick.getRawButton(2);
+    }
+
 
     /**
      * These are all Functions of the Xbox controller
@@ -178,11 +188,23 @@ public class Controls {
         return xboxController.getStartButtonPressed();
     }
     
-    // Y Deploys / Retracts Grabber
+    // Button A
+    //
+
+    // Button B
+    //
+
+    // Button X
+    //
+
+    // Button Y Deploys / Retracts Grabber
     public boolean grabberDeployRetract() {
         return xboxController.getYButtonPressed();
     }
 
+    /**
+     * DPad Inputs
+     */
     // Upper left, Up, and Upper right on the DPad returns forward
     // Lower left, Down, and Lower right on the DPad returns reverse 
     public Grabber.GrabberDirection getGrabberDir() {
@@ -197,7 +219,82 @@ public class Controls {
         else {
             return Grabber.GrabberDirection.OFF;
         }
+    }
 
+    // Right Bumper Pressed
+    public boolean climberAllArmsUp() {
+        return xboxController.getBumper(Hand.kRight);
+    }
+
+    // Left Bumper Pressed
+    public boolean climberTopArmDown() {
+        return xboxController.getBumper(Hand.kLeft);
+    }
+
+    // Right Trigger
+    public double getClimberPower() {
+        double power;
+        power = xboxController.getTriggerAxis(Hand.kRight);
+
+        //trigger dead band
+        if (power > 0.1) {
+            return power;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    //Left Trigger
+    //
+
+    /**
+     * Right Stick
+     */
+    // Forward on the stick returns positive, backwards returns negative
+    public Conveyer.ConveyerState getHorizonalBeltState() {
+        double xboxY = xboxController.getY(Hand.kRight) * -1;
+
+        if (xboxY >= 0.2) {
+            return Conveyer.ConveyerState.FORWARD;
+        }
+        else if (xboxY <= -0.2) {
+            return Conveyer.ConveyerState.REVERSE;
+        }
+        else {
+            return Conveyer.ConveyerState.OFF;
+        }
+    }
+
+    /**
+     * Left Stick
+     */
+    // Forward on the stick returns positive, backwards returns negative
+    public Conveyer.ConveyerState getVerticalBeltState() {
+        double xboxY = xboxController.getY(Hand.kLeft) * -1;
+
+        if (xboxY >= 0.2) {
+            return Conveyer.ConveyerState.FORWARD;
+        }
+        else if (xboxY <= -0.2) {
+            return Conveyer.ConveyerState.REVERSE;
+        }
+        else {
+            return Conveyer.ConveyerState.OFF;
+        }
+    }
+
+    // Xbox Sticks Pressed
+    public boolean getForwardingPressed() {
+        boolean rightStick = xboxController.getStickButtonPressed(Hand.kRight);
+        boolean leftStick  = xboxController.getStickButtonPressed(Hand.kLeft );
+
+        if (rightStick || leftStick) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
 } // End of the Controls class
