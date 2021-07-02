@@ -31,7 +31,7 @@ public class Grabber {
     private GrabberState grabberState;
 
     private final double GRABBER_POWER = 0.8;  //0.7
-//    private final double GRABBER_POWER = 1.0;
+    //private final double GRABBER_POWER = 1.0;
 
     // Enumerater for Grabber State
     public static enum GrabberDirection {
