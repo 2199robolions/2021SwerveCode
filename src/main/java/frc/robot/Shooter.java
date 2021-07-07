@@ -88,8 +88,8 @@ public class Shooter {
 	public final double FEED_POWER      = -0.75;
 
 	// RPM CONSTANTS
-	public final double MAX_TARGET_RPM       = 5300; 
 	public final double OFF_TARGET_RPM       = 0;
+	public final double MAX_TARGET_RPM       = 5300; 
 	public final double ERROR_TARGET_RPM     = 50.0;
 	public final double TEN_FOOT_TARGET_RPM  = 3572; //3720
 	public final double TRENCH_TARGET_RPM    = 2940; //3662

@@ -22,33 +22,33 @@ public class Climber {
     //private CANSparkMax sparkLift_2;
 
     // SPARK ID's
-    private final int LIFT_MOTOR_ID = 100;
+    private final int LIFT_MOTOR_ID = 9;
 
     // ENCODERS
     //private CANEncoder lift_Motor_Encoder;
-
-    // Constants
-    private int LIFTER_CURRENT_LIMIT = 50;
 
     // SOLENOID
     private DoubleSolenoid pistonBottom;
     private DoubleSolenoid pistonMiddle;
     private DoubleSolenoid pistonTop;
 
+    // Constants
+    private int LIFTER_CURRENT_LIMIT = 50;
+    
     // PCM CAN ID's
-    private final int PCM_CAN_ID_BOTTOM         = 0;
-    private final int PCM_CAN_ID_MIDDLE         = 0;
-    private final int PCM_CAN_ID_TOP            = 0;
+    private final int PCM_CAN_ID_BOTTOM         = 9;
+    private final int PCM_CAN_ID_MIDDLE         = 9;
+    private final int PCM_CAN_ID_TOP            = 9;
 
     //Solenoid ID's
-    private final int SOLENOID_RETRACT_BOTTOM   = 0;
-    private final int SOLENOID_DEPLOY_BOTTOM    = 0;
+    private final int SOLENOID_RETRACT_BOTTOM   = 9;
+    private final int SOLENOID_DEPLOY_BOTTOM    = 9;
 
-    private final int SOLENOID_RETRACT_MIDDLE   = 0;
-    private final int SOLENOID_DEPLOY_MIDDLE    = 0;
+    private final int SOLENOID_RETRACT_MIDDLE   = 9;
+    private final int SOLENOID_DEPLOY_MIDDLE    = 9;
 
-    private final int SOLENOID_RETRACT_TOP      = 0;
-    private final int SOLENOID_DEPLOY_TOP       = 0;
+    private final int SOLENOID_RETRACT_TOP      = 9;
+    private final int SOLENOID_DEPLOY_TOP       = 9;
 
     /**
      * Climber State Enumeration

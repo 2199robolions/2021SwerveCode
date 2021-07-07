@@ -35,9 +35,10 @@ public class Drive {
     private final int FAIL_DELAY = 5;
 
 	//Limelight Variables
-    private boolean limeLightFirstTime = true;
     private int     noTargetCount      = 0;
+    private int     limeCount          = 0;
     private long    timeOut;
+    private boolean limeLightFirstTime = true;
 	private static final int ON_TARGET_COUNT = 20;
     private static final int ON_ANGLE_COUNT  = 10;
 
@@ -50,11 +51,11 @@ public class Drive {
     //Limelight distance calc
     private static final double CameraMountingAngle = 22.0;	                     // 25.6 degrees, 22.0
 	private static final double CameraHeightFeet 	= 26.5 / 12;	             // 16.5 inches
-	private static final double VisionTapeHeightFt 	= 7 + (7.5 / 12.0) ;	     // 8ft 2.25 inches
+	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	     // 8ft 2.25 inches
 	private static double mountingRadians = Math.toRadians(CameraMountingAngle); // a1, converted to radians
 
-	// find result of h2 - h1
-	private static double differenceOfHeights = VisionTapeHeightFt - CameraHeightFeet;
+	// find result of h2 - h1, or Δh
+	private static double DifferenceInHeight = TargetHeightFt - CameraHeightFeet;
     
     // Turn Controller
 	private static final double kP = 0.02;
@@ -62,7 +63,6 @@ public class Drive {
 	private static final double kD = 0.00;
 
 	//Target Controller
-	private int limeCount = 0;
 	private static final double tP = 0.02; //0.2
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
@@ -543,7 +543,7 @@ public class Drive {
 	  double tangentOfAngle = Math.tan(angleInRadians); 
 
 	  // Divide the two results ((h2 - h1) / tan(a1 + a2)) for the distance to target
-	  double distance = differenceOfHeights / tangentOfAngle;
+	  double distance = DifferenceInHeight / tangentOfAngle;
 
 	  // outputs the distance calculated
 	  return distance; 
@@ -561,7 +561,7 @@ public class Drive {
 	  double radiansToTarget = Math.toRadians(ty);
 
 	  // find result of (h2 - h1) / d
-	  double heightOverDistance = differenceOfHeights / measuredDistance;
+	  double heightOverDistance = DifferenceInHeight / measuredDistance;
 
 	  // find result of tan(a2)
 	  double tangentOfAngle = Math.tan(radiansToTarget);
