@@ -1,7 +1,5 @@
 package frc.robot;
 
-import frc.robot.enums.RobotStatus;
-
 //import frc.robot.Conveyer.ConveyerState;
 //import frc.robot.Grabber.GrabberDirection;
 

@@ -211,10 +211,10 @@ public class Controls {
         int selection = xboxController.getPOV();
 
         if ( (selection == 315) || (selection == 0) || (selection == 45) ) {
-            return Grabber.GrabberDirection.FORWARD;
+            return Grabber.GrabberDirection.REVERSE;
         }
         else if ( (selection == 225) || (selection == 180) || (selection == 135) ) {
-            return Grabber.GrabberDirection.REVERSE;
+            return Grabber.GrabberDirection.FORWARD;
         }
         else {
             return Grabber.GrabberDirection.OFF;
@@ -245,56 +245,20 @@ public class Controls {
         }
     }
 
-    //Left Trigger
-    //
+    /**
+     * Left Trigger
+     */
 
     /**
      * Right Stick
      */
-    // Forward on the stick returns positive, backwards returns negative
-    public Conveyer.ConveyerState getHorizonalBeltState() {
-        double xboxY = xboxController.getY(Hand.kRight) * -1;
-
-        if (xboxY >= 0.2) {
-            return Conveyer.ConveyerState.FORWARD;
-        }
-        else if (xboxY <= -0.2) {
-            return Conveyer.ConveyerState.REVERSE;
-        }
-        else {
-            return Conveyer.ConveyerState.OFF;
-        }
-    }
 
     /**
      * Left Stick
      */
-    // Forward on the stick returns positive, backwards returns negative
-    public Conveyer.ConveyerState getVerticalBeltState() {
-        double xboxY = xboxController.getY(Hand.kLeft) * -1;
 
-        if (xboxY >= 0.2) {
-            return Conveyer.ConveyerState.FORWARD;
-        }
-        else if (xboxY <= -0.2) {
-            return Conveyer.ConveyerState.REVERSE;
-        }
-        else {
-            return Conveyer.ConveyerState.OFF;
-        }
-    }
-
-    // Xbox Sticks Pressed
-    public boolean getForwardingPressed() {
-        boolean rightStick = xboxController.getStickButtonPressed(Hand.kRight);
-        boolean leftStick  = xboxController.getStickButtonPressed(Hand.kLeft );
-
-        if (rightStick || leftStick) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
+    /**
+     * Xbox Sticks Pressed
+     */
 
 } // End of the Controls class

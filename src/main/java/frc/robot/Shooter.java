@@ -4,6 +4,8 @@ import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.VictorSP;
+
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -60,14 +62,23 @@ public class Shooter {
 	// SPARK MAX
 	private CANSparkMax shooter_1;
 	private CANSparkMax shooter_2;
+	private CANSparkMax hood_Motor;
+
+	// Victor SP
+	private VictorSP ball_Feeder; //Negative power makes it intake balls
 
 	// SPARK MAX ID's
-	private int shooter_1_ID = 0;
-	private int shooter_2_ID = 0;
+	private int shooter_1_ID = 17;
+	private int shooter_2_ID = 19;
+	private int hood_Motor_ID = 16;
+
+	// Victor ID
+	private int ball_Feeder_ID = 5;
 
 	// Encoders
 	private CANEncoder encoder_Shooter_1;
 	private CANEncoder encoder_Shooter_2;
+	private CANEncoder encoder_Hood_Motor;
 
 	// CONSTANTS
 	public final double OFF_POWER       = 0.00;
@@ -81,6 +92,8 @@ public class Shooter {
 	public final double TEN_FOOT_TARGET_RPM  = 3572; //3720
 	public final double TRENCH_TARGET_RPM    = 2940; //3662
 	public final double HAIL_MARY_TARGET_RPM = 5325; //5375
+
+	private final double feedPower = -1.00;
 
 	
 	public double targetVelocity; //was private
@@ -108,16 +121,23 @@ public class Shooter {
 	 */
 	public Shooter() {
 		// SPARK Max
-		shooter_1 = new CANSparkMax(shooter_1_ID, MotorType.kBrushless);
-		shooter_2 = new CANSparkMax(shooter_2_ID, MotorType.kBrushless);
+		shooter_1   = new CANSparkMax(shooter_1_ID, MotorType.kBrushless);
+		shooter_2   = new CANSparkMax(shooter_2_ID, MotorType.kBrushless);
+		hood_Motor  = new CANSparkMax(hood_Motor_ID, MotorType.kBrushless);
+
+		//Victor SP
+		ball_Feeder = new VictorSP(ball_Feeder_ID);
 		
-		// Set Shooter to off to Start the Match
-		shooter_1.set(0.0);
-		shooter_2.set(0.0);
+		// Set Shooter related motors to off to Start the Match
+		shooter_1.set  (0.0);
+		shooter_2.set  (0.0);
+		hood_Motor.set (0.0);
+		ball_Feeder.set(0.0);
 
 		// Encoders
-		encoder_Shooter_1 = shooter_1.getEncoder();
-		encoder_Shooter_2 = shooter_2.getEncoder();
+		encoder_Shooter_1  = shooter_1.getEncoder();
+		encoder_Shooter_2  = shooter_2.getEncoder();
+		encoder_Hood_Motor = hood_Motor.getEncoder();
 
 		shooterController = new PIDController(kP, kI, kD);
 	  //  shooterController.enableContinuousInput(0.0, 5500.0);
@@ -163,34 +183,37 @@ public class Shooter {
 		SmartDashboard.putNumber("rpm", encoder_Shooter_1.getVelocity());
 
 		shooter_1.set(power);
-		shooter_2.set(power * -1); 
+		shooter_2.set(power * -1);
 	}
 
 	public void manualShooterControl(ShootLocation location) {
 
 		if (location == ShootLocation.OFF) {
 			shooter_1.set(OFF_POWER);
-			shooter_2.set(OFF_POWER); 
+			shooter_2.set(OFF_POWER);
+			ball_Feeder.set(OFF_POWER);
+
 			targetVelocity = OFF_TARGET_RPM;
 		}
 		else if (location == ShootLocation.TEN_FOOT) {
-			shooter_1.set(TEN_FOOT_POWER);
-			shooter_2.set(TEN_FOOT_POWER * -1);
+			shooter_1.set(TEN_FOOT_POWER * -1);
+			shooter_2.set(TEN_FOOT_POWER);
 			targetVelocity = TEN_FOOT_TARGET_RPM;
 		}
 		else if (location == ShootLocation.TRENCH) {
-			shooter_1.set(TRENCH_POWER);
-			shooter_2.set(TRENCH_POWER * -1);
+			shooter_1.set(TRENCH_POWER * -1);
+			shooter_2.set(TRENCH_POWER);
 			targetVelocity = TRENCH_TARGET_RPM;
 		}
 		else if (location == ShootLocation.HAIL_MARY) {
-			shooter_1.set(HAIL_MARY_POWER);
-			shooter_2.set(HAIL_MARY_POWER * -1);
+			shooter_1.set(HAIL_MARY_POWER * -1);
+			shooter_2.set(HAIL_MARY_POWER);
 			targetVelocity = HAIL_MARY_TARGET_RPM;
 		}
 		else {
 			shooter_1.set(OFF_POWER);
 			shooter_2.set(OFF_POWER);
+			ball_Feeder.set(OFF_POWER);
 			targetVelocity = OFF_TARGET_RPM;
 		}
 	}
@@ -205,6 +228,7 @@ public class Shooter {
 			targetCount ++;
 			
 			if(targetCount >= 5) { //10 old value
+				ball_Feeder.set(feedPower);
 				return true;
 			}
 			else {
@@ -234,8 +258,11 @@ public class Shooter {
 	 * @param power
 	 */
 	public void testShoooter(double power) {
-		shooter_1.set(power);
-		shooter_2.set(power * -1);
+		shooter_1.set(power * -1);
+		shooter_2.set(power);
+
+		//Negative power makes it intake
+		ball_Feeder.set(power * -1);
 
 		System.out.println("Power: " + power + " RPM: " + encoder_Shooter_1.getVelocity());
 	}
@@ -245,7 +272,7 @@ public class Shooter {
 	 */
 	public void printSpeed() {
 		double π = Math.PI;
-		double wheel_size = 4;                                                                  // Wheel diameter Inches 
+		double wheel_size = 6;                                                                  // Wheel diameter Inches 
 
 		double RPM = (encoder_Shooter_1.getVelocity() + (encoder_Shooter_2.getVelocity() * -1) ) / 2;   // Rotations per minute average
 		double RPH = RPM / 60;                                                                  // Rotations per hour
@@ -266,25 +293,50 @@ public class Shooter {
 	}
 
 	public void enableShooterFullPower() {
-		shooter_1.set(0.70);
-		shooter_2.set(-0.70);
+		shooter_1.set(-0.70);
+		shooter_2.set(0.70);
+
+		ball_Feeder.set(feedPower);
+
 		System.out.println("RPM 1: " + encoder_Shooter_1.getVelocity());
 	}
 
-	public void enableShooterMotor1() {
-		shooter_1.set(0.50);
+	public void enableShooter() {
+		enableShooterMotor1();
+		enableShooterMotor2();
+
+		enableBallFeeder();
 	}
 
-	public void enableShooterMotor2() {
-		shooter_2.set(-0.50);
+	private void enableShooterMotor1() {
+		shooter_1.set(-0.50);
 	}
 
-	public void stopShooterMotor1() {
+	private void enableShooterMotor2() {
+		shooter_2.set(0.50);
+	}
+
+	private void enableBallFeeder() {
+		ball_Feeder.set(-1.00);
+	}
+
+	public void disableShooter(){
+		disableShooterMotor1();
+		disableShooterMotor2();
+
+		disableBallFeeder();
+	}
+
+	private void disableShooterMotor1() {
 		shooter_1.set(0.00);
 	}
 
-	public void stopShooterMotor2() {
+	private void disableShooterMotor2() {
 		shooter_2.set(0.00);
+	}
+
+	private void disableBallFeeder() {
+		ball_Feeder.set(0.00);
 	}
 
 } //End of the Shooter Class

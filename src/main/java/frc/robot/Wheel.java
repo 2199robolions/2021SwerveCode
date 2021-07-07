@@ -56,7 +56,6 @@ public class Wheel {
         rotationPID.enableContinuousInput(-180, 180);
 
         //Instance Creation
-        drive = new Drive();
         
     }
 
