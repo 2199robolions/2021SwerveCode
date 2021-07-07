@@ -18,7 +18,7 @@ public class LedLights {
 	private Spark ledController;
 
 	// CONSTANTS
-	private final int LED_PWM_CHANNEL = 0;
+	private final int LED_PWM_CHANNEL = 100;
 
 	// Constructor
 	public LedLights() {

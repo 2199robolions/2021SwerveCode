@@ -22,7 +22,7 @@ public class Climber {
     //private CANSparkMax sparkLift_2;
 
     // SPARK ID's
-    private final int LIFT_MOTOR_ID = 0;
+    private final int LIFT_MOTOR_ID = 100;
 
     // ENCODERS
     //private CANEncoder lift_Motor_Encoder;
