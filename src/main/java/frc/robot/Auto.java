@@ -1,5 +1,7 @@
 package frc.robot;
 
+import frc.robot.Grabber.GrabberDirection;
+
 //import frc.robot.Conveyer.ConveyerState;
 //import frc.robot.Grabber.GrabberDirection;
 
@@ -17,40 +19,39 @@ public class Auto {
 
 	// Object creation
 	private LedLights   led;
-	//private Wheel       wheel;
-	//private Drive       drive;
-	//private Grabber     grabber;
-	//private Conveyer    conveyer;
-	//private Shooter     shooter;
-
+	private Drive       drive;
+	private Grabber     grabber;
+	private Shooter     shooter;
+	
 	/**
 	 * CONTRUCTOR
 	 */
-	public Auto (LedLights ledLights, Wheel wheel/*, Shooter shooter, Conveyer conveyer, Grabber grabber*/) {
+	public Auto (Drive drive, Grabber grabber, Shooter shooter, LedLights ledLights) {
 		led             = ledLights;
-		//this.wheel      = wheel;
-		//this.drive      = drive;
-		//this.shooter    = shooter;
-		//this.conveyer   = conveyer;
-		//this.grabber    = grabber;
+		this.drive      = drive;
+		this.grabber    = grabber;
+		this.shooter    = shooter;
 
 		step = 1;
 	}
 
 	/**
-	 * Default Auto 
+	 * Default Auto
+	 * @param delay
+	 * @return
 	 */
 	public int defaultAuto(int delay) {
 		int status = Robot.CONT;
-		long delayMs = delay * 1000;
+		long delayMsec = delay * 1000;
 
 		switch (step) {
 			// Starts Auto Program
-			case 1: 
+			case 1:
+				//Sets the LED's to their auto mode
 				led.autoMode();
 
 				// Delay
-				status = delay(delayMs);
+				status = delay(delayMsec);
 				break;
 			case 2:
 				status = 1; //replace the 1 with a method later
@@ -61,6 +62,115 @@ public class Auto {
 
 				// Auto Program Finished
 				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
+
+	public int basicAuto(int delay) {
+		int status = Robot.CONT;
+		long delayMsec = delay * 1000;
+
+		switch (step) {
+			//Starts Auto Program
+			case 1:
+				//Sets the LED's to their auto mode
+				led.autoMode();
+
+				//Initial delay 
+				status = delay(delayMsec);
+				break;
+			case 2:
+				//Deploys grabber
+				grabber.deployRetract();
+
+				//Sets status to DONE
+				status = Robot.DONE;
+				break;
+			case 3:
+				//Starts grabber
+				grabber.grabberDirection(GrabberDirection.FORWARD);
+
+				//Sets status to DONE
+				status = Robot.DONE;
+				break;
+			case 4:
+				//Targets with the limelight
+				status = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				break;
+			case 5:
+				//Starts the shooter
+				shooter.enableShooter();
+
+				//Sets status to DONE
+				status = Robot.DONE;
+				break;
+			default:
+				//Set step to 1
+				step = 1;
+
+				//Turns everything off
+				drive.disableMotors();
+				grabber.grabberDirection(GrabberDirection.OFF);
+				shooter.disableShooter();
+
+				//Auto program finished
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step ++;
+		}
+
+		return Robot.CONT;
+	}
+
+	/**
+	 * Climber Arm Control
+	 */
+	/**
+	 * Deploy Climber Pistons
+	 */
+	public int climberDeploy(Climber climber) {
+		int status = Robot.CONT;
+
+		/**
+		 * Fire Middle
+		 * Fire Bottom
+		 * Fire Top
+		 */
+		switch(step) {
+			case 1:
+				climber.bottomArmUp();
+
+				status = Robot.DONE;
+				break;
+			case 2:
+				status = delay(0);
+				break;
+			case 3:
+				climber.middleArmUp();
+
+				status = Robot.DONE;
+				break;
+			case 4:
+				status = delay(0);
+				break;
+			case 5:
+				climber.topArmUp();
+
+				status = Robot.DONE;
+				break;
+			default:
+				step = 1;
 
 				return Robot.DONE;
 		}

@@ -1,21 +1,91 @@
 package frc.robot;
 
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.wpiutil.math.MathUtil;
+
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpilibj.SPI;
-import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.networktables.*;
 
 public class Drive {
-    //Variables
-    private boolean currButtonState = false;
-    private boolean oldButtonState  = false;
-    private boolean fieldDrive      = false;
-
     //Object creation
     Controls controls;
+    LedLights led;
+    NetworkTable limelightEntries = NetworkTableInstance.getDefault().getTable("limelight");
 
     //NAVX
     private static AHRS ahrs;
+    private PIDController turnController;
+    private PIDController targetController;
+
+    //static final double kToleranceDegrees = 1.0f;
+	static final double kToleranceDegrees = 2.0f;
+	static final double kLimeLightToleranceDegrees = 1.0f;
+
+	//Variables
+    private boolean currButtonState = false;
+    private boolean oldButtonState  = false;
+    private boolean fieldDrive      = false;
+	private boolean firstTime       = true;
+    private int     count           = 0;
+    
+    //CONSTANTS
+    private final int FAIL_DELAY = 5;
+
+	//Limelight Variables
+    private boolean limeLightFirstTime = true;
+    private int     noTargetCount      = 0;
+    private long    timeOut;
+	private static final int ON_TARGET_COUNT = 20;
+    private static final int ON_ANGLE_COUNT  = 10;
+
+    //Limelight
+	public              boolean limeControl                   = false;
+	public              int     limeStatus                    = 0;
+	public static final int     LIMELIGHT_ON                  = 3;
+	public static final int     LIMELIGHT_OFF                 = 1;
+
+    //Limelight distance calc
+    private static final double CameraMountingAngle = 22.0;	                     // 25.6 degrees, 22.0
+	private static final double CameraHeightFeet 	= 26.5 / 12;	             // 16.5 inches
+	private static final double VisionTapeHeightFt 	= 7 + (7.5 / 12.0) ;	     // 8ft 2.25 inches
+	private static double mountingRadians = Math.toRadians(CameraMountingAngle); // a1, converted to radians
+
+	// find result of h2 - h1
+	private static double differenceOfHeights = VisionTapeHeightFt - CameraHeightFeet;
+    
+    // Turn Controller
+	private static final double kP = 0.02;
+	private static final double kI = 0.00;
+	private static final double kD = 0.00;
+
+	//Target Controller
+	private int limeCount = 0;
+	private static final double tP = 0.02; //0.2
+	private static final double tI = 0.00;
+    private static final double tD = 0.00;
+    
+    /**
+     * Enumerators
+     */
+    /**
+     * The enumerator for locking the drive wheels for targeting
+     */
+    public static enum WheelMode {
+		MANUAL,
+		TARGET_LOCK;
+    }
+    
+    /**
+     * The enumerator for choosing a target location
+     */
+    public static enum TargetPipeline {
+		TEN_FOOT,
+        TRENCH,
+        HAIL_MARY;
+	}
 
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
@@ -77,7 +147,7 @@ public class Drive {
             return this.targetRadians;
         }
 
-       private double getTargetVoltage() {
+        private double getTargetVoltage() {
             return this.targetVoltage;
         }
 
@@ -149,7 +219,10 @@ public class Drive {
     /**
      * Contructor for the Drive class
      */
-    public Drive() {
+    public Drive(LedLights led) {
+        //Instance creation
+        this.led = led;
+        
         //NavX
         try {
             ahrs = new AHRS(SPI.Port.kMXP);
@@ -171,6 +244,35 @@ public class Drive {
     
         // At Start, Set navX to ZERO
         ahrs.zeroYaw();
+
+        //PID Controllers
+		turnController = new PIDController(kP, kI, kD);
+		targetController = new PIDController(tP, tI, tD);
+		
+		/* Max/Min input values.  Inputs are continuous/circle */
+		turnController.enableContinuousInput(-180.0, 180.0);
+		targetController.enableContinuousInput(-30.0, 30.0);
+
+		/* Max/Min output values */
+		//Turn Controller
+		turnController.setIntegratorRange(-.25, .25); // do not change 
+		turnController.setTolerance(kToleranceDegrees);
+
+		//Target Controller
+		targetController.setIntegratorRange(-.2, .2); // do not change 
+        targetController.setTolerance(kLimeLightToleranceDegrees);
+        
+        /**
+		 * Limelight Modes
+		 */
+		//Force the LED's to off to start the match
+		limelightEntries.getEntry("ledMode").setNumber(1);
+		//Set limelight mode to vision processor
+		limelightEntries.getEntry("camMode").setNumber(0);
+		//Sets limelight streaming mode to Standard (The primary camera and the secondary camera are displayed side by side)
+		limelightEntries.getEntry("stream").setNumber(0);
+		//Sets limelight pipeline to 0 (light off)
+		limelightEntries.getEntry("pipeline").setNumber(0);
     }
 
     public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
@@ -257,64 +359,9 @@ public class Drive {
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
-    
-    public void teleopRotateOld(double rotatePower) {
-        /**
-         * Check at what voltage the rotateSensor is at
-         * Calculate what angle that voltage correlates to
-         * Power the rotateMotor until the rotateSensor hits a certain value
-         * Once the rotateSensor has hit a certain value, power the driveMotor with power of the joystickZValue'
-         */
-
-        // TODO: Check whether the signs of the voltages are correct as well.
-        if ((frontRightWheel.getRotateMotorPosition() >= WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) &&
-            (frontLeftWheel.getRotateMotorPosition()  >= WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) &&
-            (rearRightWheel.getRotateMotorPosition()  >= WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) &&
-            (rearLeftWheel.getRotateMotorPosition()   >= WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage())) {
-            
-            // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerDriveMotor(double power) calls as well.
-            frontRightWheel.setDriveMotorPower(rotatePower);
-            frontLeftWheel.setDriveMotorPower(rotatePower);
-            rearRightWheel.setDriveMotorPower(rotatePower);
-            rearLeftWheel.setDriveMotorPower(rotatePower);
-            
-            return;
-        }
-
-        if (frontRightWheel.getRotateMotorPosition() < WheelProperties.FRONT_RIGHT_WHEEL.getTargetVoltage()) {
-            // TODO: Check whether the power should be multiplied by negative 1, depending on if the motors are reversed. This applies for the other following 3 powerRotateMotor(double power) calls as well.
-            // TODO: Check whether the signs of the voltages are correct as well.
-            frontRightWheel.setRotateMotorPower(1);
-        }
-        else {
-            frontRightWheel.setRotateMotorPower(0);
-        }
-
-        if (frontLeftWheel.getRotateMotorPosition() < WheelProperties.FRONT_LEFT_WHEEL.getTargetVoltage()) {
-            frontLeftWheel.setRotateMotorPower(1);
-        }
-        else {
-            frontLeftWheel.setRotateMotorPower(0);
-        }
-
-        if (rearRightWheel.getRotateMotorPosition() < WheelProperties.REAR_RIGHT_WHEEL.getTargetVoltage()) {
-            rearRightWheel.setRotateMotorPower(1);
-        }
-        else {
-            rearRightWheel.setRotateMotorPower(0);
-        }
-
-        if (rearLeftWheel.getRotateMotorPosition() < WheelProperties.REAR_LEFT_WHEEL.getTargetVoltage()) {
-            rearLeftWheel.setRotateMotorPower(1);
-        }
-        else {
-            rearLeftWheel.setRotateMotorPower(0);
-        }
-
-    }
 
     /**
-     * The getyYaw function for the NavX
+     * The getYaw function for the NavX
      * @return The NavX's Yaw
      */
     public double getYaw(){
@@ -329,14 +376,292 @@ public class Drive {
         if((currButtonState == true) && (oldButtonState == false)) {
             fieldDrive =! fieldDrive; //Switch the fieldDrive value
         }
-        System.out.println("Field Drive toggled to " + fieldDrive);
+
+        System.out.println("Field Drive toggled to: " + fieldDrive);
 
         return fieldDrive;
     }
 
     /**
+	 * LIMELIGHT METHODS
+	 */
+    /**
+     * Limelight targeting using PID
+     * @param pipeline
+     * @return program status
+     */
+	public int limelightPIDTargeting( TargetPipeline pipeline) {
+		double m_LimelightCalculatedPower = 0;
+        long currentMs = System.currentTimeMillis();
+        final long TIME_OUT = 5000;
+
+		if (limeLightFirstTime == true) {
+            //Sets limeLightFirstTime to false
+            limeLightFirstTime = false;
+
+            //Resets the variables for tracking targets
+			noTargetCount = 0;
+            limeCount = 0;
+            
+            //Resets the targeting PID's zero
+			targetController.setSetpoint(0.0);
+            
+            //Sets and displays the forced time out
+			timeOut = currentMs + TIME_OUT;
+            System.out.println("TimeOut " + timeOut / 1000 + " seconds");
+            
+            //Turns the limelight on
+            changeLimelightLED(LIMELIGHT_ON);
+
+            //Makes the LED's go to targeting mode 
+			led.limelightAdjusting();
+		}
+
+		// Whether the limelight has any valid targets (0 or 1)
+        double tv = limelightEntries.getEntry("tv").getDouble(0);
+        System.out.println("tv: " + tv);
+		// Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees) [54 degree tolerance]
+		double tx = limelightEntries.getEntry("tx").getDouble(0);
+		System.out.println("tx: " + tx);
+
+		/*// Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
+        double ty = limelightEntries.getEntry("ty").getDouble(0);
+        System.out.println("ty: " + ty);*/
+		/*// Target Area (0% of image to 100% of image) [Basic way to determine distance]
+		// Use lidar for more acurate readings in future
+        double ta = limelightEntries.getEntry("ta").getDouble(0);
+        System.out.println("ta: " + ta);*/
+
+		if (tv < 1.0) {
+            //Has the LED's display that there is no valid target
+            led.limelightNoValidTarget();
+            
+			teleopRotate(0.00);
+
+            //Adds one to the noTargetCount (will exit this program if that count exceedes 5) 
+			noTargetCount++;
+
+			if (noTargetCount <= FAIL_DELAY) {
+                //Tells the robot to continue searching
+				return Robot.CONT;
+			}
+			else {
+                //Reset variables
+				noTargetCount = 0;
+                limeCount = 0;
+                limeLightFirstTime = true;
+                targetController.reset();
+
+                teleopRotate(0.00);
+                
+                //Displays a failed attempt on the LED's
+                led.limelightNoValidTarget();
+                
+                //Returns the error code for failure
+				return Robot.FAIL;
+			}
+		}
+        else {
+            //Keeps the no target count at 0
+            noTargetCount = 0;
+
+            //Keeps the LED's displaying that the robot is targeting
+			led.limelightAdjusting();
+		}
+
+		// Rotate
+		m_LimelightCalculatedPower = targetController.calculate(tx, 0.0);
+		m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
+		teleopRotate(m_LimelightCalculatedPower);
+		System.out.println("Pid out: " + m_LimelightCalculatedPower);
+
+		// CHECK: Routine Complete
+		if (targetController.atSetpoint() == true) {
+            limeCount++;
+            
+			System.out.println("On target");
+		}
+
+		if (limeCount >= ON_TARGET_COUNT) {
+            //Reset variables
+			limeCount = 0;
+            limeLightFirstTime = true;
+            targetController.reset();
+            
+			teleopRotate(0.00);
+            
+            //Makes the LED's show that the robot is done targeting 
+            led.limelightFinished();
+
+            System.out.println("On target or not moving");
+
+            //Returns the error code for success
+			return Robot.DONE;
+        }
+        
+		// limelight time out readjust
+		if (currentMs > timeOut) {
+			limeCount = 0;
+            limeLightFirstTime = true;
+            
+            targetController.reset();
+            
+            teleopRotate(0.00);
+            
+            led.limelightNoValidTarget();
+            
+            System.out.println("timeout " + tx + " Target Acquired " + tv);
+
+            //Returns the error code for failure
+			return Robot.FAIL;
+        }
+        
+        if (controls.autoKill() == true) {
+            //Returns the error code for failure
+            return Robot.FAIL;
+        }
+
+		return Robot.CONT;   
+    }
+
+    /** 
+     * tan(a1+a2) = (h2-h1) / d
+	 * D = (h2 - h1) / tan(a1 + a2).
+     * These equations, along with known numbers, helps find the distance from a target.
+	 */
+	public double getDistance() {
+	  // Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
+	  double ty = limelightEntries.getEntry("ty").getDouble(0);
+		
+	  // a2, converted to radians
+	  double radiansToTarget = Math.toRadians(ty); 
+
+	  // find result of a1 + a2
+	  double angleInRadians = mountingRadians + radiansToTarget;
+
+	  // find the tangent of a1 + a2
+	  double tangentOfAngle = Math.tan(angleInRadians); 
+
+	  // Divide the two results ((h2 - h1) / tan(a1 + a2)) for the distance to target
+	  double distance = differenceOfHeights / tangentOfAngle;
+
+	  // outputs the distance calculated
+	  return distance; 
+	}
+
+	/** 
+	 * a1 = arctan((h2 - h1) / d - tan(a2)). This equation, with a known distance input, helps find the 
+	 * mounted camera angle.
+	 */
+	public double getCameraMountingAngle(double measuredDistance) {
+	  // Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
+	  double ty = limelightEntries.getEntry("ty").getDouble(0);
+
+	  // convert a2 to radians
+	  double radiansToTarget = Math.toRadians(ty);
+
+	  // find result of (h2 - h1) / d
+	  double heightOverDistance = differenceOfHeights / measuredDistance;
+
+	  // find result of tan(a2)
+	  double tangentOfAngle = Math.tan(radiansToTarget);
+
+	  // (h2-h1)/d - tan(a2) subtract two results for the tangent of the two sides
+	  double TangentOfSides = heightOverDistance - tangentOfAngle; 
+
+	  // invert tangent operation to get the camera mounting angle in radians
+	  double newMountingRadians = Math.atan(TangentOfSides);
+
+	  // change result into degrees
+	  double cameraMountingAngle = Math.toDegrees(newMountingRadians);
+	  
+	  return cameraMountingAngle; // output result
+	}
+
+	/**
+	 * Change Limelight Modes
+	 */
+	// Changes Limelight Pipeline
+	public void changeLimelightPipeline(int pipeline) {
+		// Limelight Pipeline
+		limelightEntries.getEntry("pipeline").setNumber(pipeline);
+	}
+	
+	// Change Limelight LED's
+	public void changeLimelightLED(int mode) {
+		// if mode = 0 limelight on : mode = 1 limelight off
+		limelightEntries.getEntry("ledMode").setNumber(mode);
+	}
+    
+    /**
+     * AUTONOMOUS METHODS
+     */
+    /**
+     * Autonomous rotate
+     */
+    public int rotate(double degrees) {
+        double pidOutput;
+        long currentMs = System.currentTimeMillis();
+
+        if (firstTime == true) {
+            firstTime = false;
+            count = 0;
+            timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
+
+        }
+
+        if (currentMs > timeOut) {
+			count = 0;
+            firstTime = true;
+            
+			System.out.println("Timed out");
+            
+            return Robot.FAIL;
+		}
+
+		// Rotate
+		pidOutput = turnController.calculate(getYaw(), degrees);
+		pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
+		//System.out.println("Yaw: " + getYaw());
+		//System.out.println(pidOutput);
+		teleopRotate(pidOutput);
+
+		turnController.setTolerance(kToleranceDegrees);
+		// CHECK: Routine Complete
+		if (turnController.atSetpoint() == true) {
+            count++;
+            
+			System.out.println("Count: " + count);
+
+			if (count == ON_ANGLE_COUNT) {
+				count = 0;
+                firstTime = true;
+                turnController.reset();
+
+                teleopSwerve(0.00, 0.00, 0.00);
+                
+                System.out.println("DONE");
+                
+                return Robot.DONE;
+            }
+            else {
+				return Robot.CONT;
+			}
+		}
+		else {    
+			count = 0;
+            
+            return Robot.CONT;
+		}
+    }
+
+    /**
      * TEST FUNCTIONS
      */
+    public void disableMotors() {
+        teleopSwerve(0.00, 0.00, 0.00);
+    }
+
     public void testWheel(){
         rearRightWheel.setDriveMotorPower(-0.5);
     }

@@ -139,7 +139,7 @@ public class Controls {
     }
 
     /**
-     * 
+     * Joystick button 3
      * @return Whether or not field oriented drive should be activated
      */
     public boolean toggleFieldDrive() {
@@ -150,7 +150,7 @@ public class Controls {
     }
 
     /**
-     * 
+     * Joystick button ???
      * @return Whether or not the limelight should target
      */
     public boolean enableTargetLock() {
@@ -161,7 +161,7 @@ public class Controls {
     }
 
     /**
-     * 
+     * Joystick trigger
      * @return Whether or not the shooter should fire
      */
     public boolean enableShooter() {
@@ -171,10 +171,18 @@ public class Controls {
         return isPressed;
     }
 
+    /**
+     * Joystick button 4
+     * @return
+     */
     public boolean enableTrenchShot() {
         return joystick.getRawButton(4);
     }
 
+    /**
+     * Joystick button 2
+     * @return 
+     */
     public boolean hailMary() {
         return joystick.getRawButton(2);
     }
@@ -183,30 +191,46 @@ public class Controls {
     /**
      * These are all Functions of the Xbox controller
      */
-    // Start Button Pressed
+    /**
+     * Start Button Pressed
+     * @return WHETER TO KILL ALL ACTIVE AUTO PROGRAMS!
+     */
     public boolean autoKill() {
         return xboxController.getStartButtonPressed();
     }
     
-    // Button A
+    /**
+     * Button A
+     * @return
+     */
     //
 
-    // Button B
+    /**
+     * Button B
+     * @return
+     */
     //
 
-    // Button X
+    /**
+     * Button X
+     * @return
+     */
     //
 
-    // Button Y Deploys / Retracts Grabber
+    /**
+     * Button Y
+     * @return Deploy / Retract of the Grabber
+     */
     public boolean grabberDeployRetract() {
         return xboxController.getYButtonPressed();
     }
 
     /**
      * DPad Inputs
+     * Upper left, Up, and Upper right on the DPad returns forward
+     * Lower left, Down, and Lower right on the DPad returns reverse
+     * @return The direction the grabber should move
      */
-    // Upper left, Up, and Upper right on the DPad returns forward
-    // Lower left, Down, and Lower right on the DPad returns reverse 
     public Grabber.GrabberDirection getGrabberDir() {
         int selection = xboxController.getPOV();
 
@@ -221,17 +245,26 @@ public class Controls {
         }
     }
 
-    // Right Bumper Pressed
+    /**
+     * Right Bumper Pressed
+     * @return
+     */
     public boolean climberAllArmsUp() {
         return xboxController.getBumper(Hand.kRight);
     }
 
-    // Left Bumper Pressed
+    /**
+     * Left Bumper Pressed
+     * @return
+     */
     public boolean climberTopArmDown() {
         return xboxController.getBumper(Hand.kLeft);
     }
 
-    // Right Trigger
+    /**
+     * Right trigger
+     * @return
+     */
     public double getClimberPower() {
         double power;
         power = xboxController.getTriggerAxis(Hand.kRight);
@@ -248,17 +281,34 @@ public class Controls {
     /**
      * Left Trigger
      */
+    //May become color wheel
 
     /**
-     * Right Stick
+     * XBox Controller Right Stick
+     * @return Direction of the Ball Feeder Motor
+     */
+    public Shooter.BallFeederDirection ballFeederControl() {
+        double xboxY;
+        xboxY = xboxController.getY(Hand.kRight) * -1;
+
+        //Trigger dead band
+        if (xboxY >= 0.2) {
+            return Shooter.BallFeederDirection.FORWARD;
+        }
+        else if (xboxY <= -0.2) {
+            return Shooter.BallFeederDirection.REVERSE;
+        }
+        else {
+            return Shooter.BallFeederDirection.OFF;
+        }
+    }
+
+    /**
+     * XBox Controller Left Stick
      */
 
     /**
-     * Left Stick
-     */
-
-    /**
-     * Xbox Sticks Pressed
+     * XBox Controller Sticks Pressed
      */
 
 } // End of the Controls class

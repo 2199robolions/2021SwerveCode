@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpiutil.math.MathUtil;
 
-// Variables
 	/**
+	 * All of these numbers need to be fine tuned
 	 * At 0.6 Power RPM is 3240
 	 * At 0.69 Power RPM is 3834 MAX
 	 * At 0.7 Power RPM is 3750
@@ -68,43 +68,49 @@ public class Shooter {
 	private VictorSP ball_Feeder; //Negative power makes it intake balls
 
 	// SPARK MAX ID's
-	private int shooter_1_ID = 17;
-	private int shooter_2_ID = 19;
-	private int hood_Motor_ID = 16;
+	private int SHOOTER_1_ID  = 17;
+	private int SHOOTER_2_ID  = 19;
+	private int HOOD_MOTOR_ID = 16;
 
-	// Victor ID
-	private int ball_Feeder_ID = 5;
+	// Victor SP Port
+	private int BALL_FEEDER_ID = 5;
 
 	// Encoders
 	private CANEncoder encoder_Shooter_1;
 	private CANEncoder encoder_Shooter_2;
 	private CANEncoder encoder_Hood_Motor;
 
-	// CONSTANTS
-	public final double OFF_POWER       = 0.00;
+	// POWER CONSTANTS
+	public final double OFF_POWER       = 0.00 ;
 	public final double TEN_FOOT_POWER  = 0.622; //0.66
-	public final double TRENCH_POWER    = 0.52; //.648 //.645
-	public final double HAIL_MARY_POWER = 1.00;
+	public final double TRENCH_POWER    = 0.52 ; //.648 //.645
+	public final double HAIL_MARY_POWER = 1.00 ;
+	public final double FEED_POWER      = -0.75;
 
+	// RPM CONSTANTS
 	public final double MAX_TARGET_RPM       = 5300; 
 	public final double OFF_TARGET_RPM       = 0;
-	private final double ERROR_TARGET_RPM    = 50.0;
+	public final double ERROR_TARGET_RPM     = 50.0;
 	public final double TEN_FOOT_TARGET_RPM  = 3572; //3720
 	public final double TRENCH_TARGET_RPM    = 2940; //3662
 	public final double HAIL_MARY_TARGET_RPM = 5325; //5375
 
-	private final double feedPower = -1.00;
-
-	
-	public double targetVelocity; //was private
+	// Variables
+	public  double targetVelocity;
 	private double targetPower;
 	private int targetCount = 0;
 
 	public static enum ShootLocation {
-		OFF,
-		TEN_FOOT,
+		HAIL_MARY,
 		TRENCH,
-		HAIL_MARY;
+		TEN_FOOT,
+		OFF;
+	}
+
+	public static enum BallFeederDirection {
+		FORWARD,
+		REVERSE,
+		OFF;
 	}
 
 	// Shooter PID Controller
@@ -121,12 +127,12 @@ public class Shooter {
 	 */
 	public Shooter() {
 		// SPARK Max
-		shooter_1   = new CANSparkMax(shooter_1_ID, MotorType.kBrushless);
-		shooter_2   = new CANSparkMax(shooter_2_ID, MotorType.kBrushless);
-		hood_Motor  = new CANSparkMax(hood_Motor_ID, MotorType.kBrushless);
+		shooter_1   = new CANSparkMax(SHOOTER_1_ID, MotorType.kBrushless);
+		shooter_2   = new CANSparkMax(SHOOTER_2_ID, MotorType.kBrushless);
+		hood_Motor  = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
 
 		//Victor SP
-		ball_Feeder = new VictorSP(ball_Feeder_ID);
+		ball_Feeder = new VictorSP(BALL_FEEDER_ID);
 		
 		// Set Shooter related motors to off to Start the Match
 		shooter_1.set  (0.0);
@@ -139,10 +145,11 @@ public class Shooter {
 		encoder_Shooter_2  = shooter_2.getEncoder();
 		encoder_Hood_Motor = hood_Motor.getEncoder();
 
+		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
-	  //  shooterController.enableContinuousInput(0.0, 5500.0);
-	  //  shooterController.setIntegratorRange(0.0, 1.0);
-	  //  shooterController.setTolerance(50.0);
+		//shooterController.enableContinuousInput(0.0, 5500.0);
+		//shooterController.setIntegratorRange(0.0, 1.0);
+		//shooterController.setTolerance(50.0);
 	}
 
 
@@ -151,34 +158,42 @@ public class Shooter {
 		double  power;
 
 		if (location == ShootLocation.OFF) {
-			powerError = OFF_POWER;
+			powerError     = OFF_POWER;
 			targetVelocity = OFF_TARGET_RPM;
 			targetPower    = OFF_POWER;
 		}
 		else if (location == ShootLocation.TEN_FOOT) {
-			powerError = shooterController.calculate( encoder_Shooter_1.getVelocity(), TEN_FOOT_TARGET_RPM);
+			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), TEN_FOOT_TARGET_RPM);
 			targetVelocity = TEN_FOOT_TARGET_RPM;
 			targetPower    = TEN_FOOT_POWER;
+
+			System.out.println("Ten Foot Shot");
 		}
 		else if (location == ShootLocation.TRENCH) {
-			powerError = shooterController.calculate( encoder_Shooter_1.getVelocity(), TRENCH_TARGET_RPM);
-			System.out.println("Trench Shot");
+			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), TRENCH_TARGET_RPM);
 			targetVelocity = TRENCH_TARGET_RPM;
 			targetPower    = TRENCH_POWER;
+
+			System.out.println("Trench Shot");
 		}
 		else if (location == ShootLocation.HAIL_MARY) {
-			powerError = shooterController.calculate( encoder_Shooter_1.getVelocity(), HAIL_MARY_TARGET_RPM);
+			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), HAIL_MARY_TARGET_RPM);
 			targetVelocity = HAIL_MARY_TARGET_RPM;
 			targetPower    = HAIL_MARY_POWER;
+
+			System.out.println("Hail Mary Shot!");
 		}
 		else {
-			powerError = OFF_POWER;
+			powerError     = OFF_POWER;
 			targetVelocity = OFF_TARGET_RPM;
 			targetPower    = OFF_POWER;
 		}
 
 		power = MathUtil.clamp(targetPower + powerError, 0.0, 1.0);
-		System.out.println("power:" + power + " rpm:" + encoder_Shooter_1.getVelocity());
+		
+		System.out.println("power:" + power);
+		System.out.println("rpm:" + encoder_Shooter_1.getVelocity());
+		
 		SmartDashboard.putNumber("power", power);
 		SmartDashboard.putNumber("rpm", encoder_Shooter_1.getVelocity());
 
@@ -198,37 +213,41 @@ public class Shooter {
 		else if (location == ShootLocation.TEN_FOOT) {
 			shooter_1.set(TEN_FOOT_POWER * -1);
 			shooter_2.set(TEN_FOOT_POWER);
+			
 			targetVelocity = TEN_FOOT_TARGET_RPM;
 		}
 		else if (location == ShootLocation.TRENCH) {
 			shooter_1.set(TRENCH_POWER * -1);
 			shooter_2.set(TRENCH_POWER);
+			
 			targetVelocity = TRENCH_TARGET_RPM;
 		}
 		else if (location == ShootLocation.HAIL_MARY) {
 			shooter_1.set(HAIL_MARY_POWER * -1);
 			shooter_2.set(HAIL_MARY_POWER);
+			
 			targetVelocity = HAIL_MARY_TARGET_RPM;
 		}
 		else {
 			shooter_1.set(OFF_POWER);
 			shooter_2.set(OFF_POWER);
 			ball_Feeder.set(OFF_POWER);
+			
 			targetVelocity = OFF_TARGET_RPM;
 		}
 	}
 
 	public boolean shooterReadyAuto() {
 		double rpm;
-
 		rpm = encoder_Shooter_1.getVelocity();
+		
 		System.out.println("RPM: " + rpm);
+		
 		if ((rpm > (targetVelocity - ERROR_TARGET_RPM)) &&
 			(rpm < (targetVelocity + ERROR_TARGET_RPM)) )  {
 			targetCount ++;
 			
 			if(targetCount >= 5) { //10 old value
-				ball_Feeder.set(feedPower);
 				return true;
 			}
 			else {
@@ -243,7 +262,6 @@ public class Shooter {
 	}
 
 	public boolean shooterReady() {
-
 	//System.out.println("velocity:" + encoder_Shooter_1.getVelocity() + " tgtVelocity:" + targetVelocity);
 		if (encoder_Shooter_1.getVelocity() >= targetVelocity) {
 			return true;
@@ -254,21 +272,50 @@ public class Shooter {
 	}
 
 	/**
+	 * Manual Control of the Ball Feeder Motor
+	 * @param dir
+	 */
+	public void manualBallFeederControl(BallFeederDirection dir) {
+		if (dir == BallFeederDirection.FORWARD) {
+			ball_Feeder.set(FEED_POWER);
+		}
+		else if (dir == BallFeederDirection.REVERSE) {
+			ball_Feeder.set(FEED_POWER * -1);
+		}
+		else {
+			ball_Feeder.set(OFF_POWER);
+		}
+	}
+
+	/**
+	 * Automatic Control of the Ball Feeder Motor
+	 */
+	public void autoBallFeederControl() {
+		if (shooterReadyAuto() == true) {
+			ball_Feeder.set(FEED_POWER);
+		}
+		else {
+			ball_Feeder.set(OFF_POWER);
+		}
+	}
+
+	/**
 	 * A test function for the shooter
 	 * @param power
 	 */
 	public void testShoooter(double power) {
 		shooter_1.set(power * -1);
 		shooter_2.set(power);
-
-		//Negative power makes it intake
-		ball_Feeder.set(power * -1);
+		ball_Feeder.set(power * -1); //Negative power makes it intake
 
 		System.out.println("Power: " + power + " RPM: " + encoder_Shooter_1.getVelocity());
 	}
 
 	/**
-	 * DEBUG
+	 * DEBUG / TEST FUNCTIONS
+	 */
+	/**
+	 * Prints the speed of the wheel
 	 */
 	public void printSpeed() {
 		double π = Math.PI;
@@ -295,12 +342,14 @@ public class Shooter {
 	public void enableShooterFullPower() {
 		shooter_1.set(-0.70);
 		shooter_2.set(0.70);
-
-		ball_Feeder.set(feedPower);
+		ball_Feeder.set(FEED_POWER);
 
 		System.out.println("RPM 1: " + encoder_Shooter_1.getVelocity());
 	}
 
+	/**
+	 * Test function to enable all three shooting related motors 
+	 */
 	public void enableShooter() {
 		enableShooterMotor1();
 		enableShooterMotor2();
@@ -317,14 +366,17 @@ public class Shooter {
 	}
 
 	private void enableBallFeeder() {
-		ball_Feeder.set(-1.00);
+		ball_Feeder.set(-0.50);
 	}
 
+	/**
+	 * Test function to disable all motors that are controlled by this class
+	 */
 	public void disableShooter(){
 		disableShooterMotor1();
 		disableShooterMotor2();
-
 		disableBallFeeder();
+		disableHoodMotor();
 	}
 
 	private void disableShooterMotor1() {
@@ -337,6 +389,63 @@ public class Shooter {
 
 	private void disableBallFeeder() {
 		ball_Feeder.set(0.00);
+	}
+
+	private void disableHoodMotor() {
+		hood_Motor.set(0.00);
+	}
+
+	/**
+	 * Function to display all the different motor RPM's
+	 * Doesn't really apply to the hood motor
+	 */
+	public void displayRPMValues() {
+		System.out.println("Shooter 1 RPM: " + displayShooter1RPM());
+		System.out.println("Shooter 2 RPM: " + displayShooter2RPM());
+	}
+
+	private double displayShooter1RPM() {
+		double rpm;
+		rpm = encoder_Shooter_1.getVelocity();
+		
+		return rpm;
+	}
+
+	private double displayShooter2RPM() {
+		double rpm;
+		rpm = encoder_Shooter_2.getVelocity();
+		
+		return rpm;
+	}
+
+	/**
+	 * Function to display the current position of each motor
+	 */
+	public void displayPosition() {
+		System.out.println("Shooter 1 Position: " + displayShooter1Position());
+		System.out.println("Shooter 2 Position: " + displayShooter2Position());
+		System.out.println("Hood Motor Position: " + displayHoodMotorPosition());
+	}
+
+	private double displayShooter1Position() {
+		double position;
+		position = encoder_Shooter_1.getPosition();
+		
+		return position;
+	}
+
+	private double displayShooter2Position() {
+		double position;
+		position = encoder_Shooter_2.getPosition();
+		
+		return position;
+	}
+
+	private double displayHoodMotorPosition() {
+		double position;
+		position = encoder_Hood_Motor.getPosition();
+
+		return position;
 	}
 
 } //End of the Shooter Class
