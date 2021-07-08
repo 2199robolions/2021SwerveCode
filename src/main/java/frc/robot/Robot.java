@@ -197,10 +197,14 @@ public class Robot extends TimedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    //I don't know why you'd put anything in this
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    //I don't know why you'd put anything in this
+  }
 
   @Override
   public void testInit() {
@@ -274,7 +278,7 @@ public class Robot extends TimedRobot {
     boolean trenchShot;
 
     /**
-     * Get setting from Xbox & Joystick controllers
+     * Get inputs from the Xbox controller & Joystick
      */
     //Grabber
 		grabberDeployRetract          = controls.grabberDeployRetract();
@@ -299,13 +303,16 @@ public class Robot extends TimedRobot {
 		/*****   Shooter Control   *****/
 		if (shooterEnable == true) {
 			if (hailMary == true) {
+        drive.teleopRotate(0.00);
 				shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
 			}
 			else if (trenchShot == true) {
+        drive.teleopRotate(0.00);
 				shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
 			}
 			else {
-				shooter.autoShooterControl(Shooter.ShootLocation.TEN_FOOT);
+        drive.teleopRotate(0.00);
+				shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
       }
 		}
 		else {
