@@ -343,7 +343,7 @@ public class Robot extends TimedRobot {
       }
     }
     else {
-      shooter.manualBallFeederControl(Shooter.BallFeederDirection.OFF);
+      shooter.manualBallFeederControl(feederDirection);
     }
   }
 

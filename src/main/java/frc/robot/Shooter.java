@@ -6,6 +6,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.VictorSP;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -75,25 +77,33 @@ public class Shooter {
 	// Victor SP Port
 	private int BALL_FEEDER_ID = 5;
 
+	// DIO Ports
+	private final int LIMTSWITCH_1_ID = 0;
+	private final int LIMTSWITCH_2_ID = 1;
+
 	// Encoders
 	private CANEncoder encoder_Shooter_1;
 	private CANEncoder encoder_Shooter_2;
 	private CANEncoder encoder_Hood_Motor;
+
+	//DIO SENSORS
+	private DigitalInput limitSwitch_1; //Makes it shoot low (closet to the front of the robot)
+	private DigitalInput limitSwitch_2;
 
 	// POWER CONSTANTS
 	public final double OFF_POWER       = 0.00 ;
 	public final double TEN_FOOT_POWER  = 0.622; //0.66
 	public final double TRENCH_POWER    = 0.52 ; //.648 //.645
 	public final double HAIL_MARY_POWER = 1.00 ;
-	public final double FEED_POWER      = -0.75;
+	public final double FEED_POWER      = -0.50;
 
 	// RPM CONSTANTS
 	public final double OFF_TARGET_RPM       = 0;
-	public final double MAX_TARGET_RPM       = 5300; 
+	public final double MAX_TARGET_RPM       = 5200; //5300 
 	public final double ERROR_TARGET_RPM     = 50.0;
-	public final double TEN_FOOT_TARGET_RPM  = 3572; //3720
-	public final double TRENCH_TARGET_RPM    = 2940; //3662
-	public final double HAIL_MARY_TARGET_RPM = 5325; //5375
+	public final double TEN_FOOT_TARGET_RPM  = 3490; //3572
+	public final double TRENCH_TARGET_RPM    = 2840; //2940
+	public final double HAIL_MARY_TARGET_RPM = 5530; //5325
 
 	// Variables
 	public  double targetVelocity;
@@ -145,11 +155,12 @@ public class Shooter {
 		encoder_Shooter_2  = shooter_2.getEncoder();
 		encoder_Hood_Motor = hood_Motor.getEncoder();
 
+		// DIO Sensors
+
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
 		//shooterController.enableContinuousInput(0.0, 5500.0);
 		//shooterController.setIntegratorRange(0.0, 1.0);
-		//shooterController.setTolerance(50.0);
 	}
 
 
@@ -189,16 +200,17 @@ public class Shooter {
 			targetPower    = OFF_POWER;
 		}
 
-		power = MathUtil.clamp(targetPower + powerError, 0.0, 1.0);
+		//power = MathUtil.clamp(targetPower + powerError, 0.0, 1.0);
+		power = MathUtil.clamp(targetPower, 0.0, 1.0);
 		
 		System.out.println("power:" + power);
-		System.out.println("rpm:" + encoder_Shooter_1.getVelocity());
+		System.out.println("rpm:" + encoder_Shooter_2.getVelocity());
 		
 		SmartDashboard.putNumber("power", power);
-		SmartDashboard.putNumber("rpm", encoder_Shooter_1.getVelocity());
+		SmartDashboard.putNumber("rpm", encoder_Shooter_2.getVelocity());
 
-		shooter_1.set(power);
-		shooter_2.set(power * -1);
+		shooter_1.set(power * -1);
+		shooter_2.set(power);
 	}
 
 	public void manualShooterControl(ShootLocation location) {
@@ -239,12 +251,12 @@ public class Shooter {
 
 	public boolean shooterReadyAuto() {
 		double rpm;
-		rpm = encoder_Shooter_1.getVelocity();
+		rpm = encoder_Shooter_2.getVelocity();
 		
 		System.out.println("RPM: " + rpm);
 		
-		if ((rpm > (targetVelocity - ERROR_TARGET_RPM)) &&
-			(rpm < (targetVelocity + ERROR_TARGET_RPM)) )  {
+		if ((rpm > (Math.abs(targetVelocity) - ERROR_TARGET_RPM)) &&
+			(rpm < (Math.abs(targetVelocity) + ERROR_TARGET_RPM)) )  {
 			targetCount ++;
 			
 			if(targetCount >= 5) { //10 old value

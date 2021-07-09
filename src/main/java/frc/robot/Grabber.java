@@ -28,7 +28,7 @@ public class Grabber {
     //
 
     //CONSTANTS
-    private final double GRABBER_POWER = 0.8;  //0.7
+    private final double GRABBER_POWER = -0.8;  //0.7
     //private final double GRABBER_POWER = 1.0;
 
     /**

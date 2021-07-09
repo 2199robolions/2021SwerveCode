@@ -36,19 +36,19 @@ public class Climber {
     private int LIFTER_CURRENT_LIMIT = 50;
     
     // PCM CAN ID's
-    private final int PCM_CAN_ID_BOTTOM         = 9;
-    private final int PCM_CAN_ID_MIDDLE         = 9;
-    private final int PCM_CAN_ID_TOP            = 9;
+    private final int PCM_CAN_ID_BOTTOM         = 0;
+    private final int PCM_CAN_ID_MIDDLE         = 0;
+    private final int PCM_CAN_ID_TOP            = 0;
 
     //Solenoid ID's
-    private final int SOLENOID_RETRACT_BOTTOM   = 9;
-    private final int SOLENOID_DEPLOY_BOTTOM    = 9;
+    private final int SOLENOID_RETRACT_BOTTOM   = 1;
+    private final int SOLENOID_DEPLOY_BOTTOM    = 2;
 
-    private final int SOLENOID_RETRACT_MIDDLE   = 9;
-    private final int SOLENOID_DEPLOY_MIDDLE    = 9;
+    private final int SOLENOID_RETRACT_MIDDLE   = 3;
+    private final int SOLENOID_DEPLOY_MIDDLE    = 4;
 
-    private final int SOLENOID_RETRACT_TOP      = 9;
-    private final int SOLENOID_DEPLOY_TOP       = 9;
+    private final int SOLENOID_RETRACT_TOP      = 5;
+    private final int SOLENOID_DEPLOY_TOP       = 6;
 
     /**
      * Climber State Enumeration
@@ -66,7 +66,7 @@ public class Climber {
      * CONSTRUCTOR
      */
     public Climber() {
-        // SPARKS
+        /*// SPARKS
         liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
 
         // ENCODERS
@@ -90,7 +90,7 @@ public class Climber {
         //Retract all pistons
         pistonBottom.set(Value.kReverse);
         pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);
+        pistonTop.   set(Value.kReverse);*/
     }
 
     /**
@@ -103,15 +103,15 @@ public class Climber {
     }
 
     public void bottomArmUp() {
-        pistonBottom.set(Value.kForward);
+        //pistonBottom.set(Value.kForward);
     }
 
     public void middleArmUp() {
-        pistonMiddle.set(Value.kForward);
+        //pistonMiddle.set(Value.kForward);
     }
 
     public void topArmUp() {
-        pistonTop.set   (Value.kForward);
+        //pistonTop.set   (Value.kForward);
     }
 
     /**
@@ -124,15 +124,15 @@ public class Climber {
     }
 
     private void bottomArmDown() {
-        pistonBottom.set(Value.kReverse);
+        //pistonBottom.set(Value.kReverse);
     }
 
     private void middleArmDown() {
-        pistonMiddle.set(Value.kReverse);
+        //pistonMiddle.set(Value.kReverse);
     }
 
     public void topArmDown() {
-        pistonTop.set   (Value.kReverse);
+        //pistonTop.set   (Value.kReverse);
     }
 
     /**
@@ -140,7 +140,7 @@ public class Climber {
      * @param power
      */
     public void pullRobotUp(double power) {
-        liftMotor.set(power);
+        //liftMotor.set(power);
     }
 
 } // End of Climber Class

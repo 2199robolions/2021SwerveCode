@@ -155,7 +155,7 @@ public class Controls {
      */
     public boolean enableTargetLock() {
         boolean isPressed;
-        isPressed = joystick.getRawButtonPressed(100); // This needs to become an actual button sonner or later
+        isPressed = joystick.getRawButtonPressed(11); // This needs to become an actual button sonner or later
         
         return isPressed;
     }
@@ -292,10 +292,10 @@ public class Controls {
         xboxY = xboxController.getY(Hand.kRight) * -1;
 
         //Trigger dead band
-        if (xboxY >= 0.2) {
+        if (xboxY > 0.1) {
             return Shooter.BallFeederDirection.FORWARD;
         }
-        else if (xboxY <= -0.2) {
+        else if (xboxY < -0.1) {
             return Shooter.BallFeederDirection.REVERSE;
         }
         else {

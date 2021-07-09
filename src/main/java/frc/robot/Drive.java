@@ -25,9 +25,6 @@ public class Drive {
 	static final double kLimeLightToleranceDegrees = 1.0f;
 
 	//Variables
-    private boolean currButtonState = false;
-    private boolean oldButtonState  = false;
-    private boolean fieldDrive      = false;
 	private boolean firstTime       = true;
     private int     count           = 0;
     
@@ -366,20 +363,6 @@ public class Drive {
      */
     public double getYaw(){
         return ahrs.getYaw();
-    }
-
-    public boolean fieldDrive() {
-        oldButtonState  = currButtonState;
-        currButtonState = controls.toggleFieldDrive();
-
-        //If the button was just pressed
-        if((currButtonState == true) && (oldButtonState == false)) {
-            fieldDrive =! fieldDrive; //Switch the fieldDrive value
-        }
-
-        System.out.println("Field Drive toggled to: " + fieldDrive);
-
-        return fieldDrive;
     }
 
     /**
