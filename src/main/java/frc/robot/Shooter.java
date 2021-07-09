@@ -60,6 +60,16 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 	  */
 
 public class Shooter {
+
+	private static Shooter instance = null;
+
+    public static synchronized Shooter getInstance() {
+        if (instance == null) {
+            instance = new Shooter();
+        }
+
+        return instance;
+    }
 	
 	// SPARK MAX
 	private CANSparkMax shooter_1;
@@ -78,16 +88,16 @@ public class Shooter {
 	private int BALL_FEEDER_ID = 5;
 
 	// DIO Ports
-	private final int LIMTSWITCH_1_ID = 0;
-	private final int LIMTSWITCH_2_ID = 1;
+	public final int LIMITSWITCH_1_ID = 0;
+	public final int LIMITSWITCH_2_ID = 1;
 
 	// Encoders
-	private CANEncoder encoder_Shooter_1;
-	private CANEncoder encoder_Shooter_2;
-	private CANEncoder encoder_Hood_Motor;
+	private CANEncoder shooter_1_Encoder;
+	private CANEncoder shooter_2_Encoder;
+	private CANEncoder hood_Motor_Encoder;
 
 	//DIO SENSORS
-	private DigitalInput limitSwitch_1; //Makes it shoot low (closet to the front of the robot)
+	private DigitalInput limitSwitch_1; //Makes it shoot lower (closet to the front of the robot)
 	private DigitalInput limitSwitch_2;
 
 	// POWER CONSTANTS
@@ -104,6 +114,11 @@ public class Shooter {
 	public final double TEN_FOOT_TARGET_RPM  = 3490; //3572
 	public final double TRENCH_TARGET_RPM    = 2840; //2940
 	public final double HAIL_MARY_TARGET_RPM = 5530; //5325
+
+	// HOOD MOTOR CONSTANTS
+	public double ORIGINAL_POSITION;
+	public double HIGH_SHOT;
+	public double LOW_SHOT;
 
 	// Variables
 	public  double targetVelocity;
@@ -123,6 +138,12 @@ public class Shooter {
 		OFF;
 	}
 
+	public static enum HoodMotorPosition {
+		LOW_SHOT,
+		HIGH_SHOT,
+		ORIGINAL_POSITION;
+	}
+
 	// Shooter PID Controller
 	private PIDController shooterController;
 
@@ -135,7 +156,7 @@ public class Shooter {
 	/**
 	 * CONSTRUCTOR
 	 */
-	public Shooter() {
+	private Shooter() {
 		// SPARK Max
 		shooter_1   = new CANSparkMax(SHOOTER_1_ID, MotorType.kBrushless);
 		shooter_2   = new CANSparkMax(SHOOTER_2_ID, MotorType.kBrushless);
@@ -151,11 +172,13 @@ public class Shooter {
 		ball_Feeder.set(0.0);
 
 		// Encoders
-		encoder_Shooter_1  = shooter_1.getEncoder();
-		encoder_Shooter_2  = shooter_2.getEncoder();
-		encoder_Hood_Motor = hood_Motor.getEncoder();
+		shooter_1_Encoder  = shooter_1.getEncoder();
+		shooter_2_Encoder  = shooter_2.getEncoder();
+		hood_Motor_Encoder = hood_Motor.getEncoder();
 
 		// DIO Sensors
+		limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
+		limitSwitch_2 = new DigitalInput(LIMITSWITCH_2_ID);
 
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
@@ -174,21 +197,21 @@ public class Shooter {
 			targetPower    = OFF_POWER;
 		}
 		else if (location == ShootLocation.TEN_FOOT) {
-			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), TEN_FOOT_TARGET_RPM);
+			powerError     = shooterController.calculate( getabsRPM(SHOOTER_1_ID), TEN_FOOT_TARGET_RPM);
 			targetVelocity = TEN_FOOT_TARGET_RPM;
 			targetPower    = TEN_FOOT_POWER;
 
 			System.out.println("Ten Foot Shot");
 		}
 		else if (location == ShootLocation.TRENCH) {
-			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), TRENCH_TARGET_RPM);
+			powerError     = shooterController.calculate( getabsRPM(SHOOTER_1_ID), TRENCH_TARGET_RPM);
 			targetVelocity = TRENCH_TARGET_RPM;
 			targetPower    = TRENCH_POWER;
 
 			System.out.println("Trench Shot");
 		}
 		else if (location == ShootLocation.HAIL_MARY) {
-			powerError     = shooterController.calculate( encoder_Shooter_1.getVelocity(), HAIL_MARY_TARGET_RPM);
+			powerError     = shooterController.calculate( getabsRPM(SHOOTER_1_ID), HAIL_MARY_TARGET_RPM);
 			targetVelocity = HAIL_MARY_TARGET_RPM;
 			targetPower    = HAIL_MARY_POWER;
 
@@ -200,14 +223,14 @@ public class Shooter {
 			targetPower    = OFF_POWER;
 		}
 
-		//power = MathUtil.clamp(targetPower + powerError, 0.0, 1.0);
-		power = MathUtil.clamp(targetPower, 0.0, 1.0);
+		power = MathUtil.clamp(targetPower + powerError, 0.0, 1.0);
+		//power = MathUtil.clamp(targetPower, 0.0, 1.0);
 		
 		System.out.println("power:" + power);
-		System.out.println("rpm:" + encoder_Shooter_2.getVelocity());
+		System.out.println("rpm:" + getabsRPM(SHOOTER_1_ID));
 		
 		SmartDashboard.putNumber("power", power);
-		SmartDashboard.putNumber("rpm", encoder_Shooter_2.getVelocity());
+		SmartDashboard.putNumber("rpm", getabsRPM(SHOOTER_1_ID));
 
 		shooter_1.set(power * -1);
 		shooter_2.set(power);
@@ -251,12 +274,12 @@ public class Shooter {
 
 	public boolean shooterReadyAuto() {
 		double rpm;
-		rpm = encoder_Shooter_2.getVelocity();
+		rpm = getabsRPM(SHOOTER_1_ID);
 		
 		System.out.println("RPM: " + rpm);
 		
-		if ((rpm > (Math.abs(targetVelocity) - ERROR_TARGET_RPM)) &&
-			(rpm < (Math.abs(targetVelocity) + ERROR_TARGET_RPM)) )  {
+		if ((rpm > (targetVelocity - ERROR_TARGET_RPM)) &&
+			(rpm < (targetVelocity + ERROR_TARGET_RPM)) )  {
 			targetCount ++;
 			
 			if(targetCount >= 5) { //10 old value
@@ -275,7 +298,7 @@ public class Shooter {
 
 	public boolean shooterReady() {
 	//System.out.println("velocity:" + encoder_Shooter_1.getVelocity() + " tgtVelocity:" + targetVelocity);
-		if (encoder_Shooter_1.getVelocity() >= targetVelocity) {
+		if (getabsRPM(SHOOTER_1_ID) >= targetVelocity) {
 			return true;
 		}
 		else {
@@ -312,6 +335,25 @@ public class Shooter {
 	}
 
 	/**
+	 * Allows for manual control of the Hood Motor
+	 * @param motorPosition
+	 */
+	public void manualHoodMotorControl(Shooter.HoodMotorPosition motorPosition) {
+		if (motorPosition == Shooter.HoodMotorPosition.HIGH_SHOT) {
+			hood_Motor_Encoder.setPosition(HIGH_SHOT);
+		}
+		else if (motorPosition == Shooter.HoodMotorPosition.LOW_SHOT) {
+			hood_Motor_Encoder.setPosition(LOW_SHOT);
+		}
+		else if (motorPosition == Shooter.HoodMotorPosition.ORIGINAL_POSITION) {
+			hood_Motor_Encoder.setPosition(ORIGINAL_POSITION);
+		}
+		else {
+			//
+		}
+	}
+
+	/**
 	 * A test function for the shooter
 	 * @param power
 	 */
@@ -320,7 +362,7 @@ public class Shooter {
 		shooter_2.set(power);
 		ball_Feeder.set(power * -1); //Negative power makes it intake
 
-		System.out.println("Power: " + power + " RPM: " + encoder_Shooter_1.getVelocity());
+		System.out.println("Power: " + power + " RPM: " + getabsRPM(SHOOTER_1_ID));
 	}
 
 	/**
@@ -331,22 +373,22 @@ public class Shooter {
 	 */
 	public void printSpeed() {
 		double π = Math.PI;
-		double wheel_size = 6;                                                                  // Wheel diameter Inches 
+		double wheel_size = 6;                                                 // Wheel diameter Inches 
 
-		double RPM = (encoder_Shooter_1.getVelocity() + (encoder_Shooter_2.getVelocity() * -1) ) / 2;   // Rotations per minute average
-		double RPH = RPM / 60;                                                                  // Rotations per hour
+		double RPM = (getabsRPM(SHOOTER_1_ID) + getabsRPM(SHOOTER_2_ID) ) / 2; // Rotations per minute average
+		double RPH = RPM / 60;                                                 // Rotations per hour
 		
-		double circumferenceInches = wheel_size * π;                                            // Circumference in Inches
-		double circumferenceFeet = circumferenceInches / 12;                                    // Circumference in Feet
-		double circumferenceMiles = circumferenceFeet / 5280;                                   // Circumference in Miles
+		double circumferenceInches = wheel_size * π;                           // Circumference in Inches
+		double circumferenceFeet = circumferenceInches / 12;                   // Circumference in Feet
+		double circumferenceMiles = circumferenceFeet / 5280;                  // Circumference in Miles
 
-		double MPH = RPH * circumferenceMiles;                                                  // Miles Per Hour
+		double MPH = RPH * circumferenceMiles;                                 // Miles Per Hour
 
 		if (RPM > 0) { 
 			//System.out.println("MPH: " + MPH);
 			if (MPH != 0) {
-				System.out.println("RPM 1: " + encoder_Shooter_1.getVelocity());
-				System.out.println("RPM 2: " + encoder_Shooter_2.getVelocity());
+				System.out.println("RPM 1: " + getabsRPM(SHOOTER_1_ID));
+				System.out.println("RPM 2: " + getabsRPM(SHOOTER_2_ID));
 			}
 		}
 	}
@@ -356,7 +398,8 @@ public class Shooter {
 		shooter_2.set(0.70);
 		ball_Feeder.set(FEED_POWER);
 
-		System.out.println("RPM 1: " + encoder_Shooter_1.getVelocity());
+		System.out.println("RPM 1: " + getabsRPM(SHOOTER_1_ID));
+		System.out.println("RPM 2: " + getabsRPM(SHOOTER_2_ID));
 	}
 
 	/**
@@ -403,61 +446,92 @@ public class Shooter {
 		ball_Feeder.set(0.00);
 	}
 
-	private void disableHoodMotor() {
-		hood_Motor.set(0.00);
-	}
-
 	/**
 	 * Function to display all the different motor RPM's
 	 * Doesn't really apply to the hood motor
 	 */
 	public void displayRPMValues() {
-		System.out.println("Shooter 1 RPM: " + displayShooter1RPM());
-		System.out.println("Shooter 2 RPM: " + displayShooter2RPM());
+		System.out.println("Shooter 1 RPM: " + shooter1RPM());
+		System.out.println("Shooter 2 RPM: " + shooter2RPM());
 	}
 
-	private double displayShooter1RPM() {
+	private double shooter1RPM() {
 		double rpm;
-		rpm = encoder_Shooter_1.getVelocity();
+		rpm = getabsRPM(SHOOTER_1_ID);
 		
 		return rpm;
 	}
 
-	private double displayShooter2RPM() {
+	private double shooter2RPM() {
 		double rpm;
-		rpm = encoder_Shooter_2.getVelocity();
+		rpm = getabsRPM(SHOOTER_2_ID);
 		
 		return rpm;
 	}
 
 	/**
-	 * Function to display the current position of each motor
+	 * Gets the abs RPM of the passed motor
+	 * @return absRPM
 	 */
-	public void displayPosition() {
-		System.out.println("Shooter 1 Position: " + displayShooter1Position());
-		System.out.println("Shooter 2 Position: " + displayShooter2Position());
-		System.out.println("Hood Motor Position: " + displayHoodMotorPosition());
+	private double getabsRPM(int MOTOR_CAN_ID) {
+		double rpm;
+		double absRPM;
+
+		if (MOTOR_CAN_ID == SHOOTER_1_ID) {
+			rpm = shooter_1_Encoder.getVelocity();
+		}
+		else if (MOTOR_CAN_ID == SHOOTER_2_ID) {
+			rpm = shooter_2_Encoder.getVelocity();
+		}
+		else if (MOTOR_CAN_ID == HOOD_MOTOR_ID) {
+			rpm = hood_Motor_Encoder.getVelocity();
+		}
+		else {
+			//It should never come to this case
+			rpm = 0;
+		}
+
+		absRPM = Math.abs(rpm);
+
+		return absRPM;
 	}
 
-	private double displayShooter1Position() {
-		double position;
-		position = encoder_Shooter_1.getPosition();
-		
-		return position;
+	/**
+	 * Gets the value from a selected limit switch
+	 * @param SWITCH_ID
+	 * @return If the selected limitswitch is triggered
+	 */
+	public boolean limitSwitchValue(int SWITCH_ID) {
+		boolean limitSwitch1Triggered;
+		boolean limitSwitch2Triggered;
+
+		limitSwitch1Triggered = limitSwitch_1.get();
+		limitSwitch2Triggered = limitSwitch_2.get();
+
+		if (SWITCH_ID == LIMITSWITCH_1_ID) {
+			return limitSwitch1Triggered;
+		}
+		else if (SWITCH_ID == LIMITSWITCH_2_ID) {
+			return limitSwitch2Triggered;
+		}
+		else {
+			return false;
+		}
 	}
 
-	private double displayShooter2Position() {
-		double position;
-		position = encoder_Shooter_2.getPosition();
-		
-		return position;
+	public void enableHoodMotor(double power) {
+		hood_Motor.set(power);
 	}
 
-	private double displayHoodMotorPosition() {
-		double position;
-		position = encoder_Hood_Motor.getPosition();
+	public void disableHoodMotor() {
+		hood_Motor.set(0.00);
+	}
 
-		return position;
+	public double hoodMotorPosition() {
+		double motorPosition;
+		motorPosition = hood_Motor_Encoder.getPosition();
+
+		return motorPosition;
 	}
 
 } //End of the Shooter Class

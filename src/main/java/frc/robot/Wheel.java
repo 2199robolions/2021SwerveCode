@@ -13,10 +13,10 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 
 public class Wheel {
     // Variables
-    /*private double currWheelAngle;
+    //private double currWheelAngle;
     private boolean currButtonState = false;
     private boolean oldButtonState  = false;
-    private boolean fieldDrive      = false;*/
+    private boolean fieldDrive      = false;
 
     //Object Creation
     Drive drive;
@@ -36,7 +36,6 @@ public class Wheel {
     private PIDController rotationPID;
 
     // PID Controller Values (static, as these constants will not change for each individual motor)
-    // TODO: make sure to replace the 0.0's with actual values
     private static final double kP = 0.03;
     private static final double kI = 0.00;
     private static final double kD = 0.00;
@@ -79,15 +78,15 @@ public class Wheel {
         // 10       .1
         // 5        .05
 
-        /*if (fieldDrive() == true) {
+        if (fieldDrive() == true) {
             //In field drive, the wheels' angles will be the robot's direction + the wheels' directions
             currWheelAngle = adjustValue(getRotateMotorPosition() + drive.getYaw());
         }
         else {
             //This occurs whenever Field Drive is not enabled, and for any other strange cases
             currWheelAngle = getRotateMotorPosition();
-        }*/
-        currWheelAngle = getRotateMotorPosition();
+        }
+        //currWheelAngle = getRotateMotorPosition();
 
         /**
          * If PID is 0 to 360
@@ -165,10 +164,12 @@ public class Wheel {
         return adjustedValue;
     }
 
-    /*
     private boolean fieldDrive() {
-        oldButtonState  = currButtonState;
-        currButtonState = controls.toggleFieldDrive();
+        //Utilizes a singleton method to make sure that there is only one instance of controls 
+        Controls controls = Controls.getInstance();
+
+        oldButtonState    = currButtonState;
+        currButtonState   = controls.toggleFieldDrive();
 
         //If the button was just pressed
         if((currButtonState == true) && (oldButtonState == false)) {
@@ -178,7 +179,7 @@ public class Wheel {
         System.out.println("Field Drive toggled to: " + fieldDrive);
 
         return fieldDrive;
-    }*/
+    }
 
     /**
      * Makes the returned value of the sensors -180 to 180 degrees.

@@ -9,6 +9,16 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class Controls {
     
+    private static Controls instance = null;
+
+    public static synchronized Controls getInstance() {
+        if (instance == null) {
+            instance = new Controls();
+        }
+
+        return instance;
+    }
+
     private enum ControllerIDs {
         JOYSTICK(1),
         XBOXCONTROLLER(0);
@@ -25,14 +35,16 @@ public class Controls {
         }
     }
 
-    // Joystick Object Declaration & Instantiation
-    private Joystick joystick = new Joystick(ControllerIDs.JOYSTICK.getId());
+    // Joystick Object Declaration
+    private Joystick joystick;
     
-    // XboxController Object Declaration & Instantiation
-    private XboxController xboxController = new XboxController(ControllerIDs.XBOXCONTROLLER.getId());
+    // XboxController Object Declaration
+    private XboxController xboxController;
 
-    public Controls() {
-        //
+    private Controls() {
+        //Instance Creation
+        joystick        = new Joystick(ControllerIDs.JOYSTICK.getId());
+        xboxController  = new XboxController(ControllerIDs.XBOXCONTROLLER.getId());
     }
 
     /**
@@ -193,7 +205,8 @@ public class Controls {
      */
     /**
      * Start Button Pressed
-     * @return WHETER TO KILL ALL ACTIVE AUTO PROGRAMS!
+     * WHETER TO KILL ALL ACTIVE AUTO PROGRAMS!
+     * @return startButtonPressed
      */
     public boolean autoKill() {
         return xboxController.getStartButtonPressed();
@@ -201,25 +214,26 @@ public class Controls {
     
     /**
      * Button A
-     * @return
+     * @return buttonAPressed
      */
     //
 
     /**
      * Button B
-     * @return
+     * @return buttonBPressed
      */
     //
 
     /**
      * Button X
-     * @return
+     * @return buttonXPressed
      */
     //
 
     /**
      * Button Y
-     * @return Deploy / Retract of the Grabber
+     * Deploys / Retracts the Grabber
+     * @return buttonYPressed
      */
     public boolean grabberDeployRetract() {
         return xboxController.getYButtonPressed();
@@ -232,12 +246,13 @@ public class Controls {
      * @return The direction the grabber should move
      */
     public Grabber.GrabberDirection getGrabberDir() {
-        int selection = xboxController.getPOV();
+        int dPad;
+        dPad = xboxController.getPOV();
 
-        if ( (selection == 315) || (selection == 0) || (selection == 45) ) {
+        if ( (dPad == 315) || (dPad == 0) || (dPad == 45) ) {
             return Grabber.GrabberDirection.REVERSE;
         }
-        else if ( (selection == 225) || (selection == 180) || (selection == 135) ) {
+        else if ( (dPad == 225) || (dPad == 180) || (dPad == 135) ) {
             return Grabber.GrabberDirection.FORWARD;
         }
         else {
@@ -247,7 +262,7 @@ public class Controls {
 
     /**
      * Right Bumper Pressed
-     * @return
+     * @return rightBumperPresed
      */
     public boolean climberAllArmsUp() {
         return xboxController.getBumper(Hand.kRight);
@@ -255,7 +270,7 @@ public class Controls {
 
     /**
      * Left Bumper Pressed
-     * @return
+     * @return leftBumperPresed
      */
     public boolean climberTopArmDown() {
         return xboxController.getBumper(Hand.kLeft);
@@ -263,7 +278,7 @@ public class Controls {
 
     /**
      * Right trigger
-     * @return
+     * @return power
      */
     public double getClimberPower() {
         double power;
@@ -306,9 +321,29 @@ public class Controls {
     /**
      * XBox Controller Left Stick
      */
+    public Shooter.HoodMotorPosition hoodMotorControl() {
+        double xboxY;
+        xboxY = xboxController.getY(Hand.kLeft) * -1;
+
+        if (xboxY >= 0.2) {
+            return Shooter.HoodMotorPosition.LOW_SHOT;
+        }
+        else if (xboxY <= -0.2) {
+            return Shooter.HoodMotorPosition.HIGH_SHOT;
+        }
+        else {
+            return Shooter.HoodMotorPosition.ORIGINAL_POSITION;
+        }
+    }
 
     /**
-     * XBox Controller Sticks Pressed
+     * XBox Controller Right Stick Pressed
      */
+    // Nothing so far
+
+    /**
+     * XBox Controller Left Stick Pressed
+     */
+    // Nothing so far
 
 } // End of the Controls class

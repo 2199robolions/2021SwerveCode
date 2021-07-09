@@ -10,12 +10,13 @@ import frc.robot.Grabber.GrabberDirection;
 public class Auto {
 	// Variables
 	private int          step;
+	private int          calibrationStep;
 	private long         startMs; 
 	private boolean      firstTime = true;
 
 	// Consants
-	private final int TEST_DELAY = 1000;
-	private final int SHOOT_TIME = 5000;
+	//private final int TEST_DELAY = 1000;
+	//private final int SHOOT_TIME = 5000;
 
 	// Object creation
 	private LedLights   led;
@@ -32,9 +33,120 @@ public class Auto {
 		this.grabber    = grabber;
 		this.shooter    = shooter;
 
+		//Sets the step variables
 		step = 1;
 	}
 
+	public int calibrateHoodMotor() {
+		//Standard Auto Variables
+		int status = Robot.CONT;
+
+		//Instance creation
+		Shooter shooter = Shooter.getInstance();
+		
+		//Variables
+		boolean limit1 = shooter.limitSwitchValue(shooter.LIMITSWITCH_1_ID);
+		boolean limit2 = shooter.limitSwitchValue(shooter.LIMITSWITCH_2_ID);
+		double  motorPositionInit;
+		double  motorPositionOne ;
+		double  motorPositionTwo ;
+		double  power  = -0.0001;
+
+		switch (calibrationStep) {
+			//Starts the calibration program
+			case 1:
+				//Starts the LED's
+				led.autoMode();
+
+				status = Robot.DONE;
+				break;
+			case 2:
+				//Gets the starting position
+				motorPositionInit = shooter.hoodMotorPosition();
+			
+				//Prints the starting position's value
+				System.out.println("Initial Motor Position: " + motorPositionInit);
+
+				//Allows other methods in the code to use these numbers
+				shooter.ORIGINAL_POSITION = motorPositionInit;
+
+				status = Robot.DONE;
+				break;
+			case 3:
+				if (limit1 == true) {
+					//Stops the motor
+					shooter.disableHoodMotor();
+
+					//Gets the first position
+					motorPositionOne = shooter.hoodMotorPosition();
+
+					//Prints position one's value
+					System.out.println("Motor Position One: " + motorPositionOne);
+				
+					//Allows other methods in the code to use these numbers
+					shooter.LOW_SHOT = motorPositionOne;
+
+					status = Robot.DONE;
+				}
+				else if (limit1 == false) {
+					//Starts slowly moving the motor forward to try and find the forward limit
+					shooter.enableHoodMotor(power);
+
+					status = Robot.CONT;
+				}
+				break;
+			case 4:
+				if (limit2 == true) {
+					//Stops the motor
+					shooter.disableHoodMotor();
+
+					//Gets the second position
+					motorPositionTwo = shooter.hoodMotorPosition();
+
+					//Prints position two's value
+					System.out.println("Motor Position One: " + motorPositionTwo);
+
+					//Allows other methods to use these numbers
+					shooter.HIGH_SHOT = motorPositionTwo;
+
+					status = Robot.DONE;
+				}
+				else if (limit2 == false) {
+					//Starts slowly moving the motor backward to try and find the backward limit
+					shooter.enableHoodMotor(power * -1);
+
+					status = Robot.CONT;
+				}
+				break;
+			case 5:
+				//Sets hood motor to original position and awaits further input
+				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.ORIGINAL_POSITION);
+
+				status = Robot.DONE;
+				break;
+			case 6:
+				// Auto Program Finished
+				led.autoModeFinished();
+
+				status = delay(500);
+				break;
+			default:
+				//Sets calibrationStep to 1
+				calibrationStep = 1;
+
+				//Debatable if I want led's in here
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			calibrationStep++;
+		}
+
+		return Robot.CONT;
+	}
+	
 	/**
 	 * Default Auto
 	 * @param delay
@@ -54,7 +166,7 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = 1; //replace the 1 with a method later
+				status = Robot.DONE; //replace the 1 with a method later
 				break;
 			default:
 				// Set Step to 1

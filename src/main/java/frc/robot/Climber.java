@@ -7,7 +7,7 @@
 
 package frc.robot;
 
-//import com.revrobotics.CANEncoder;
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -19,13 +19,12 @@ public class Climber {
 
     // SPARK MAX
     private CANSparkMax liftMotor;
-    //private CANSparkMax sparkLift_2;
 
     // SPARK ID's
     private final int LIFT_MOTOR_ID = 9;
 
     // ENCODERS
-    //private CANEncoder lift_Motor_Encoder;
+    private CANEncoder lift_Motor_Encoder;
 
     // SOLENOID
     private DoubleSolenoid pistonBottom;
@@ -66,11 +65,11 @@ public class Climber {
      * CONSTRUCTOR
      */
     public Climber() {
-        /*// SPARKS
+        // SPARKS
         liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
 
         // ENCODERS
-        //lift_Motor_Encoder  = liftMotor.getEncoder();
+        lift_Motor_Encoder  = liftMotor.getEncoder();
 
         // Spark Current Limit
         liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
@@ -90,7 +89,7 @@ public class Climber {
         //Retract all pistons
         pistonBottom.set(Value.kReverse);
         pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);*/
+        pistonTop.   set(Value.kReverse);
     }
 
     /**
@@ -140,7 +139,29 @@ public class Climber {
      * @param power
      */
     public void pullRobotUp(double power) {
-        //liftMotor.set(power);
+        double absRPM;
+        absRPM = liftMotorabsRPM();
+
+        //Set motor power
+        liftMotor.set(power);
+
+        //Print motor RPM
+        System.out.println("Lift Motor RPM: " + absRPM);
+    }
+
+    /**
+     * Gets the abs(RPM) of the lift motor
+     * @return abs(rpm)
+     */
+    private double liftMotorabsRPM() {
+        double rpm;
+        double absRPM;
+
+        rpm = lift_Motor_Encoder.getVelocity();
+
+        absRPM = Math.abs(rpm);
+
+        return absRPM;
     }
 
 } // End of Climber Class
