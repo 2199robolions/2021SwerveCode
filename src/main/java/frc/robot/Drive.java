@@ -122,7 +122,7 @@ public class Drive {
             this.rotateMotorId = rotateMotorId;
             this.rotateSensorId = rotateSensorId;
             this.targetRadians = targetRadians;
-            //this.targetVoltage = (((targetRadians * 2.5) / Math.PI) + 2.5);
+            this.targetVoltage = (((targetRadians * 2.5) / Math.PI) + 2.5);
             this.offsetDegrees = offsetDegrees;
         }
 
@@ -216,9 +216,9 @@ public class Drive {
     /**
      * Contructor for the Drive class
      */
-    public Drive(LedLights led) {
+    public Drive() {
         //Instance creation
-        this.led = led;
+        led = LedLights.getInstance();
         
         //NavX
         try {

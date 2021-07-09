@@ -27,23 +27,21 @@ public class Auto {
 	/**
 	 * CONTRUCTOR
 	 */
-	public Auto (Drive drive, Grabber grabber, Shooter shooter, LedLights ledLights) {
-		led             = ledLights;
+	public Auto (Drive drive, Grabber grabber, Shooter shooter) {
+		led             = LedLights.getInstance();
 		this.drive      = drive;
 		this.grabber    = grabber;
 		this.shooter    = shooter;
 
 		//Sets the step variables
 		step = 1;
+		calibrationStep = 1;
 	}
 
 	public int calibrateHoodMotor() {
 		//Standard Auto Variables
 		int status = Robot.CONT;
 
-		//Instance creation
-		Shooter shooter = Shooter.getInstance();
-		
 		//Variables
 		boolean limit1 = shooter.limitSwitchValue(shooter.LIMITSWITCH_1_ID);
 		boolean limit2 = shooter.limitSwitchValue(shooter.LIMITSWITCH_2_ID);
@@ -150,7 +148,7 @@ public class Auto {
 	/**
 	 * Default Auto
 	 * @param delay
-	 * @return
+	 * @return status
 	 */
 	public int defaultAuto(int delay) {
 		int status = Robot.CONT;
@@ -185,9 +183,9 @@ public class Auto {
 		return Robot.CONT;
 	}
 
-	public int basicAuto(int delay) {
+	public int basicAuto(int delaySec) {
 		int status = Robot.CONT;
-		long delayMsec = delay * 1000;
+		long delayMsec = delaySec * 1000;
 
 		switch (step) {
 			//Starts Auto Program
@@ -261,20 +259,20 @@ public class Auto {
 		 */
 		switch(step) {
 			case 1:
-				climber.bottomArmUp();
-
-				status = Robot.DONE;
-				break;
-			case 2:
-				status = delay(0);
-				break;
-			case 3:
 				climber.middleArmUp();
 
 				status = Robot.DONE;
 				break;
+			case 2:
+				status = delay(1);
+				break;
+			case 3:
+				climber.bottomArmUp();
+
+				status = Robot.DONE;
+				break;
 			case 4:
-				status = delay(0);
+				status = delay(1);
 				break;
 			case 5:
 				climber.topArmUp();
@@ -295,8 +293,10 @@ public class Auto {
 	}
 
 	/**
-	 * Delaying Program  delay is in milliseconds
+	 * Delaying Program:
+	 * the delay is in milliseconds
 	 * @param delayMsec
+	 * @return wheter the delay is finished
 	 */
 	private int delay(long delayMsec) {
 		long currentMs = System.currentTimeMillis();

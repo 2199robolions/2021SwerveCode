@@ -4,14 +4,28 @@ import edu.wpi.first.wpilibj.Spark;
 
 public class LedLights {
 
-	// VARIABLES
+	//Singleton Method to insure that there is ever only one instance of LedLights
+	public static LedLights instance = null;
+
+	public static synchronized LedLights getInstance() {
+		if (instance == null) {
+			instance = new LedLights();
+		}
+
+		return instance;
+	}
+
+	// Spark Controller
 	private Spark ledController;
+
+	// VARIABLES
+	//
 
 	// CONSTANTS
 	private final int LED_PWM_CHANNEL = 9;
 
 	// Constructor
-	public LedLights() {
+	private LedLights() {
 		ledController = new Spark(LED_PWM_CHANNEL);
 	}
 

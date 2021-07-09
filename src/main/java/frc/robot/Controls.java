@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class Controls {
     
+    //Singleton Method to insure that there is ever only one instance of Controls
     private static Controls instance = null;
 
     public static synchronized Controls getInstance() {
@@ -19,6 +20,9 @@ public class Controls {
         return instance;
     }
 
+    /**
+     * Enumerator for controller ID's
+     */
     private enum ControllerIDs {
         JOYSTICK(1),
         XBOXCONTROLLER(0);

@@ -74,12 +74,12 @@ public class Robot extends TimedRobot {
    */
   public Robot() {
     //Instance Creation
-    led      = new LedLights();
-    auto     = new Auto(drive, grabber, shooter, led);
-    drive    = new Drive(led);
+    led      = LedLights.getInstance();
+    auto     = new Auto(drive, grabber, shooter);
+    drive    = new Drive();
     controls = Controls.getInstance();
     grabber  = new Grabber();
-    shooter  = Shooter.getInstance();
+    shooter  = new Shooter();
     climber  = new Climber();
 
     //Set Variables
@@ -301,9 +301,11 @@ public class Robot extends TimedRobot {
     //Shooter Variables
     Shooter.BallFeederDirection feederDirection;
     Shooter.HoodMotorPosition   hoodPosition;
+    Shooter.ShootLocation       shotLocation;
     boolean hailMary;
-		boolean shooterEnable;
     boolean trenchShot;
+    boolean shooterEnable;
+    boolean shooterReady = shooter.shooterReadyAuto();
 
     /**
      * Get inputs from the Xbox controller & Joystick
@@ -332,33 +334,61 @@ public class Robot extends TimedRobot {
 		/*****   Shooter Control   *****/
 		if (shooterEnable == true) {
 			if (hailMary == true) {
-        drive.teleopRotate(0.00);
-				shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
+        //Sets the shot location
+        shotLocation = Shooter.ShootLocation.HAIL_MARY;
+
+        //Prepares the robot to shoot
+				shooter.autoShooterControl( shotLocation );
 			}
 			else if (trenchShot == true) {
+        //Sets the shot position
+        shotLocation = Shooter.ShootLocation.TRENCH;
+
+        //Makes it harder to push the robot
         drive.teleopRotate(0.00);
-				shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
+
+        //Prepares the robot to shoot
+				shooter.autoShooterControl( shotLocation );
 			}
 			else {
+        //Sets the shot location
+        shotLocation = Shooter.ShootLocation.TEN_FOOT;
+
+        //Makes it harder to push the robot
         drive.teleopRotate(0.00);
-				shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
+
+        //Prepaers the robot to shoot
+				shooter.autoShooterControl( shotLocation );
       }
 		}
 		else {
-			shooter.manualShooterControl( Shooter.ShootLocation.OFF );
+      //Sets the shot location, or lack there of 
+      shotLocation = Shooter.ShootLocation.OFF;
+
+      //Turns the shooter off
+			shooter.manualShooterControl( shotLocation );
+    }
+
+    /*****   Hood Motor Control   *****/
+    //Hood motor stuff
+    if (shooterEnable == true) {
+      //shooter.autoHoodControl();
+    }
+    else {
+      //shooter.manualHoodMotorControl(hoodPosition);
     }
 
     /*****   Ball Feeder Control   *****/
     // Can't have grabber & shooter on at same time
     if ((grabberDirection == Grabber.GrabberDirection.OFF) && (shooterEnable == true)) {
       //Waits for the shooter to get up to speed
-      if (shooter.shooterReadyAuto() == true) {
+      if (shooterReady == true) {
         System.out.println("Shooter ready. Fire away!");
 
         //Shooter at required RPM, turn Feed Motor On
         shooter.autoBallFeederControl();
       }
-      else { //AKA shooter.shooterReadyAuto() == false
+      else { //AKA shooterReady == false
         System.out.println("Shooter NOT ready!");
 
         //Shooter below required RPM, turn Feed Motor Off

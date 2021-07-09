@@ -60,17 +60,6 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 	  */
 
 public class Shooter {
-
-	private static Shooter instance = null;
-
-    public static synchronized Shooter getInstance() {
-        if (instance == null) {
-            instance = new Shooter();
-        }
-
-        return instance;
-    }
-	
 	// SPARK MAX
 	private CANSparkMax shooter_1;
 	private CANSparkMax shooter_2;
@@ -124,6 +113,7 @@ public class Shooter {
 	public  double targetVelocity;
 	private double targetPower;
 	private int targetCount = 0;
+	private Shooter.ShootLocation shotLocation;
 
 	public static enum ShootLocation {
 		HAIL_MARY,
@@ -156,7 +146,7 @@ public class Shooter {
 	/**
 	 * CONSTRUCTOR
 	 */
-	private Shooter() {
+	public Shooter() {
 		// SPARK Max
 		shooter_1   = new CANSparkMax(SHOOTER_1_ID, MotorType.kBrushless);
 		shooter_2   = new CANSparkMax(SHOOTER_2_ID, MotorType.kBrushless);
@@ -237,6 +227,7 @@ public class Shooter {
 	}
 
 	public void manualShooterControl(ShootLocation location) {
+		shotLocation = location;
 
 		if (location == ShootLocation.OFF) {
 			shooter_1.set(OFF_POWER);
@@ -349,7 +340,33 @@ public class Shooter {
 			hood_Motor_Encoder.setPosition(ORIGINAL_POSITION);
 		}
 		else {
-			//
+			disableHoodMotor();
+		}
+	}
+
+	/**
+	 * Automatic control of the Hood Motor
+	 */
+	public void autoHoodControl() {
+		Shooter.HoodMotorPosition shotPosition;
+
+		if (shotLocation == Shooter.ShootLocation.TEN_FOOT) {
+			shotPosition = Shooter.HoodMotorPosition.HIGH_SHOT;
+
+			manualHoodMotorControl(shotPosition);
+		}
+		else if (shotLocation == Shooter.ShootLocation.TRENCH) {
+			shotPosition = Shooter.HoodMotorPosition.ORIGINAL_POSITION;
+
+			manualHoodMotorControl(shotPosition);
+		}
+		else if (shotLocation == Shooter.ShootLocation.HAIL_MARY) {
+			shotPosition = Shooter.HoodMotorPosition.LOW_SHOT;
+
+			manualHoodMotorControl(shotPosition);
+		}
+		else {
+			disableHoodMotor();
 		}
 	}
 
@@ -496,6 +513,9 @@ public class Shooter {
 		return absRPM;
 	}
 
+	/**
+	 * Methods relating to the Hood Motor and its sensors
+	 */
 	/**
 	 * Gets the value from a selected limit switch
 	 * @param SWITCH_ID
