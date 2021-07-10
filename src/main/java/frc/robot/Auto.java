@@ -43,12 +43,12 @@ public class Auto {
 		int status = Robot.CONT;
 
 		//Variables
-		boolean limit1 = shooter.limitSwitchValue(shooter.LIMITSWITCH_1_ID);
-		boolean limit2 = shooter.limitSwitchValue(shooter.LIMITSWITCH_2_ID);
+		boolean limit1 = shooter.limitSwitch1Value();
+		boolean limit2 = shooter.limitSwitch2Value();
 		double  motorPositionInit;
 		double  motorPositionOne ;
 		double  motorPositionTwo ;
-		double  power  = -0.0001;
+		double  power  = 0.05; //0.01
 
 		switch (calibrationStep) {
 			//Starts the calibration program
@@ -69,8 +69,10 @@ public class Auto {
 				shooter.ORIGINAL_POSITION = motorPositionInit;
 
 				status = Robot.DONE;
+
 				break;
 			case 3:
+				//System.out.println("Case 3");
 				if (limit1 == true) {
 					//Stops the motor
 					shooter.disableHoodMotor();
@@ -86,7 +88,7 @@ public class Auto {
 
 					status = Robot.DONE;
 				}
-				else if (limit1 == false) {
+				else {
 					//Starts slowly moving the motor forward to try and find the forward limit
 					shooter.enableHoodMotor(power);
 
@@ -94,6 +96,7 @@ public class Auto {
 				}
 				break;
 			case 4:
+				//System.out.println("Case 4");
 				if (limit2 == true) {
 					//Stops the motor
 					shooter.disableHoodMotor();
@@ -102,14 +105,14 @@ public class Auto {
 					motorPositionTwo = shooter.hoodMotorPosition();
 
 					//Prints position two's value
-					System.out.println("Motor Position One: " + motorPositionTwo);
+					System.out.println("Motor Position Two: " + motorPositionTwo);
 
 					//Allows other methods to use these numbers
 					shooter.HIGH_SHOT = motorPositionTwo;
 
 					status = Robot.DONE;
 				}
-				else if (limit2 == false) {
+				else {
 					//Starts slowly moving the motor backward to try and find the backward limit
 					shooter.enableHoodMotor(power * -1);
 
@@ -121,12 +124,6 @@ public class Auto {
 				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.ORIGINAL_POSITION);
 
 				status = Robot.DONE;
-				break;
-			case 6:
-				// Auto Program Finished
-				led.autoModeFinished();
-
-				status = delay(500);
 				break;
 			default:
 				//Sets calibrationStep to 1

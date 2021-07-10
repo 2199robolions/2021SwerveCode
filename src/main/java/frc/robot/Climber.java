@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Climber {
 
-    // SPARK MAX
+    /*// SPARK MAX
     private CANSparkMax liftMotor;
 
     // SPARK ID's
@@ -47,7 +47,7 @@ public class Climber {
     private final int SOLENOID_DEPLOY_MIDDLE    = 4;
 
     private final int SOLENOID_RETRACT_TOP      = 5;
-    private final int SOLENOID_DEPLOY_TOP       = 6;
+    private final int SOLENOID_DEPLOY_TOP       = 6;*/
 
     /**
      * Climber State Enumeration
@@ -65,7 +65,7 @@ public class Climber {
      * CONSTRUCTOR
      */
     public Climber() {
-        // SPARKS
+        /*// SPARKS
         liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
 
         // ENCODERS
@@ -89,7 +89,7 @@ public class Climber {
         //Retract all pistons
         pistonBottom.set(Value.kReverse);
         pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);
+        pistonTop.   set(Value.kReverse);*/
     }
 
     /**
@@ -143,7 +143,7 @@ public class Climber {
         absRPM = liftMotorabsRPM();
 
         //Set motor power
-        liftMotor.set(power);
+        //liftMotor.set(power);
 
         //Print motor RPM
         System.out.println("Lift Motor RPM: " + absRPM);
@@ -157,7 +157,8 @@ public class Climber {
         double rpm;
         double absRPM;
 
-        rpm = lift_Motor_Encoder.getVelocity();
+        //rpm = lift_Motor_Encoder.getVelocity();
+        rpm = 0;
 
         absRPM = Math.abs(rpm);
 

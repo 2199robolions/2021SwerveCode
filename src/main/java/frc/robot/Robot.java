@@ -75,12 +75,12 @@ public class Robot extends TimedRobot {
   public Robot() {
     //Instance Creation
     led      = LedLights.getInstance();
-    auto     = new Auto(drive, grabber, shooter);
-    drive    = new Drive();
     controls = Controls.getInstance();
+    drive    = new Drive();
     grabber  = new Grabber();
     shooter  = new Shooter();
     climber  = new Climber();
+    auto     = new Auto(drive, grabber, shooter);
 
     //Set Variables
     ledCurrent = 0;
@@ -245,9 +245,20 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
+
+    if (controls.autoKill() == true) {
+      autoStatus = Robot.FAIL;
+    }
+
     if (autoStatus == Robot.CONT) {
       autoStatus = auto.calibrateHoodMotor();
     }
+    else {
+      return;
+    }
+
+    //System.out.println("Limit Switch 1 Value: " + shooter.limitSwitch1Value());
+    //System.out.println("Limit Switch 2 Value: " + shooter.limitSwitch2Value());
   }
 
   /**

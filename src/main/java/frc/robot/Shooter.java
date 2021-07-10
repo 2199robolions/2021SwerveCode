@@ -517,22 +517,35 @@ public class Shooter {
 	 * Methods relating to the Hood Motor and its sensors
 	 */
 	/**
-	 * Gets the value from a selected limit switch
-	 * @param SWITCH_ID
-	 * @return If the selected limitswitch is triggered
+	 * Gets the value from limit switch 1
+	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
+	 * @return The value of limitswitch 1
 	 */
-	public boolean limitSwitchValue(int SWITCH_ID) {
+	public boolean limitSwitch1Value() {
 		boolean limitSwitch1Triggered;
-		boolean limitSwitch2Triggered;
 
 		limitSwitch1Triggered = limitSwitch_1.get();
+
+		if (limitSwitch1Triggered == false) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
+	 * Gets the value from limit switch 2
+	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
+	 * @return The value of limitswitch 2
+	 */
+	public boolean limitSwitch2Value() {
+		boolean limitSwitch2Triggered;
+
 		limitSwitch2Triggered = limitSwitch_2.get();
 
-		if (SWITCH_ID == LIMITSWITCH_1_ID) {
-			return limitSwitch1Triggered;
-		}
-		else if (SWITCH_ID == LIMITSWITCH_2_ID) {
-			return limitSwitch2Triggered;
+		if (limitSwitch2Triggered == false) {
+			return true;
 		}
 		else {
 			return false;
