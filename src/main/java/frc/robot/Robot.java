@@ -253,9 +253,6 @@ public class Robot extends TimedRobot {
     if (autoStatus == Robot.CONT) {
       autoStatus = auto.calibrateHoodMotor();
     }
-    else {
-      return;
-    }
 
     //System.out.println("Limit Switch 1 Value: " + shooter.limitSwitch1Value());
     //System.out.println("Limit Switch 2 Value: " + shooter.limitSwitch2Value());
@@ -315,7 +312,6 @@ public class Robot extends TimedRobot {
     //Shooter Variables
     Shooter.BallFeederDirection feederDirection;
     Shooter.HoodMotorPosition   hoodPosition;
-    Shooter.ShootLocation       shotLocation;
     boolean hailMary;
     boolean trenchShot;
     boolean shooterEnable;
@@ -348,48 +344,30 @@ public class Robot extends TimedRobot {
 		/*****   Shooter Control   *****/
 		if (shooterEnable == true) {
 			if (hailMary == true) {
-        //Sets the shot location
-        shotLocation = Shooter.ShootLocation.HAIL_MARY;
-
         //Prepares the robot to shoot
-				shooter.autoShooterControl( shotLocation );
+				shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
 			}
 			else if (trenchShot == true) {
-        //Sets the shot position
-        shotLocation = Shooter.ShootLocation.TRENCH;
-
-        //Makes it harder to push the robot
-        drive.teleopRotate(0.00);
-
         //Prepares the robot to shoot
-				shooter.autoShooterControl( shotLocation );
+				shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
 			}
 			else {
-        //Sets the shot location
-        shotLocation = Shooter.ShootLocation.TEN_FOOT;
-
-        //Makes it harder to push the robot
-        drive.teleopRotate(0.00);
-
         //Prepaers the robot to shoot
-				shooter.autoShooterControl( shotLocation );
+				shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
       }
 		}
 		else {
-      //Sets the shot location, or lack there of 
-      shotLocation = Shooter.ShootLocation.OFF;
-
       //Turns the shooter off
-			shooter.manualShooterControl( shotLocation );
+			shooter.manualShooterControl( Shooter.ShootLocation.OFF );
     }
 
     /*****   Hood Motor Control   *****/
     //Hood motor stuff
     if (shooterEnable == true) {
-      //shooter.autoHoodControl();
+      shooter.autoHoodControl();
     }
     else {
-      //shooter.manualHoodMotorControl(hoodPosition);
+      shooter.manualHoodMotorControl(hoodPosition);
     }
 
     /*****   Ball Feeder Control   *****/

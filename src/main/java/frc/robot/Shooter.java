@@ -105,15 +105,17 @@ public class Shooter {
 	public final double HAIL_MARY_TARGET_RPM = 5530; //5325
 
 	// HOOD MOTOR CONSTANTS
-	public double ORIGINAL_POSITION;
-	public double HIGH_SHOT;
-	public double LOW_SHOT;
+	public static double originalPosition;
+	public static double avgPosition;
+	public static double highShot;
+	public static double lowShot;
 
 	// Variables
 	public  double targetVelocity;
 	private double targetPower;
 	private int targetCount = 0;
-	private Shooter.ShootLocation shotLocation;
+	private Shooter.ShootLocation shotLocation = null;
+	Shooter.HoodMotorPosition hoodPrevPosition = null;
 
 	public static enum ShootLocation {
 		HAIL_MARY,
@@ -131,7 +133,7 @@ public class Shooter {
 	public static enum HoodMotorPosition {
 		LOW_SHOT,
 		HIGH_SHOT,
-		ORIGINAL_POSITION;
+		AVERAGE_POSITION;
 	}
 
 	// Shooter PID Controller
@@ -330,14 +332,92 @@ public class Shooter {
 	 * @param motorPosition
 	 */
 	public void manualHoodMotorControl(Shooter.HoodMotorPosition motorPosition) {
-		if (motorPosition == Shooter.HoodMotorPosition.HIGH_SHOT) {
-			hood_Motor_Encoder.setPosition(HIGH_SHOT);
+		//Shorter enum names because I'm lazy
+		Shooter.HoodMotorPosition high = Shooter.HoodMotorPosition.HIGH_SHOT;
+		Shooter.HoodMotorPosition low  = Shooter.HoodMotorPosition.LOW_SHOT;
+		Shooter.HoodMotorPosition avg  = Shooter.HoodMotorPosition.AVERAGE_POSITION;
+
+		//Variables
+		boolean limit1 = limitSwitch1Value();
+		boolean limit2 = limitSwitch2Value();
+		double  hoodPosition = hoodMotorPosition();
+
+		//CONSTANTS
+		double  deadZone = 5;
+		double  power = 0.10;
+
+		if (motorPosition == high) {
+			if (hoodPrevPosition == low || hoodPrevPosition == avg) {
+				if (limit1 == false) {
+					if (hoodPosition < (lowShot - deadZone)) {
+						enableHoodMotor(power);
+					}
+					else {
+						disableHoodMotor();
+					}					
+				}
+				else {
+					disableHoodMotor();
+				}
+			}
+			else {
+				disableHoodMotor();
+			}
+
+			hoodPrevPosition = high;
 		}
-		else if (motorPosition == Shooter.HoodMotorPosition.LOW_SHOT) {
-			hood_Motor_Encoder.setPosition(LOW_SHOT);
+		else if (motorPosition == low) {
+			if (hoodPrevPosition == high || hoodPrevPosition == avg) {
+				if (limit2 == false) {
+					if (hoodPosition > (lowShot + deadZone)) {
+						enableHoodMotor(power * -1);
+					}
+					else {
+						disableHoodMotor();
+					}
+				}
+				else {
+					disableHoodMotor();
+				}
+			}
+			else {
+				disableHoodMotor();
+			}
+
+			hoodPrevPosition = low;
 		}
-		else if (motorPosition == Shooter.HoodMotorPosition.ORIGINAL_POSITION) {
-			hood_Motor_Encoder.setPosition(ORIGINAL_POSITION);
+		else if (motorPosition == avg) {
+			if (hoodPrevPosition == low) {
+				if (limit1 == false) {
+					if (hoodPosition < (avgPosition - deadZone)) {
+						enableHoodMotor(power);
+					}
+					else {
+						disableHoodMotor();
+					}
+				}
+				else {
+					disableHoodMotor();
+				}
+			}
+			else if (hoodPrevPosition == high) {
+				if (limit2 == false) {
+					if (hoodPosition > (avgPosition + deadZone)) {
+						enableHoodMotor(power * -1);
+					}
+					else {
+						disableHoodMotor();
+					}
+				}
+				else {
+					disableHoodMotor();
+				}
+			}
+			else {
+				disableHoodMotor();
+			}
+
+			hoodPrevPosition = avg;
 		}
 		else {
 			disableHoodMotor();
@@ -348,22 +428,14 @@ public class Shooter {
 	 * Automatic control of the Hood Motor
 	 */
 	public void autoHoodControl() {
-		Shooter.HoodMotorPosition shotPosition;
-
 		if (shotLocation == Shooter.ShootLocation.TEN_FOOT) {
-			shotPosition = Shooter.HoodMotorPosition.HIGH_SHOT;
-
-			manualHoodMotorControl(shotPosition);
+			manualHoodMotorControl( Shooter.HoodMotorPosition.HIGH_SHOT );
 		}
 		else if (shotLocation == Shooter.ShootLocation.TRENCH) {
-			shotPosition = Shooter.HoodMotorPosition.ORIGINAL_POSITION;
-
-			manualHoodMotorControl(shotPosition);
+			manualHoodMotorControl( Shooter.HoodMotorPosition.AVERAGE_POSITION );
 		}
 		else if (shotLocation == Shooter.ShootLocation.HAIL_MARY) {
-			shotPosition = Shooter.HoodMotorPosition.LOW_SHOT;
-
-			manualHoodMotorControl(shotPosition);
+			manualHoodMotorControl( Shooter.HoodMotorPosition.LOW_SHOT );
 		}
 		else {
 			disableHoodMotor();

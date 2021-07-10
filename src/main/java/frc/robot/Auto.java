@@ -48,7 +48,8 @@ public class Auto {
 		double  motorPositionInit;
 		double  motorPositionOne ;
 		double  motorPositionTwo ;
-		double  power  = 0.05; //0.01
+		double  motorPositionAvg ;
+		double  power  = 0.10; //0.05 just barely makes the motor move
 
 		switch (calibrationStep) {
 			//Starts the calibration program
@@ -66,7 +67,7 @@ public class Auto {
 				System.out.println("Initial Motor Position: " + motorPositionInit);
 
 				//Allows other methods in the code to use these numbers
-				shooter.ORIGINAL_POSITION = motorPositionInit;
+				Shooter.originalPosition = motorPositionInit;
 
 				status = Robot.DONE;
 
@@ -84,7 +85,7 @@ public class Auto {
 					System.out.println("Motor Position One: " + motorPositionOne);
 				
 					//Allows other methods in the code to use these numbers
-					shooter.LOW_SHOT = motorPositionOne;
+					Shooter.lowShot = motorPositionOne;
 
 					status = Robot.DONE;
 				}
@@ -108,7 +109,7 @@ public class Auto {
 					System.out.println("Motor Position Two: " + motorPositionTwo);
 
 					//Allows other methods to use these numbers
-					shooter.HIGH_SHOT = motorPositionTwo;
+					Shooter.highShot = motorPositionTwo;
 
 					status = Robot.DONE;
 				}
@@ -120,8 +121,14 @@ public class Auto {
 				}
 				break;
 			case 5:
+				//Calculates the average position between the two limit switches
+				motorPositionAvg = (Shooter.lowShot + Shooter.highShot) / 2;
+
+				//Sets the average position
+				Shooter.avgPosition = motorPositionAvg;
+
 				//Sets hood motor to original position and awaits further input
-				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.ORIGINAL_POSITION);
+				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.AVERAGE_POSITION);
 
 				status = Robot.DONE;
 				break;

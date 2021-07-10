@@ -336,7 +336,7 @@ public class Controls {
             return Shooter.HoodMotorPosition.HIGH_SHOT;
         }
         else {
-            return Shooter.HoodMotorPosition.ORIGINAL_POSITION;
+            return Shooter.HoodMotorPosition.AVERAGE_POSITION;
         }
     }
 
