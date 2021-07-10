@@ -235,16 +235,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
+    //Variables
+    autoStatus = Robot.CONT;
+
+    //Selects alliance color
     alliance = allianceColor.getSelected();
     System.out.println("Alliance selected: " + alliance);
   }
 
   @Override
   public void testPeriodic() {
-    //drive.testPID();
-    //drive.testRotate();
-    //System.out.println("Power: " + controls.getDrivePower() + " Angle: " + controls.getDriveAngle());
-    ballControl();
+    if (autoStatus == Robot.CONT) {
+      autoStatus = auto.calibrateHoodMotor();
+    }
   }
 
   /**
