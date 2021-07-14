@@ -112,14 +112,19 @@ public class Controls {
     public double getDrivePower() {
         double x = joystick.getX();
         double y = joystick.getY() * -1;
+        double powerMultiplier = powerMultiplier();
+        double drivePower;
         
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
         //This will make it reach power 1 faster at a 45 degrees
         hypClamp = MathUtil.clamp(hyp, -1, 1);
         //hypClamp = hyp / Math.sqrt(2);
+
+        //This makes the throttle actually work, with all the way at the botom being zero throttle
+        drivePower = hypClamp * powerMultiplier;
         
-        return hypClamp;
+        return drivePower;
     }
 
     /**
@@ -201,6 +206,24 @@ public class Controls {
      */
     public boolean hailMary() {
         return joystick.getRawButton(2);
+    }
+
+    /**
+     * Returns the decimal value of the throttle, with all the way at the bottom being 0
+     * @return throttleDecimal 0 to 2
+     */
+    private double powerMultiplier() {
+        //Variables
+        double throttle = joystick.getThrottle() * -1; //Forward on the throttle is -1, but we want it to be +1
+        double posThrottle;
+        double throttleDecimal;
+
+        //Makes the throttle values 0 to 2 (this makes the math easier) 
+        posThrottle = throttle + 1;
+        //Divides the value by two, getting a decimal
+        throttleDecimal = posThrottle / 2;
+
+        return throttleDecimal;
     }
 
 
