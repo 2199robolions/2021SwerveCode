@@ -126,6 +126,9 @@ public class Robot extends TimedRobot {
     allianceColor.setDefaultOption("Default Color", kDefaultColor);
     SmartDashboard.putData("Alliance Color", allianceColor);
 
+    //Testing shooter powers
+		SmartDashboard.putNumber("Input Power", 0.50);
+
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
   }
@@ -168,7 +171,7 @@ public class Robot extends TimedRobot {
             calibrateStatus = auto.calibrateHoodMotor();
           }
 
-          autoStatus = auto.basicAuto(delaySeconds);
+          autoStatus = auto.defaultAuto(delaySeconds);
           break;
         case kCustomAutoLeft:
           //Calibrates the hood motor
@@ -177,15 +180,15 @@ public class Robot extends TimedRobot {
           }
 
           //Runs the actual auto program
-          auto.basicAuto(delaySeconds);
+          auto.defaultAuto(delaySeconds);
           break;
         case kCustomAutoCenter:
           //Calibrates the hood motor
-          auto.basicAuto(delaySeconds);
+          auto.defaultAuto(delaySeconds);
           break;
         case kCustomAutoLRC:
           //Calibrates the hood motor
-          auto.basicAuto(delaySeconds);
+          auto.defaultAuto(delaySeconds);
           break;
         default:
           //Calibrates the hood motor
@@ -256,6 +259,10 @@ public class Robot extends TimedRobot {
 
     //System.out.println("Limit Switch 1 Value: " + shooter.limitSwitch1Value());
     //System.out.println("Limit Switch 2 Value: " + shooter.limitSwitch2Value());
+
+    /*double tempPower;
+    tempPower = SmartDashboard.getNumber("Input Power", 0.5);
+    shooter.enableShooter(tempPower);*/
   }
 
   /**

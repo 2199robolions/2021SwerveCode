@@ -1,11 +1,6 @@
 package frc.robot;
 
-import frc.robot.Grabber.GrabberDirection;
-
-//import frc.robot.Conveyer.ConveyerState;
-//import frc.robot.Grabber.GrabberDirection;
-
-//import jdk.nashorn.internal.ir.BreakableNode;
+//import 
 
 public class Auto {
 	// Variables
@@ -127,7 +122,7 @@ public class Auto {
 				//Sets the average position
 				Shooter.avgPosition = motorPositionAvg;
 
-				//Sets hood motor to original position and awaits further input
+				//Sets hood motor to the average position and awaits further input
 				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.AVERAGE_POSITION);
 
 				status = Robot.DONE;
@@ -158,6 +153,11 @@ public class Auto {
 		int status = Robot.CONT;
 		long delayMsec = delay * 1000;
 
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
 		switch (step) {
 			// Starts Auto Program
 			case 1:
@@ -168,11 +168,19 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = Robot.DONE; //replace the 1 with a method later
+				drive.teleopSwerve(0, 0, 0);
+				//status = 
+				break;
+			case 3:
+				grabber.deployRetract();
+				status = Robot.CONT;
 				break;
 			default:
 				// Set Step to 1
 				step = 1;
+
+				//Reset firstTime
+				firstTime = true;
 
 				// Auto Program Finished
 				led.autoModeFinished();
@@ -182,66 +190,6 @@ public class Auto {
 
 		if (status == Robot.DONE) {
 			step++;
-		}
-
-		return Robot.CONT;
-	}
-
-	public int basicAuto(int delaySec) {
-		int status = Robot.CONT;
-		long delayMsec = delaySec * 1000;
-
-		switch (step) {
-			//Starts Auto Program
-			case 1:
-				//Sets the LED's to their auto mode
-				led.autoMode();
-
-				//Initial delay 
-				status = delay(delayMsec);
-				break;
-			case 2:
-				//Deploys grabber
-				grabber.deployRetract();
-
-				//Sets status to DONE
-				status = Robot.DONE;
-				break;
-			case 3:
-				//Starts grabber
-				grabber.grabberDirection(GrabberDirection.FORWARD);
-
-				//Sets status to DONE
-				status = Robot.DONE;
-				break;
-			case 4:
-				//Targets with the limelight
-				status = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
-				break;
-			case 5:
-				//Starts the shooter
-				shooter.enableShooter();
-
-				//Sets status to DONE
-				status = Robot.DONE;
-				break;
-			default:
-				//Set step to 1
-				step = 1;
-
-				//Turns everything off
-				drive.disableMotors();
-				grabber.grabberDirection(GrabberDirection.OFF);
-				shooter.disableShooter();
-
-				//Auto program finished
-				led.autoModeFinished();
-
-				return Robot.DONE;
-		}
-
-		if (status == Robot.DONE) {
-			step ++;
 		}
 
 		return Robot.CONT;

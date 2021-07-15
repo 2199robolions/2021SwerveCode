@@ -580,7 +580,20 @@ public class Drive {
      * AUTONOMOUS METHODS
      */
     /**
-     * Autonomous rotate
+     * Autonomous forward:
+     * drives forward a certain number of feet
+     * @param feet
+     * @return status
+     */
+    public int forward(int feet, double heading, double forwardPower) {
+        return 0;
+    }
+
+    /**
+     * Autonomous rotate:
+     * rotates to a certain angle
+     * @param degrees
+     * @return status
      */
     public int rotate(double degrees) {
         double pidOutput;

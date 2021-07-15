@@ -494,19 +494,19 @@ public class Shooter {
 	/**
 	 * Test function to enable all three shooting related motors 
 	 */
-	public void enableShooter() {
-		enableShooterMotor1();
-		enableShooterMotor2();
+	public void enableShooter(double power) {
+		enableShooterMotor1(power);
+		enableShooterMotor2(power);
 
 		enableBallFeeder();
 	}
 
-	private void enableShooterMotor1() {
-		shooter_1.set(-0.50);
+	private void enableShooterMotor1(double power) {
+		shooter_1.set(power * -1);
 	}
 
-	private void enableShooterMotor2() {
-		shooter_2.set(0.50);
+	private void enableShooterMotor2(double power) {
+		shooter_2.set(power);
 	}
 
 	private void enableBallFeeder() {
