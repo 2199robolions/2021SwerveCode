@@ -81,6 +81,17 @@ public class Grabber {
 
         //System.out.println("Forwarding State: " + grabberState);
     }
+    public void deploy(){
+        //Sets piston to deploy position
+        grabberPiston.set(Value.kForward);
+        grabberState = GrabberState.DEPLOY;
+    }
+    public void retract(){
+        //Sets piston to deploy position
+        grabberPiston.set(Value.kReverse);
+        grabberState = GrabberState.RETRACT;
+    }
+
 
     public void grabberDirection(GrabberDirection dir) {
         //Don't allow grabber to turn if it's retracted

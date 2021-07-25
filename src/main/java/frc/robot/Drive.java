@@ -63,6 +63,8 @@ public class Drive {
 	private static final double tP = 0.02; //0.2
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
+
+    public static final double rotationsPerFoot = 4; //Needs updated value
     
     /**
      * Enumerators
@@ -355,6 +357,127 @@ public class Drive {
         frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower * -1);
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
+    }
+
+    public int autoDrive(double distance, double angle, double power) {
+        double tempX = 0;
+        double tempY = 0;
+
+        //Edge case
+        if (angle == 90) {
+            tempX = power;
+            tempY = 0;
+        } else if (angle == -90) {
+            tempX = -power;
+            tempY = 0;
+        } else {
+            /*
+                Converts from angle and power to x and y values
+            */
+            double ratio = Math.tan(angle.toDegrees()); //from angle to y / x
+        
+            //Scales x and y within power and sets their ratio
+            if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
+                tempY = power;
+                tempX = tempY/ratio;
+
+            } else { //x is larger so it gets the largest value
+                tempX = power;
+                tempY = tempX/ratio;
+            }
+
+            if (Math.abs(angle) > 90) { //If the angle is backwards, the x and y need to be multiplied by -1
+                tempX *= -1;
+                tempY *= -1;
+            }
+        }
+
+        double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
+
+        if(firstTime == true){
+            firstTime == false;
+            double encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+        }
+
+        if(encoderCurrent >= encoderTarget){
+            firstTime = true;
+            return Robot.DONE;
+        } else {
+            return Robot.CONT;
+        }
+
+        teleopSwerve(tempX, tempY, 0);
+
+    }
+
+    
+    public int autoFieldDrive(double distance, double angle, double power){
+        //autoDrive but 0 degrees is always the same direction, regardless of robot orientation
+        double newAngle = angle + ahrs.getYaw(); //placeholder for gyro angle
+        double tempX = 0;
+        double tempY = 0;
+
+        //Edge case
+        if (newAngle == 90) {
+            tempX = power;
+            tempY = 0;
+        } else if (newAngle == -90) {
+            tempX = -power;
+            tempY = 0;
+        } else {
+            
+            double ratio = Math.tan(newAngle.toDegrees()); //from angle to y / x
+        
+            //Scales x and y within power and sets their ratio
+            if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
+                tempY = power;
+                tempX = tempY/ratio;
+
+            } else { //x is larger so it gets the largest value
+                tempX = power;
+                tempY = tempX/ratio;
+            }
+
+            if (Math.abs(newAngle) > 90) { //If the angle is backwards, the x and y need to be multiplied by -1
+                tempX *= -1;
+                tempY *= -1;
+            }
+        }
+
+        double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
+
+        if(firstTime == true){
+            firstTime == false;
+            double encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+        }
+
+        if(encoderCurrent >= encoderTarget){
+            firstTime = true;
+            return Robot.DONE;
+        } else {
+            return Robot.CONT;
+        }
+
+        teleopSwerve(tempX, tempY, 0);
+    }
+
+    public int autoRotate(double angle, boolean clockwise){
+        //Rotates TO given angle
+
+        double turnPower = 0;
+        if (clockwise == true) {
+            turnPower = 0.7;
+        } else {
+            turnPower = -0.7;
+        }
+
+        if (Math.abs(ahrs.getYaw() - angle) < 2) { //If the robot is within 2 degrees of target angle, stop turning
+            return Robot.DONE;
+        } else {
+            return Robot.CONT;
+        }
+
+        teleopSwerve(0, 0, turnPower);
     }
 
     /**

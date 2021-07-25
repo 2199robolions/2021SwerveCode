@@ -168,8 +168,7 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				drive.teleopSwerve(0, 0, 0);
-				//status = 
+				status = drive.autoDrive(10, 0, 1);
 				break;
 			case 3:
 				grabber.deployRetract();

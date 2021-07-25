@@ -35,6 +35,11 @@ public class Wheel {
     private AnalogPotentiometer rotateMotorSensor;
     private PIDController rotationPID;
 
+
+
+    //Instantiate encoders
+
+
     // PID Controller Values (static, as these constants will not change for each individual motor)
     private static final double kP = 0.03;
     private static final double kI = 0.00;
