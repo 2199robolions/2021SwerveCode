@@ -151,7 +151,8 @@ public class Robot extends TimedRobot {
     m_positionSelected = m_pathChooser.getSelected();
 
     //Auto Delay
-    delaySeconds = Integer.parseInt(m_delaySelected);
+    //delaySeconds = Integer.parseInt(m_delaySelected);
+    delaySeconds = 0;
 
     //Telemetry
     System.out.println("Delay: "    + delaySeconds);
@@ -164,6 +165,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     if (autoStatus == Robot.CONT) {
+      autoStatus = drive.autoRotate(60);
+      /*
       switch (m_positionSelected) {
         case kCustomAutoRight:
           //Calibrates the hood motor
@@ -200,6 +203,9 @@ public class Robot extends TimedRobot {
           auto.defaultAuto(delaySeconds);
           break;
       }
+      */
+    } else {
+      drive.disableMotors();
     }
   }
 

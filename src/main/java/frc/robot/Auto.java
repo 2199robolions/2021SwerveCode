@@ -168,12 +168,13 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoDrive(10, 0, 1);
+				status = drive.autoRotate(60);
 				break;
+				/*
 			case 3:
 				grabber.deployRetract();
 				status = Robot.CONT;
-				break;
+				break;*/
 			default:
 				// Set Step to 1
 				step = 1;

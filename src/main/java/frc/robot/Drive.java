@@ -17,16 +17,17 @@ public class Drive {
 
     //NAVX
     private static AHRS ahrs;
-    private PIDController turnController;
+    private PIDController rotateController;
     private PIDController targetController;
 
-    //static final double kToleranceDegrees = 1.0f;
-	static final double kToleranceDegrees = 2.0f;
+	static final double rotateToleranceDegrees = 2.0f;
 	static final double kLimeLightToleranceDegrees = 1.0f;
 
 	//Variables
-	private boolean firstTime       = true;
+    private boolean firstTime       = true;
+    private boolean rotateFirstTime = true;
     private int     count           = 0;
+    private double  encoderTarget   = 0;
     
     //CONSTANTS
     private final int FAIL_DELAY = 5;
@@ -245,17 +246,17 @@ public class Drive {
         ahrs.zeroYaw();
 
         //PID Controllers
-		turnController = new PIDController(kP, kI, kD);
+		rotateController = new PIDController(kP, kI, kD);
 		targetController = new PIDController(tP, tI, tD);
 		
 		/* Max/Min input values.  Inputs are continuous/circle */
-		turnController.enableContinuousInput(-180.0, 180.0);
+		rotateController.enableContinuousInput(-180.0, 180.0);
 		targetController.enableContinuousInput(-30.0, 30.0);
 
 		/* Max/Min output values */
 		//Turn Controller
-		turnController.setIntegratorRange(-.25, .25); // do not change 
-		turnController.setTolerance(kToleranceDegrees);
+		rotateController.setIntegratorRange(-.25, .25); // do not change 
+		rotateController.setTolerance(rotateToleranceDegrees);
 
 		//Target Controller
 		targetController.setIntegratorRange(-.2, .2); // do not change 
@@ -357,6 +358,66 @@ public class Drive {
         frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower * -1);
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
+    }
+
+     /**
+     * Autonomous rotate:
+     * rotates to a certain angle
+     * @param degrees
+     * @return status
+     */
+    public int autoRotate(double degrees) {
+        double pidOutput;
+        long currentMs = System.currentTimeMillis();
+
+        if (rotateFirstTime == true) {
+            rotateFirstTime = false;
+            count = 0;
+            timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
+
+        }
+
+        if (currentMs > timeOut) {
+			count = 0;
+            rotateFirstTime = true;
+            
+			System.out.println("Timed out");
+            disableMotors();
+            return Robot.FAIL;
+		}
+
+		// Rotate
+		pidOutput = rotateController.calculate(getYaw(), degrees);
+		pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
+		//System.out.println("Yaw: " + getYaw());
+		//System.out.println(pidOutput);
+		teleopRotate(pidOutput);
+
+		// CHECK: Routine Complete
+		if (rotateController.atSetpoint() == true) {
+            count++;
+            
+			System.out.println("Count: " + count);
+
+			if (count == ON_ANGLE_COUNT) {
+				count = 0;
+                rotateFirstTime = true;
+                rotateController.reset();
+
+                disableMotors();                
+                System.out.println("DONE");
+                
+                return Robot.DONE;
+            }
+            else {
+				return Robot.CONT;
+			}
+		}
+		else {    
+			count = 0;
+            
+            return Robot.CONT;
+		}
     }
 
 
@@ -606,7 +667,7 @@ public class Drive {
             /*
                 Converts from angle and power to x and y values
             */
-            double ratio = Math.tan(angle.toDegrees()); //from angle to y / x
+            double ratio = Math.tan(Math.toDegrees(angle)); //from angle to y / x
         
             //Scales x and y within power and sets their ratio
             if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
@@ -627,23 +688,23 @@ public class Drive {
         double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
 
         if(firstTime == true){
-            firstTime == false;
-            double encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+            firstTime = false;
+            encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
         }
+
+        double pidOutput;
+        pidOutput = rotateController.calculate(ahrs.getYaw(), angle + ahrs.getYaw()); 
+		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
+        teleopSwerve(tempX, tempY, pidOutput);
 
         if(encoderCurrent >= encoderTarget){
             firstTime = true;
             teleopSwerve(0, 0, 0);
-            turnController.reset();
+            rotateController.reset();
             return Robot.DONE;
         } else {
             return Robot.CONT;
         }
-
-        double pidOutput;
-        pidOutput = turnController.calculate(ahrs.getYaw(), angle + ahrs.getYaw()); 
-		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopSwerve(tempX, tempY, pidOutput);
 
     }
 
@@ -663,7 +724,7 @@ public class Drive {
             tempY = 0;
         } else {
             
-            double ratio = Math.tan(newAngle.toDegrees()); //from angle to y / x
+            double ratio = Math.tan(Math.toDegrees(newAngle)); //from angle to y / x
         
             //Scales x and y within power and sets their ratio
             if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
@@ -682,11 +743,19 @@ public class Drive {
         }
 
         double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
+        
 
         if(firstTime == true){
-            firstTime == false;
-            double encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+            firstTime = false;
+            encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
         }
+
+        double pidOutput;
+        pidOutput = rotateController.calculate(ahrs.getYaw(), angle); 
+		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
+        teleopSwerve(tempX, tempY, pidOutput);
+
+        teleopSwerve(tempX, tempY, 0);
 
         if(encoderCurrent >= encoderTarget){
             firstTime = true;
@@ -696,75 +765,8 @@ public class Drive {
             return Robot.CONT;
         }
 
-        double pidOutput;
-        pidOutput = turnController.calculate(ahrs.getYaw(), angle); 
-		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopSwerve(tempX, tempY, pidOutput);
-
-        teleopSwerve(tempX, tempY, 0);
     }
 
-    /**
-     * Autonomous rotate:
-     * rotates to a certain angle
-     * @param degrees
-     * @return status
-     */
-    public int rotate(double degrees) {
-        double pidOutput;
-        long currentMs = System.currentTimeMillis();
-
-        if (firstTime == true) {
-            firstTime = false;
-            count = 0;
-            timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
-
-        }
-
-        if (currentMs > timeOut) {
-			count = 0;
-            firstTime = true;
-            
-			System.out.println("Timed out");
-            
-            return Robot.FAIL;
-		}
-
-		// Rotate
-		pidOutput = turnController.calculate(getYaw(), degrees);
-		pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
-		//System.out.println("Yaw: " + getYaw());
-		//System.out.println(pidOutput);
-		teleopRotate(pidOutput);
-
-		turnController.setTolerance(kToleranceDegrees);
-		// CHECK: Routine Complete
-		if (turnController.atSetpoint() == true) {
-            count++;
-            
-			System.out.println("Count: " + count);
-
-			if (count == ON_ANGLE_COUNT) {
-				count = 0;
-                firstTime = true;
-                turnController.reset();
-
-                teleopSwerve(0.00, 0.00, 0.00);
-                
-                System.out.println("DONE");
-                
-                return Robot.DONE;
-            }
-            else {
-				return Robot.CONT;
-			}
-		}
-		else {    
-			count = 0;
-            
-            return Robot.CONT;
-		}
-    }
 
     /**
      * TEST FUNCTIONS
