@@ -28,6 +28,7 @@ public class Drive {
     private boolean rotateFirstTime = true;
     private int     count           = 0;
     private double  encoderTarget   = 0;
+    private double  targetYaw       = 0;
     
     //CONSTANTS
     private final int FAIL_DELAY = 5;
@@ -680,133 +681,114 @@ public class Drive {
 
 
     /**
-     * AUTONOMOUS METHODS
+     * AUTONOMOUS DRIVE METHODS
      */
     /**
      * Autonomous drive:
      * drives a certain number of feet at a certain angle
      * @param distance - the number of feet the robot drives
-     * @param angle - angle the robot drives
+     * @param targetDegrees - angle the robot drives
      * @param power 
      * @return status
      */
-    public int autoCrabDrive(double distance, double angle, double power) {
-        //angle is in reference to the robot (which way should it drive)
-        double tempX = 0;
-        double tempY = 0;
-
-        //Edge case
-        if (angle == 90) {
-            tempX = power;
-            tempY = 0;
-        } else if (angle == -90) {
-            tempX = -power;
-            tempY = 0;
-        } else {
-            /*
-                Converts from angle and power to x and y values
-            */
-            double ratio = Math.tan(Math.toDegrees(angle)); //from angle to y / x
-        
-            //Scales x and y within power and sets their ratio
-            if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
-                tempY = power;
-                tempX = tempY/ratio;
-
-            } else { //x is larger so it gets the largest value
-                tempX = power;
-                tempY = tempX/ratio;
-            }
-
-            if (Math.abs(angle) > 90) { //If the angle is backwards, the x and y need to be multiplied by -1
-                tempX *= -1;
-                tempY *= -1;
-            }
-        }
+    public int autoCrabDrive(double distance, double targetDegrees, double power) {
 
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
 
+        //First time through initializes target values
         if(firstTime == true){
             firstTime = false;
+            targetYaw = getYaw();
             encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
+        //Calculates how far wheels need to correct themselves to drive on correct yaw, then drives
         double pidOutput;
-        pidOutput = rotateController.calculate(ahrs.getYaw(), angle + ahrs.getYaw()); 
+        pidOutput = rotateController.calculate(targetYaw, getYaw()); 
 		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopSwerve(tempX, tempY, pidOutput);
+        teleopCrabDrive(targetDegrees + pidOutput, power);
 
-        if(encoderCurrent >= encoderTarget){
-            firstTime = true;
-            teleopSwerve(0, 0, 0);
-            rotateController.reset();
-            return Robot.DONE;
-        } else {
-            return Robot.CONT;
+        //Checks if target distance has been reached, then ends function if so
+        if (distance >= 0) {
+            if(encoderCurrent >= encoderTarget){
+                firstTime = true;
+                teleopSwerve(0, 0, 0);
+                rotateController.reset();
+                return Robot.DONE;
+            } 
+            else {
+                return Robot.CONT;
+            }
+        } 
+        else { //Distance < 0 
+            if(encoderCurrent <= encoderTarget){
+                firstTime = true;
+                teleopSwerve(0, 0, 0);
+                rotateController.reset();
+                return Robot.DONE;
+            } 
+            else {
+                return Robot.CONT;
+            }
         }
 
+    }
+    public int autoCrabDrive(double distance, double targetDegrees) { //Generic function for autoCrabDrive with default power of 0.6
+        return autoCrabDrive(distance, targetDegrees, 0.6);
     }
 
 
 
-
-
-    public int autoFieldDrive(double distance, double angle, double power){
+    /**
+     * Autonomous field drive:
+     * drives a certain number of feet at a certain angle relative to the field
+     * @param distance - the number of feet the robot drives
+     * @param targetDegrees - angle the robot drives
+     * @param power 
+     * @return status
+     */
+    public int autoFieldDrive(double distance, double targetDegrees, double power){
         //autoDrive but 0 degrees is always the same direction, regardless of robot orientation
-        double newAngle = angle - ahrs.getYaw(); 
-        double tempX = 0;
-        double tempY = 0;
-
-        //Edge case
-        if (newAngle == 90) {
-            tempX = power;
-            tempY = 0;
-        } else if (newAngle == -90) {
-            tempX = -power;
-            tempY = 0;
-        } else {
-            
-            double ratio = Math.tan(Math.toDegrees(newAngle)); //from angle to y / x
-        
-            //Scales x and y within power and sets their ratio
-            if(Math.abs(ratio) >= 1){ //y is larger so it gets the largest value
-                tempY = power;
-                tempX = tempY/ratio;
-
-            } else { //x is larger so it gets the largest value
-                tempX = power;
-                tempY = tempX/ratio;
-            }
-
-            if (Math.abs(newAngle) > 90) { //If the angle is backwards, the x and y need to be multiplied by -1
-                tempX *= -1;
-                tempY *= -1;
-            }
-        }
-
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
         
-
+        //First time through initializes target values
         if(firstTime == true){
             firstTime = false;
             encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
+        //Calculates how far wheels need to correct themselves to drive on correct yaw, then drives
         double pidOutput;
-        pidOutput = rotateController.calculate(ahrs.getYaw(), angle); 
+        pidOutput = rotateController.calculate(targetDegrees, getYaw()); 
 		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopSwerve(tempX, tempY, pidOutput);
+        teleopCrabDrive(targetDegrees + pidOutput, power);
 
-        teleopSwerve(tempX, tempY, 0);
-
-        if(encoderCurrent >= encoderTarget){
-            firstTime = true;
-            teleopSwerve(0, 0, 0);
-            return Robot.DONE;
-        } else {
-            return Robot.CONT;
+        //Checks if target distance has been reached, then ends function if so
+        if (distance >= 0) {
+            if(encoderCurrent >= encoderTarget){
+                firstTime = true;
+                teleopSwerve(0, 0, 0);
+                rotateController.reset();
+                return Robot.DONE;
+            } 
+            else {
+                return Robot.CONT;
+            }
+        } 
+        else { //Distance < 0 
+            if(encoderCurrent <= encoderTarget){
+                firstTime = true;
+                teleopSwerve(0, 0, 0);
+                rotateController.reset();
+                return Robot.DONE;
+            } 
+            else {
+                return Robot.CONT;
+            }
         }
-
+    }
+    public int autoFieldDrive(double distance, double targetDegrees) { //Generic function for autoFieldDrive with default power of 0.6
+        return autoFieldDrive(distance, targetDegrees, 0.6);
     }
 
 

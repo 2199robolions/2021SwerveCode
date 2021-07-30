@@ -168,7 +168,7 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoRotate(60);
+				status = drive.autoCrabDrive(10, 0, 0.3);
 				break;
 				/*
 			case 3:
