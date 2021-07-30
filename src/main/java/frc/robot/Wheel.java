@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -23,7 +24,8 @@ public class Wheel {
 
     // Motor Controllers Declaration (instantiated in the constructor in order to dependency inject the IDs of each respective controller)
     private CANSparkMax driveMotor;
-    private VictorSP rotateMotor;
+    private CANEncoder  driveEncoder;
+    private VictorSP    rotateMotor;
 
     private Drive.WheelProperties name;
 
@@ -47,8 +49,9 @@ public class Wheel {
 
     public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID, int offsetDegrees, Drive.WheelProperties motorName) {
         // Motor Controllers Instantiation
-        this.driveMotor = new CANSparkMax(driveMotorID, MotorType.kBrushless);
-        this.rotateMotor = new VictorSP(rotateMotorID);
+        this.driveMotor   = new CANSparkMax(driveMotorID, MotorType.kBrushless);
+        this.driveEncoder = driveMotor.getEncoder();
+        this.rotateMotor  = new VictorSP(rotateMotorID);
         this.name = motorName;
 
         // Rotate Sensor Instantiation
@@ -181,8 +184,6 @@ public class Wheel {
             fieldDrive =! fieldDrive; //Switch the fieldDrive value
         }
 
-        System.out.println("Field Drive toggled to: " + fieldDrive);
-
         return fieldDrive;
     }
 
@@ -211,6 +212,13 @@ public class Wheel {
         }
         
         return adjustedValue;
+    }
+
+    public double getEncoderValue(){
+        return driveEncoder.getPosition();
+    }
+    public void resetEncoder(){
+        driveEncoder.setPosition(0);
     }
 
 } // End of the Wheel Class

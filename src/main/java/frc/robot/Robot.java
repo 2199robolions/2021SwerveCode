@@ -165,7 +165,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     if (autoStatus == Robot.CONT) {
-      autoStatus = drive.autoRotate(60);
+      //autoStatus = drive.autoRotate(170);
+      autoStatus = drive.autoCrabDrive(10, 90, 0.3);
       /*
       switch (m_positionSelected) {
         case kCustomAutoRight:
@@ -250,6 +251,8 @@ public class Robot extends TimedRobot {
     //Selects alliance color
     alliance = allianceColor.getSelected();
     System.out.println("Alliance selected: " + alliance);
+
+    drive.resetEncoders();
   }
 
   @Override
@@ -260,7 +263,8 @@ public class Robot extends TimedRobot {
     }
 
     if (autoStatus == Robot.CONT) {
-      autoStatus = auto.calibrateHoodMotor();
+      drive.testEncoder();
+      //autoStatus = auto.calibrateHoodMotor();
     }
 
     //System.out.println("Limit Switch 1 Value: " + shooter.limitSwitch1Value());

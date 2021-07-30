@@ -65,7 +65,7 @@ public class Drive {
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
 
-    public static final double rotationsPerFoot = 4; //Needs updated value
+    public static final double ticksPerFoot = 5.92; 
     
     /**
      * Enumerators
@@ -360,6 +360,9 @@ public class Drive {
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
 
+
+
+
      /**
      * Autonomous rotate:
      * rotates to a certain angle
@@ -388,15 +391,15 @@ public class Drive {
 
 		// Rotate
 		pidOutput = rotateController.calculate(getYaw(), degrees);
-		pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
+        pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
+        //System.out.println("Degrees: " + getYaw() + " Pidoutput: " + pidOutput);
 		//System.out.println("Yaw: " + getYaw());
 		//System.out.println(pidOutput);
 		teleopRotate(pidOutput);
 
 		// CHECK: Routine Complete
 		if (rotateController.atSetpoint() == true) {
-            count++;
-            
+            count++;            
 			System.out.println("Count: " + count);
 
 			if (count == ON_ANGLE_COUNT) {
@@ -421,6 +424,8 @@ public class Drive {
     }
 
 
+
+
     /**
      * The getYaw function for the NavX
      * @return The NavX's Yaw
@@ -428,6 +433,11 @@ public class Drive {
     public double getYaw(){
         return ahrs.getYaw();
     }
+
+
+
+
+
 
     /**
 	 * LIMELIGHT METHODS
@@ -571,6 +581,10 @@ public class Drive {
 		return Robot.CONT;   
     }
 
+
+
+
+
     /** 
      * tan(a1+a2) = (h2-h1) / d
 	 * D = (h2 - h1) / tan(a1 + a2).
@@ -595,6 +609,10 @@ public class Drive {
 	  // outputs the distance calculated
 	  return distance; 
 	}
+
+
+
+
 
 	/** 
 	 * a1 = arctan((h2 - h1) / d - tan(a2)). This equation, with a known distance input, helps find the 
@@ -625,6 +643,10 @@ public class Drive {
 	  return cameraMountingAngle; // output result
 	}
 
+
+
+
+
 	/**
 	 * Change Limelight Modes
 	 */
@@ -633,13 +655,30 @@ public class Drive {
 		// Limelight Pipeline
 		limelightEntries.getEntry("pipeline").setNumber(pipeline);
 	}
-	
+    
+    
+
+
+
 	// Change Limelight LED's
 	public void changeLimelightLED(int mode) {
 		// if mode = 0 limelight on : mode = 1 limelight off
 		limelightEntries.getEntry("ledMode").setNumber(mode);
 	}
     
+
+
+    private double getAverageEncoder(){
+        double sum =    frontRightWheel.getEncoderValue() +
+                        frontLeftWheel.getEncoderValue()  +
+                        rearRightWheel.getEncoderValue()  +
+                        rearLeftWheel.getEncoderValue();
+        return sum / 4.0;
+
+    }
+
+
+
     /**
      * AUTONOMOUS METHODS
      */
@@ -651,7 +690,7 @@ public class Drive {
      * @param power 
      * @return status
      */
-    public int autoDrive(double distance, double angle, double power) {
+    public int autoCrabDrive(double distance, double angle, double power) {
         //angle is in reference to the robot (which way should it drive)
         double tempX = 0;
         double tempY = 0;
@@ -685,11 +724,11 @@ public class Drive {
             }
         }
 
-        double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
+        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
 
         if(firstTime == true){
             firstTime = false;
-            encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
         double pidOutput;
@@ -708,7 +747,10 @@ public class Drive {
 
     }
 
-    
+
+
+
+
     public int autoFieldDrive(double distance, double angle, double power){
         //autoDrive but 0 degrees is always the same direction, regardless of robot orientation
         double newAngle = angle - ahrs.getYaw(); 
@@ -742,12 +784,12 @@ public class Drive {
             }
         }
 
-        double encoderCurrent = (-1 + -1 + -1 + -1)/4; //Average of 4 wheels
+        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
         
 
         if(firstTime == true){
             firstTime = false;
-            encoderTarget = encoderCurrent + (rotationsPerFoot * distance);
+            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
         double pidOutput;
@@ -766,6 +808,8 @@ public class Drive {
         }
 
     }
+
+
 
 
     /**
@@ -790,6 +834,17 @@ public class Drive {
 
     public void testPID() {
         frontLeftWheel.rotateAndDrive(0, 0);
+    }
+
+    public void testEncoder(){
+        System.out.println("FR encoder: " + frontRightWheel.getEncoderValue());
+    }
+
+    public void resetEncoders(){
+        frontRightWheel.resetEncoder();
+        frontLeftWheel.resetEncoder();
+        rearRightWheel.resetEncoder();
+        rearLeftWheel.resetEncoder();
     }
 
 } // End of the Drive Class
