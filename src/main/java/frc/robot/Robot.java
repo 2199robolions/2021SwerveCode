@@ -205,7 +205,8 @@ public class Robot extends TimedRobot {
           break;
       }
       */
-    } else {
+    }
+    else {
       drive.disableMotors();
     }
   }
@@ -410,6 +411,8 @@ public class Robot extends TimedRobot {
     }
   }
 
+  /*****   Climber Control   *****/
+  //Climber stuff
   private void climberControl() {
     //Variables
     boolean enableAllArms;
