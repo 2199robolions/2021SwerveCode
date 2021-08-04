@@ -4,7 +4,7 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.controller.PIDController;
-
+import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.SPI;
 
 import edu.wpi.first.networktables.*;
@@ -18,9 +18,10 @@ public class Drive {
     //NAVX
     private static AHRS ahrs;
     private PIDController rotateController;
+    private PIDController autoCrabDriveController;
     private PIDController targetController;
 
-	static final double rotateToleranceDegrees = 2.0f;
+    static final double rotateToleranceDegrees = 2.0f;
 	static final double kLimeLightToleranceDegrees = 1.0f;
 
 	//Variables
@@ -59,14 +60,19 @@ public class Drive {
     // Turn Controller
 	private static final double kP = 0.02;
 	private static final double kI = 0.00;
-	private static final double kD = 0.00;
+    private static final double kD = 0.00;
+    
+    //Auto crab drive controller
+    private static final double acdP = 2.5;
+    private static final double acdI = 0;
+    private static final double acdD = 0;
 
 	//Target Controller
 	private static final double tP = 0.02; //0.2
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
 
-    public static final double ticksPerFoot = 5.92; 
+    public static final double ticksPerFoot = 5.75; //Been validated
     
     /**
      * Enumerators
@@ -247,11 +253,13 @@ public class Drive {
         ahrs.zeroYaw();
 
         //PID Controllers
-		rotateController = new PIDController(kP, kI, kD);
-		targetController = new PIDController(tP, tI, tD);
+        rotateController        = new PIDController(kP, kI, kD);
+        autoCrabDriveController = new PIDController(acdP, acdI, acdD);
+        targetController        = new PIDController(tP, tI, tD);
 		
 		/* Max/Min input values.  Inputs are continuous/circle */
-		rotateController.enableContinuousInput(-180.0, 180.0);
+        rotateController.enableContinuousInput(-180.0, 180.0);
+        autoCrabDriveController.enableContinuousInput(-180.0, 180.0);
 		targetController.enableContinuousInput(-30.0, 30.0);
 
 		/* Max/Min output values */
@@ -694,6 +702,7 @@ public class Drive {
     public int autoCrabDrive(double distance, double targetDegrees, double power) {
 
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
+        //double encoderCurrent = frontLeftWheel.getEncoderValue();
 
         //First time through initializes target values
         if(firstTime == true){
@@ -702,17 +711,19 @@ public class Drive {
             encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
-        //Calculates how far wheels need to correct themselves to drive on correct yaw, then drives
+        //Adjusts wheel angles
         double pidOutput;
-        pidOutput = rotateController.calculate(targetYaw, getYaw()); 
-		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopCrabDrive(targetDegrees + pidOutput, power);
+        pidOutput = autoCrabDriveController.calculate(getYaw(), targetYaw); 
+        System.out.println("Yaw: " + getYaw() + " pidoutput: " + pidOutput);
+        teleopCrabDrive(targetDegrees + pidOutput, power); //Add pidOutput to targetDegrees if we want to use yaw
+
+        //teleopSwerveDrive(targetDegrees, power, somepidoutput)
 
         //Checks if target distance has been reached, then ends function if so
         if (distance >= 0) {
             if(encoderCurrent >= encoderTarget){
                 firstTime = true;
-                teleopSwerve(0, 0, 0);
+                teleopCrabDrive(0, 0);
                 rotateController.reset();
                 return Robot.DONE;
             } 
@@ -723,7 +734,7 @@ public class Drive {
         else { //Distance < 0 
             if(encoderCurrent <= encoderTarget){
                 firstTime = true;
-                teleopSwerve(0, 0, 0);
+                teleopCrabDrive(0, 0);
                 rotateController.reset();
                 return Robot.DONE;
             } 

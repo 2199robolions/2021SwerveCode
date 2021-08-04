@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 import edu.wpi.first.wpiutil.math.MathUtil;
+import frc.robot.Drive.WheelProperties;
 
 public class Wheel {
     // Variables
@@ -215,8 +216,15 @@ public class Wheel {
     }
 
     public double getEncoderValue(){
-        return driveEncoder.getPosition();
+        double tempValue = driveEncoder.getPosition();
+
+        if ((name.equals(Drive.WheelProperties.FRONT_LEFT_WHEEL)) || 
+            (name.equals(Drive.WheelProperties.REAR_LEFT_WHEEL)))    {
+            tempValue *= -1;
+        } 
+        return tempValue;
     }
+
     public void resetEncoder(){
         driveEncoder.setPosition(0);
     }
