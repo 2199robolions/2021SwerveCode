@@ -63,7 +63,7 @@ public class Drive {
     private static final double kD = 0.00;
     
     //Auto crab drive controller
-    private static final double acdP = 2.5;
+    private static final double acdP = 0.03; //1.0 was used for the original autoCrabDrive, which adjusted the angles of the wheels instead of turning the robot
     private static final double acdI = 0;
     private static final double acdD = 0;
 
@@ -102,32 +102,32 @@ public class Drive {
                           1, // ROTATE MOTOR ID
                           1, // ROTATE SENSOR ID
                           (-1 * rotateMotorAngle), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                          248), //Offset
+                          249.65), //Offset
         FRONT_LEFT_WHEEL(12, // DRIVE MOTOR ID
                          2, // ROTATE MOTOR ID
                          2, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle - (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         306), //Offset
+                         306.75), //Offset
         REAR_RIGHT_WHEEL(14, // DRIVE MOTOR ID
                          4, // ROTATE MOTOR ID
                          0, // ROTATE SENSOR ID
                          (-1 * rotateMotorAngle + (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         115), //Offset
+                         114.6), //Offset
         REAR_LEFT_WHEEL(13, // DRIVE MOTOR ID
                         3, // ROTATE MOTOR ID
                         3, // ROTATE SENSOR ID
                         (-1 * rotateMotorAngle + (Math.PI)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                        259); //Offset
+                        257.9); //Offset
 
         private int driveMotorId;
         private int rotateMotorId;
         private int rotateSensorId;
         private double targetRadians;
         private double targetVoltage;
-        private int offsetDegrees; //Inverse of the reading when wheel is physically at 0 degrees
+        private double offsetDegrees; //Inverse of the reading when wheel is physically at 0 degrees
 
         // Each item in the enum will now have to be instantiated with a constructor with the all of the ids and the motor type constants. Look few lines above, where FRONT_RIGHT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), REAR_LEFT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), etc... are. These are what the constructor is for.
-        private WheelProperties(int driveMotorId, int rotateMotorId, int rotateSensorId, double targetRadians, int offsetDegrees) {
+        private WheelProperties(int driveMotorId, int rotateMotorId, int rotateSensorId, double targetRadians, double offsetDegrees) {
             this.driveMotorId = driveMotorId;
             this.rotateMotorId = rotateMotorId;
             this.rotateSensorId = rotateSensorId;
@@ -158,7 +158,7 @@ public class Drive {
             return this.targetVoltage;
         }
 
-        private int getOffsetDegrees(){
+        private double getOffsetDegrees(){
             return this.offsetDegrees;
         }
     }
@@ -699,7 +699,15 @@ public class Drive {
      * @param power 
      * @return status
      */
+   
+
+    public int autoCrabDrive(double distance, double targetDegrees) { //Generic function for autoCrabDrive with default power of 0.6
+        return autoCrabDrive(distance, targetDegrees, 0.6);
+    }
     public int autoCrabDrive(double distance, double targetDegrees, double power) {
+
+        double x = power * Math.sin(targetDegrees);
+        double y = power * Math.cos(targetDegrees);
 
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
         //double encoderCurrent = frontLeftWheel.getEncoderValue();
@@ -715,7 +723,7 @@ public class Drive {
         double pidOutput;
         pidOutput = autoCrabDriveController.calculate(getYaw(), targetYaw); 
         System.out.println("Yaw: " + getYaw() + " pidoutput: " + pidOutput);
-        teleopCrabDrive(targetDegrees + pidOutput, power); //Add pidOutput to targetDegrees if we want to use yaw
+        teleopSwerve(x, y, pidOutput); //Add pidOutput to targetDegrees if we want to use yaw
 
         //teleopSwerveDrive(targetDegrees, power, somepidoutput)
 
@@ -744,10 +752,6 @@ public class Drive {
         }
 
     }
-    public int autoCrabDrive(double distance, double targetDegrees) { //Generic function for autoCrabDrive with default power of 0.6
-        return autoCrabDrive(distance, targetDegrees, 0.6);
-    }
-
 
 
     /**
@@ -839,5 +843,10 @@ public class Drive {
         rearRightWheel.resetEncoder();
         rearLeftWheel.resetEncoder();
     }
+
+    public void testWheelAngle(){
+        System.out.println("Angle: " + rearRightWheel.getRotateMotorPosition());
+    }
+
 
 } // End of the Drive Class

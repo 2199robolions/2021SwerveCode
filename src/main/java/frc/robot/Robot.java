@@ -166,7 +166,7 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
     if (autoStatus == Robot.CONT) {
       //autoStatus = drive.autoRotate(170);
-      autoStatus = drive.autoCrabDrive(5, 90, 0.6);
+      autoStatus = drive.autoCrabDrive(5, 45, 0.4);
       /*
       switch (m_positionSelected) {
         case kCustomAutoRight:
@@ -264,7 +264,7 @@ public class Robot extends TimedRobot {
     }
 
     if (autoStatus == Robot.CONT) {
-      drive.testEncoder();
+      drive.testWheelAngle();
       //autoStatus = auto.calibrateHoodMotor();
     }
 

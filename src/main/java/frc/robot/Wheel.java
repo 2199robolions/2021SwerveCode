@@ -48,7 +48,7 @@ public class Wheel {
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
-    public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID, int offsetDegrees, Drive.WheelProperties motorName) {
+    public Wheel(int driveMotorID, int rotateMotorID, int rotateMotorSensorID, double offsetDegrees, Drive.WheelProperties motorName) {
         // Motor Controllers Instantiation
         this.driveMotor   = new CANSparkMax(driveMotorID, MotorType.kBrushless);
         this.driveEncoder = driveMotor.getEncoder();
