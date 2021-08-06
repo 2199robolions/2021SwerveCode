@@ -686,6 +686,18 @@ public class Drive {
 
     }
 
+    public void stopWheels(){
+        frontLeftWheel.setDriveMotorPower(0);
+        frontRightWheel.setDriveMotorPower(0);
+        rearLeftWheel.setDriveMotorPower(0);
+        rearRightWheel.setDriveMotorPower(0);
+
+        frontLeftWheel.setRotateMotorPower(0);
+        frontRightWheel.setRotateMotorPower(0);
+        rearLeftWheel.setRotateMotorPower(0);
+        rearRightWheel.setRotateMotorPower(0);
+
+    }
 
 
     /**
@@ -706,8 +718,8 @@ public class Drive {
     }
     public int autoCrabDrive(double distance, double targetDegrees, double power) {
 
-        double x = power * Math.sin(targetDegrees);
-        double y = power * Math.cos(targetDegrees);
+        double x = power * Math.sin(Math.toRadians(targetDegrees));
+        double y = power * Math.cos(Math.toRadians(targetDegrees));
 
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
         //double encoderCurrent = frontLeftWheel.getEncoderValue();

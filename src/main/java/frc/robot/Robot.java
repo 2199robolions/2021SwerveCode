@@ -297,7 +297,13 @@ public class Robot extends TimedRobot {
 
     //Manual Drive
     if (wheelMode == Drive.WheelMode.MANUAL) {
-      drive.teleopSwerve(driveX, driveY, rotatePower);
+
+      if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (rotatePower > 0.01)) {
+        drive.teleopSwerve(driveX, driveY, rotatePower);
+      } 
+      else {
+        drive.stopWheels(); //Turns off all motors without going back to 0 degrees
+      }
 
       ledCurrent++;
 
