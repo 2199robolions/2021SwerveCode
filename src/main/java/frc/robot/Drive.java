@@ -849,13 +849,6 @@ public class Drive {
         System.out.println("FR encoder: " + frontRightWheel.getEncoderValue());
     }
 
-    public void resetEncoders(){
-        frontRightWheel.resetEncoder();
-        frontLeftWheel.resetEncoder();
-        rearRightWheel.resetEncoder();
-        rearLeftWheel.resetEncoder();
-    }
-
     public void testWheelAngle(){
         System.out.println("Angle: " + rearRightWheel.getRotateMotorPosition());
     }

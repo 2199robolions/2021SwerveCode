@@ -34,6 +34,7 @@ public class Robot extends TimedRobot {
   private double rotatePower;
   private double driveX;
   private double driveY;
+  private boolean fieldDriveState = false;
 
   //Setting Up WheelMode
 	private Drive.WheelMode wheelMode;
@@ -252,8 +253,6 @@ public class Robot extends TimedRobot {
     //Selects alliance color
     alliance = allianceColor.getSelected();
     System.out.println("Alliance selected: " + alliance);
-
-    drive.resetEncoders();
   }
 
   @Override
@@ -473,5 +472,20 @@ public class Robot extends TimedRobot {
 			climber.pullRobotUp(climberMotorPower);
 		}
   }
+
+
+   /****************************************************************************************** 
+    *
+    *    fieldDrive()
+    *    returns if we are in field drive mode   
+    * 
+    ******************************************************************************************/
+  private boolean fieldDrive() {
+
+    if (controls.toggleFieldDrive() == true) {
+      fieldDriveState = !fieldDriveState; //Toggles fieldDriveState
+    }
+    return fieldDriveState;
+}
 
 } // End of the Robot Class
