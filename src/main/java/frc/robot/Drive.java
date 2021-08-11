@@ -1,12 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.wpiutil.math.MathUtil;
-
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj.PIDOutput;
 import edu.wpi.first.wpilibj.SPI;
-
 import edu.wpi.first.networktables.*;
 
 public class Drive {
@@ -17,12 +14,30 @@ public class Drive {
 
     //NAVX
     private static AHRS ahrs;
+
+    //PID controllers
     private PIDController rotateController;
     private PIDController autoCrabDriveController;
     private PIDController targetController;
 
-    static final double rotateToleranceDegrees = 2.0f;
-	static final double kLimeLightToleranceDegrees = 1.0f;
+    private static final double rotateToleranceDegrees = 2.0f;
+    private static final double kLimeLightToleranceDegrees = 1.0f;
+    
+    // Turn Controller
+	private static final double kP = 0.02;
+	private static final double kI = 0.00;
+    private static final double kD = 0.00;
+    
+    //Auto crab drive controller
+    private static final double acdP = 0.03; //1.0 was used for the original autoCrabDrive, which adjusted the angles of the wheels instead of turning the robot
+    private static final double acdI = 0;
+    private static final double acdD = 0;
+
+	//Target Controller
+	private static final double tP = 0.02; //0.2
+	private static final double tI = 0.00;
+    private static final double tD = 0.00;
+
 
 	//Variables
     private boolean firstTime       = true;
@@ -32,7 +47,9 @@ public class Drive {
     private double  targetYaw       = 0;
     
     //CONSTANTS
-    private final int FAIL_DELAY = 5;
+    private final int    FAIL_DELAY   = 5;
+    private final double ticksPerFoot = 5.75;
+
 
 	//Limelight Variables
     private int     noTargetCount      = 0;
@@ -57,23 +74,7 @@ public class Drive {
 	// find result of h2 - h1, or Δh
 	private static double DifferenceInHeight = TargetHeightFt - CameraHeightFeet;
     
-    // Turn Controller
-	private static final double kP = 0.02;
-	private static final double kI = 0.00;
-    private static final double kD = 0.00;
-    
-    //Auto crab drive controller
-    private static final double acdP = 0.03; //1.0 was used for the original autoCrabDrive, which adjusted the angles of the wheels instead of turning the robot
-    private static final double acdI = 0;
-    private static final double acdD = 0;
-
-	//Target Controller
-	private static final double tP = 0.02; //0.2
-	private static final double tI = 0.00;
-    private static final double tD = 0.00;
-
-    public static final double ticksPerFoot = 5.75; //Been validated
-    
+        
     /**
      * Enumerators
      */
@@ -101,29 +102,27 @@ public class Drive {
         FRONT_RIGHT_WHEEL(15, // DRIVE MOTOR ID
                           1, // ROTATE MOTOR ID
                           1, // ROTATE SENSOR ID
-                          (-1 * rotateMotorAngle), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
+                          (-1 * rotateMotorAngleRad), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
                           249.65), //Offset
         FRONT_LEFT_WHEEL(12, // DRIVE MOTOR ID
                          2, // ROTATE MOTOR ID
                          2, // ROTATE SENSOR ID
-                         (-1 * rotateMotorAngle - (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
+                         (-1 * rotateMotorAngleRad - (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
                          306.75), //Offset
         REAR_RIGHT_WHEEL(14, // DRIVE MOTOR ID
                          4, // ROTATE MOTOR ID
                          0, // ROTATE SENSOR ID
-                         (-1 * rotateMotorAngle + (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
+                         (-1 * rotateMotorAngleRad + (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
                          114.6), //Offset
         REAR_LEFT_WHEEL(13, // DRIVE MOTOR ID
                         3, // ROTATE MOTOR ID
                         3, // ROTATE SENSOR ID
-                        (-1 * rotateMotorAngle + (Math.PI)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
+                        (-1 * rotateMotorAngleRad + (Math.PI)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
                         257.9); //Offset
 
         private int driveMotorId;
         private int rotateMotorId;
         private int rotateSensorId;
-        private double targetRadians;
-        private double targetVoltage;
         private double offsetDegrees; //Inverse of the reading when wheel is physically at 0 degrees
 
         // Each item in the enum will now have to be instantiated with a constructor with the all of the ids and the motor type constants. Look few lines above, where FRONT_RIGHT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), REAR_LEFT_WHEEL(int driveMotorId, MotorType driveMotorType, int rotateMotorId, int rotateSensorId, double targetRadians, double targetVoltage), etc... are. These are what the constructor is for.
@@ -131,8 +130,6 @@ public class Drive {
             this.driveMotorId = driveMotorId;
             this.rotateMotorId = rotateMotorId;
             this.rotateSensorId = rotateSensorId;
-            this.targetRadians = targetRadians;
-            this.targetVoltage = (((targetRadians * 2.5) / Math.PI) + 2.5);
             this.offsetDegrees = offsetDegrees;
         }
 
@@ -149,14 +146,6 @@ public class Drive {
             return this.rotateSensorId;
         }
 
-        //We prefer to use degrees
-        private double getTargetRadians() {
-            return this.targetRadians;
-        }
-
-        private double getTargetVoltage() {
-            return this.targetVoltage;
-        }
 
         private double getOffsetDegrees(){
             return this.offsetDegrees;
@@ -194,7 +183,6 @@ public class Drive {
     private static final double robotWidth  = 18.0;
     // TODO: Question for any one of the mentors, are these declarations and instantiations in memory done only once at the start when the robot is started and the code loads? I would assume so, which is why I'm not putting these in the constructor, to save unnecessary compute power if we would ever instantiate more than one of the Drive objects
     // Note: this field is static because it must be. It is referenced in the enum, which is in and of itself, static.
-    private static final double rotateMotorAngle = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleRad = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
  
@@ -204,16 +192,28 @@ public class Drive {
     private static final double rotateRightRearMotorAngle = rotateRightFrontMotorAngle + 90;
     private static final double rotateLeftRearMotorAngle =  rotateRightFrontMotorAngle + 180;
 
+
+    /****************************************************************************************** 
+    *
+    *    PowerAndAngle class
+    *    Stores angle and power instead of x and y values
+    * 
+    ******************************************************************************************/
     public class PowerAndAngle{
         public double power;
         public double angle;
 
+        /****************************************************************************************** 
+        *
+        *    PowerAndAngle constructor
+        * 
+        ******************************************************************************************/
         public PowerAndAngle(double powerParam, double angleParam){
             this.power = powerParam;
             this.angle = angleParam;
         }
 
-        // added getters
+        //Getters for power and angle
         public double getPower()  {
             return power;
         }
@@ -223,13 +223,17 @@ public class Drive {
         }
     }
 
-    /**
-     * Contructor for the Drive class
-     */
+    /****************************************************************************************** 
+    *
+    *    Drive constructor
+    * 
+    ******************************************************************************************/
     public Drive() {
+
         //Instance creation
         led = LedLights.getInstance();
         
+
         //NavX
         try {
             ahrs = new AHRS(SPI.Port.kMXP);
@@ -249,27 +253,25 @@ public class Drive {
         }
         System.out.println("navx Ready");
     
-        // At Start, Set navX to ZERO
         ahrs.zeroYaw();
+
+
 
         //PID Controllers
         rotateController        = new PIDController(kP, kI, kD);
         autoCrabDriveController = new PIDController(acdP, acdI, acdD);
         targetController        = new PIDController(tP, tI, tD);
 		
-		/* Max/Min input values.  Inputs are continuous/circle */
         rotateController.enableContinuousInput(-180.0, 180.0);
         autoCrabDriveController.enableContinuousInput(-180.0, 180.0);
 		targetController.enableContinuousInput(-30.0, 30.0);
 
-		/* Max/Min output values */
-		//Turn Controller
 		rotateController.setIntegratorRange(-.25, .25); // do not change 
 		rotateController.setTolerance(rotateToleranceDegrees);
 
-		//Target Controller
 		targetController.setIntegratorRange(-.2, .2); // do not change 
         targetController.setTolerance(kLimeLightToleranceDegrees);
+
         
         /**
 		 * Limelight Modes
@@ -284,6 +286,15 @@ public class Drive {
 		limelightEntries.getEntry("pipeline").setNumber(0);
     }
 
+
+
+
+    /****************************************************************************************** 
+    *
+    *    calcSwerve()
+    *    For each wheel, the inputted X, Y, Z, and individual angle for rotation are used to calculate the angle and power 
+    * 
+    ******************************************************************************************/
     public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
         double swerveX;
         double swerveY;
@@ -292,10 +303,7 @@ public class Drive {
         double rotateX;
         double rotateY;
 
-        //System.out.println("X:" + (float)driveX + " Y:" + (float)driveY);
-        //System.out.println("RotatePower:" + rotatePower + " RotateAngle:" + rotateAngle);
-        //System.out.println("RotateX:" + rotatePower * Math.sin(Math.toRadians(rotateAngle)));
-
+       
         /**
          * The incomming rotate angle will cause the robot to rotate counter-clockwise
          * the incomming power is negative for a counter-clockwise rotation and vise versa for clockwise
@@ -308,35 +316,33 @@ public class Drive {
         swerveX = driveX + rotateX;
         swerveY = driveY + rotateY;
 
-        //System.out.println("swerveX:" + swerveX + " swerveY:" + swerveY);
-        //Issue occurs around here
         swervePower = Math.sqrt((swerveX * swerveX) + (swerveY * swerveY));
-        // converted radians to degrees
-        //Definetely x, y
         swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
-        //System.out.println("swerveAngle:" + swerveAngle);
 
         PowerAndAngle swerveNums = new PowerAndAngle(swervePower, swerveAngle);
 
         return swerveNums;
     }
 
-    /**
-     * The unfinished Swerve Drive program.
-     * @param targetWheelAngle
-     * @param drivePower
-     * @param rotatePower
-     */
+
+
+
+
+
+    /****************************************************************************************** 
+    *
+    *    teleopSwerve()
+    *    Takes X, Y, and Z and rotates each wheel to proper angle and sets correct power
+    * 
+    ******************************************************************************************/
     public void teleopSwerve(double driveX, double driveY, double rotatePower) {
         PowerAndAngle coor;
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle);
         frontRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
-        //System.out.println("FR angle: " + coor.angle + " FR power " + coor.power);
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftFrontMotorAngle);
         frontLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
-        //System.out.println("FL angle: " + coor.angle + " FR power " + coor.power);
 
         coor = calcSwerve(driveX, driveY, rotatePower, rotateRightRearMotorAngle);
         rearRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
@@ -345,11 +351,12 @@ public class Drive {
         rearLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
     }
 
-    /**
-     * The current Crab Drive program.
-     * @param wheelAngle
-     * @param drivePower
-     */
+    /****************************************************************************************** 
+    *
+    *    teleopCrabDrive()
+    *    Only uses X and Y to crab drive the robot
+    * 
+    ******************************************************************************************/
     public void teleopCrabDrive(double wheelAngle, double drivePower){
         frontLeftWheel.rotateAndDrive(wheelAngle, drivePower);
         frontRightWheel.rotateAndDrive(wheelAngle, drivePower);
@@ -357,11 +364,13 @@ public class Drive {
         rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
     }
 
-    /**
-     * A positive rotate power will make it rotate counter-clockwise and a negative will make it rotate clockwise
-     * We don't want this therefore the motors will RECIEVE a negated power. 
-     * @param rotatePower
-     */
+    /****************************************************************************************** 
+    *
+    *    teleopRotate()
+    *    Only uses Z to rotate robot
+    *    This function negates rotatePower in order to make positive inputs turn the robot clockwise
+    * 
+    ******************************************************************************************/
     public void teleopRotate(double rotatePower) {
         frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, rotatePower * -1);
         frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, rotatePower * -1);
