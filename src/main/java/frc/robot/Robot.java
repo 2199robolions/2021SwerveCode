@@ -1,7 +1,6 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -25,20 +24,21 @@ public class Robot extends TimedRobot {
   private final int LED_DELAY = 15;
 
   //VARIABLES
-  private int    climberStatus;
-  private int    ledCurrent;
-  private int    delaySeconds;
-  private int    autoStatus      = Robot.CONT;
-  private int    calibrateStatus = Robot.CONT;
-  private Climber.ClimberState climberState;
-  private double rotatePower;
-  private double driveX;
-  private double driveY;
+  private int     climberStatus;
+  private int     ledCurrent;
+  private int     delaySeconds;
+  private int     autoStatus      = Robot.CONT;
+  private double  rotatePower;
+  private double  driveX;
+  private double  driveY;
   private boolean fieldDriveState = false;
+  private Climber.ClimberState climberState;
 
-  //Setting Up WheelMode
+
+  //Setting Up WheelMode for limelight
 	private Drive.WheelMode wheelMode;
 	private int targetingStatus;
+
 
   /**
    * SMART DASHBOARD CHOICES
@@ -62,13 +62,7 @@ public class Robot extends TimedRobot {
 	private String m_delaySelected;
 	private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
-  // Alliance Color
-	private static final String kDefaultColor   = "Default";
-	private static final String kBlueAlliance   = "Blue";
-	private static final String kRedAlliance   = "Red";
 
-	private String alliance;
-	private final SendableChooser<String> allianceColor = new SendableChooser<>();
 
   /**
    * Constructor
@@ -93,6 +87,12 @@ public class Robot extends TimedRobot {
   }
 
   @Override
+  /****************************************************************************************** 
+  *
+  *    robotInit()
+  *    Runs once when the robot is started
+  * 
+  ******************************************************************************************/
   public void robotInit() {
     /**
      * SMART DASHBOARD CHOICES
@@ -118,42 +118,44 @@ public class Robot extends TimedRobot {
 		m_delayChooser.setDefaultOption(kDefaultTime, kDefaultTime);
 		SmartDashboard.putData("Auto delay", m_delayChooser);
 
-    //Alliance Color Options
-    allianceColor.addOption("Default Color", kDefaultColor);
-    allianceColor.addOption("Blue Alliance", kBlueAlliance);
-    allianceColor.addOption("Red Alliance", kRedAlliance);
-    
-    //Default Alliance Color
-    allianceColor.setDefaultOption("Default Color", kDefaultColor);
-    SmartDashboard.putData("Alliance Color", allianceColor);
-
-    //Testing shooter powers
-		SmartDashboard.putNumber("Input Power", 0.50);
-
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
   }
 
+
+
+
   @Override
+  /****************************************************************************************** 
+  *
+  *    robotPeriodic()
+  *    Always runs while the robot is on?????
+  * 
+  ******************************************************************************************/
   public void robotPeriodic() {
     //
   }
 
-  @Override
-  public void autonomousInit() {
-    //Variables
-    autoStatus      = Robot.CONT;
-    calibrateStatus = Robot.CONT;
 
-    /**
-     * AUTO CHOOSERS
-     */
-    //Auto Modes
+
+
+  @Override
+  /****************************************************************************************** 
+  *
+  *    autonomousInit()
+  *    Runs once when autonomous is started
+  * 
+  ******************************************************************************************/
+  public void autonomousInit() {
+    autoStatus      = Robot.CONT;
+
+    
+    //Auto positions
     m_positionSelected = m_pathChooser.getSelected();
 
     //Auto Delay
-    //delaySeconds = Integer.parseInt(m_delaySelected);
-    delaySeconds = 0;
+    m_delaySelected = m_delayChooser.getSelected();
+    delaySeconds = Integer.parseInt(m_delaySelected);
 
     //Telemetry
     System.out.println("Delay: "    + delaySeconds);
@@ -163,67 +165,50 @@ public class Robot extends TimedRobot {
     led.autoMode();
   }
 
+
+
+
   @Override
+  /****************************************************************************************** 
+  *
+  *    autonomousPeriodic()
+  *    Runs every 20 ms while auto mode is on
+  * 
+  ******************************************************************************************/
   public void autonomousPeriodic() {
     if (autoStatus == Robot.CONT) {
-      //autoStatus = drive.autoRotate(170);
       autoStatus = drive.autoCrabDrive(5, 45, 0.4);
-      /*
-      switch (m_positionSelected) {
-        case kCustomAutoRight:
-          //Calibrates the hood motor
-          if (calibrateStatus == Robot.CONT) {
-            calibrateStatus = auto.calibrateHoodMotor();
-          }
-
-          autoStatus = auto.defaultAuto(delaySeconds);
-          break;
-        case kCustomAutoLeft:
-          //Calibrates the hood motor
-          if (calibrateStatus == Robot.CONT) {
-            calibrateStatus = auto.calibrateHoodMotor();
-          }
-
-          //Runs the actual auto program
-          auto.defaultAuto(delaySeconds);
-          break;
-        case kCustomAutoCenter:
-          //Calibrates the hood motor
-          auto.defaultAuto(delaySeconds);
-          break;
-        case kCustomAutoLRC:
-          //Calibrates the hood motor
-          auto.defaultAuto(delaySeconds);
-          break;
-        default:
-          //Calibrates the hood motor
-          if (calibrateStatus == Robot.CONT) {
-            calibrateStatus = auto.calibrateHoodMotor();
-          }
-
-          //Runs a default auto program
-          auto.defaultAuto(delaySeconds);
-          break;
-      }
-      */
     }
     else {
-      drive.disableMotors();
+      drive.stopWheels();
     }
   }
 
-  @Override
-  public void teleopInit() {
-    //Alliance Color Selected
-    alliance = allianceColor.getSelected();
-    System.out.println("Alliance selected: " + alliance);
-  }
+
 
   @Override
+  /****************************************************************************************** 
+  *
+  *    teleopInit()
+  *    Runs once when teleop is started
+  * 
+  ******************************************************************************************/
+  public void teleopInit() {
+  }
+
+
+
+  @Override
+  /****************************************************************************************** 
+  *
+  *    teleopPeriodic()
+  *    Runs every 20 ms while teleop mode is on
+  * 
+  ******************************************************************************************/
   public void teleopPeriodic() {
 
     //Sets the color of the LED's (when we get them)
-    led.defaultMode(alliance);
+    led.defaultMode("Blue");
 
     //Controls the wheels
     wheelControl();
@@ -235,27 +220,53 @@ public class Robot extends TimedRobot {
     climberControl();
   }
 
+
+
   @Override
+  /****************************************************************************************** 
+  *
+  *    disabledInit()????
+  *    Runs once when robot is disabled
+  * 
+  ******************************************************************************************/
   public void disabledInit() {
     //I don't know why you'd put anything in this
   }
 
   @Override
+  /****************************************************************************************** 
+  *
+  *    disabledPeriodic()??????????????
+  *    Runs every 20 ms while robot is disabled
+  * 
+  ******************************************************************************************/
   public void disabledPeriodic() {
     //I don't know why you'd put anything in this
   }
 
-  @Override
-  public void testInit() {
-    //Variables
-    autoStatus = Robot.CONT;
 
-    //Selects alliance color
-    alliance = allianceColor.getSelected();
-    System.out.println("Alliance selected: " + alliance);
+
+
+  @Override
+  /****************************************************************************************** 
+  *
+  *    testInit()
+  *    Runs once when test mode is started
+  * 
+  ******************************************************************************************/
+  public void testInit() {
+    autoStatus = Robot.CONT;
   }
 
+
+
   @Override
+  /****************************************************************************************** 
+  *
+  *    testPeriodic()
+  *    Runs every 20 ms while test mode is on
+  * 
+  ******************************************************************************************/
   public void testPeriodic() {
 
     if (controls.autoKill() == true) {
@@ -264,56 +275,53 @@ public class Robot extends TimedRobot {
 
     if (autoStatus == Robot.CONT) {
       drive.testWheelAngle();
-      //autoStatus = auto.calibrateHoodMotor();
     }
-
-    //System.out.println("Limit Switch 1 Value: " + shooter.limitSwitch1Value());
-    //System.out.println("Limit Switch 2 Value: " + shooter.limitSwitch2Value());
-
+ 
     /*double tempPower;
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
     shooter.enableShooter(tempPower);*/
   }
 
-  /**
-   * The program to control the wheels in swerve drive
-   */
+
+
+  /****************************************************************************************** 
+  *
+  *    wheelControl()
+  *    Controls wheel portion of teleop code
+  * 
+  ******************************************************************************************/
   private void wheelControl() {
     //Drive inputs
     rotatePower = controls.getRotatePower();
     driveX      = controls.getDriveX();
     driveY      = controls.getDriveY();
 
-    //Target Lock
-		if ( controls.enableTargetLock() == true ) {
-			wheelMode = Drive.WheelMode.TARGET_LOCK;
-		}
 
-		//Target Lock Auto Kill
-		if ( controls.autoKill() == true ) {
+    //Only turns on targetLock mode if autoKill isn't being pressed
+    if ( controls.autoKill() == true ) {
 			wheelMode = Drive.WheelMode.MANUAL;
+    } 
+    else if ( controls.enableTargetLock() == true ) {
+			wheelMode = Drive.WheelMode.TARGET_LOCK;
+    } 
+    else {
+      wheelMode = Drive.WheelMode.MANUAL; 
     }
+
 
     //Manual Drive
     if (wheelMode == Drive.WheelMode.MANUAL) {
 
+      //If robot is out of deadzone, drive normally
       if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (rotatePower > 0.01)) {
         drive.teleopSwerve(driveX, driveY, rotatePower);
       } 
-      else {
-        drive.stopWheels(); //Turns off all motors without going back to 0 degrees
-      }
-
-      ledCurrent++;
-
-      if (ledCurrent >= LED_DELAY) {
-        ledCurrent = 0;
-
-        led.defaultMode(alliance);
+      else { //Robot is in dead zone
+        drive.stopWheels();
       }
     }
+    //Limelight targetting
     else if (wheelMode == Drive.WheelMode.TARGET_LOCK) {
-      ledCurrent = 0;
 
       //PID Targeting when in Target Lock Mode
       targetingStatus = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
@@ -327,6 +335,13 @@ public class Robot extends TimedRobot {
     }
   }
 
+  
+  /****************************************************************************************** 
+  *
+  *    ballControl()
+  *    Controls ball manipulation portion of teleop code
+  * 
+  ******************************************************************************************/
   private void ballControl() {
     //Grabber Variables
     boolean grabberDeployRetract;
@@ -362,7 +377,7 @@ public class Robot extends TimedRobot {
 		
 		/******   Grabber motor Forward, Reverse or OFF   *****/
 		/******   Allows the grabber to be on when shooter on   *****/
-    grabber.grabberDirection(grabberDirection);
+    grabber.setGrabberMotor(grabberDirection);
 
 		/*****   Shooter Control   *****/
 		if (shooterEnable == true) {

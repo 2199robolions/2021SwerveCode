@@ -93,9 +93,9 @@ public class Grabber {
     }
 
 
-    public void grabberDirection(GrabberDirection dir) {
+    public void setGrabberMotor(GrabberDirection dir) {
         //Don't allow grabber to turn if it's retracted
-        if(grabberState == GrabberState.RETRACT)  {
+        if (grabberState == GrabberState.RETRACT)  {
             grabberMotor.set(0.0);
             return;
         }

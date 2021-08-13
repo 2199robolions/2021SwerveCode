@@ -178,6 +178,47 @@ public class Shooter {
 		//shooterController.setIntegratorRange(0.0, 1.0);
 	}
 
+	//  private int    calibrateStatus = Robot.CONT;
+	/*
+	ALEX PUT THE CALIBRATION STUFF HERE SO IT DOESNT TAKE UP SPACE IN ROBOT
+      switch (m_positionSelected) {
+        case kCustomAutoRight:
+          //Calibrates the hood motor
+          if (calibrateStatus == Robot.CONT) {
+            calibrateStatus = auto.calibrateHoodMotor();
+          }
+
+          autoStatus = auto.defaultAuto(delaySeconds);
+          break;
+        case kCustomAutoLeft:
+          //Calibrates the hood motor
+          if (calibrateStatus == Robot.CONT) {
+            calibrateStatus = auto.calibrateHoodMotor();
+          }
+
+          //Runs the actual auto program
+          auto.defaultAuto(delaySeconds);
+          break;
+        case kCustomAutoCenter:
+          //Calibrates the hood motor
+          auto.defaultAuto(delaySeconds);
+          break;
+        case kCustomAutoLRC:
+          //Calibrates the hood motor
+          auto.defaultAuto(delaySeconds);
+          break;
+        default:
+          //Calibrates the hood motor
+          if (calibrateStatus == Robot.CONT) {
+            calibrateStatus = auto.calibrateHoodMotor();
+          }
+
+          //Runs a default auto program
+          auto.defaultAuto(delaySeconds);
+          break;
+      }
+      */
+
 
 	public void autoShooterControl(ShootLocation location) {
 		double  powerError;

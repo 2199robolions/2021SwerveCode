@@ -40,11 +40,11 @@ public class Drive {
 
 
 	//Variables
-    private boolean firstTime       = true;
-    private boolean rotateFirstTime = true;
-    private int     count           = 0;
-    private double  encoderTarget   = 0;
-    private double  targetYaw       = 0;
+    private boolean firstTime               = true;
+    private boolean rotateFirstTime         = true;
+    private int     count                   = 0;
+    private double  encoderTarget           = 0;
+    private double  targetOrientation       = 0;
     
     //CONSTANTS
     private final int    FAIL_DELAY   = 5;
@@ -258,18 +258,14 @@ public class Drive {
 
 
         //PID Controllers
-        rotateController        = new PIDController(kP, kI, kD);
-        autoCrabDriveController = new PIDController(acdP, acdI, acdD);
-        targetController        = new PIDController(tP, tI, tD);
-		
+        rotateController = new PIDController(kP, kI, kD);
+        rotateController.setTolerance(rotateToleranceDegrees);
         rotateController.enableContinuousInput(-180.0, 180.0);
+
+        autoCrabDriveController = new PIDController(acdP, acdI, acdD);
         autoCrabDriveController.enableContinuousInput(-180.0, 180.0);
-		targetController.enableContinuousInput(-30.0, 30.0);
 
-		rotateController.setIntegratorRange(-.25, .25); // do not change 
-		rotateController.setTolerance(rotateToleranceDegrees);
-
-		targetController.setIntegratorRange(-.2, .2); // do not change 
+        targetController = new PIDController(tP, tI, tD);
         targetController.setTolerance(kLimeLightToleranceDegrees);
 
         
@@ -295,7 +291,7 @@ public class Drive {
     *    For each wheel, the inputted X, Y, Z, and individual angle for rotation are used to calculate the angle and power 
     * 
     ******************************************************************************************/
-    public PowerAndAngle calcSwerve(double driveX, double driveY, double rotatePower, double rotateAngle){
+    public PowerAndAngle calcSwerve(double crabX, double crabY, double rotatePower, double rotateAngle){
         double swerveX;
         double swerveY;
         double swervePower;
@@ -313,8 +309,8 @@ public class Drive {
         rotateX = (-1 * rotatePower) * Math.sin(Math.toRadians(rotateAngle));
         rotateY = (-1 * rotatePower) * Math.cos(Math.toRadians(rotateAngle));
 
-        swerveX = driveX + rotateX;
-        swerveY = driveY + rotateY;
+        swerveX = crabX + rotateX;
+        swerveY = crabY + rotateY;
 
         swervePower = Math.sqrt((swerveX * swerveX) + (swerveY * swerveY));
         swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
@@ -351,6 +347,8 @@ public class Drive {
         rearLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
     }
 
+
+
     /****************************************************************************************** 
     *
     *    teleopCrabDrive()
@@ -363,6 +361,69 @@ public class Drive {
         rearLeftWheel.rotateAndDrive(wheelAngle, drivePower);
         rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
     }
+
+    
+
+   
+    /****************************************************************************************** 
+    *
+    *    autoCrabDrive()
+    *    Drives robot for certain distance at a given heading and speed
+    *    Generic function for autoCrabDrive with default power of 0.6
+    * 
+    ******************************************************************************************/
+    public int autoCrabDrive(double distance, double targetDegrees) { 
+        return autoCrabDrive(distance, targetDegrees, 0.6);
+    }
+
+
+    /****************************************************************************************** 
+    *
+    *    autoCrabDrive()
+    *    Drives robot for certain distance at a given heading and speed
+    *    Distance has to be positive
+    *    Initial orientation of robot is maintained throughout function
+    * 
+    ******************************************************************************************/
+    public int autoCrabDrive(double distance, double targetHeading, double power) {
+        double orientationError;
+
+        double x = power * Math.sin(Math.toRadians(targetHeading));
+        double y = power * Math.cos(Math.toRadians(targetHeading));
+
+        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
+
+        if (distance < 0){
+            System.out.println("Error from autoCrabDrive(), negative distance not allowed");
+            return Robot.DONE;
+        }
+
+        //First time through initializes target values
+        if(firstTime == true){
+            firstTime = false;
+            targetOrientation = ahrs.getYaw();
+            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
+        }
+
+        //Adjusts wheel angles
+        orientationError = autoCrabDriveController.calculate(ahrs.getYaw(), targetOrientation); 
+        teleopSwerve(x, y, orientationError);
+
+        //Checks if target distance has been reached, then ends function if so
+        if(encoderCurrent >= encoderTarget){
+            firstTime = true;
+            stopWheels();
+            rotateController.reset();
+            return Robot.DONE;
+        } 
+        else {
+            return Robot.CONT;
+        }
+
+    }
+
+
+
 
     /****************************************************************************************** 
     *
@@ -381,21 +442,20 @@ public class Drive {
 
 
 
-     /**
-     * Autonomous rotate:
-     * rotates to a certain angle
-     * @param degrees
-     * @return status
-     */
+    /****************************************************************************************** 
+    *
+    *    autoRotate()
+    *    Rotates robot to inputted angle
+    * 
+    ******************************************************************************************/
     public int autoRotate(double degrees) {
-        double pidOutput;
+        double rotateError;
         long currentMs = System.currentTimeMillis();
 
         if (rotateFirstTime == true) {
             rotateFirstTime = false;
             count = 0;
             timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
-
         }
 
         if (currentMs > timeOut) {
@@ -403,31 +463,24 @@ public class Drive {
             rotateFirstTime = true;
             
 			System.out.println("Timed out");
-            disableMotors();
+            stopWheels();
             return Robot.FAIL;
 		}
 
 		// Rotate
-		pidOutput = rotateController.calculate(getYaw(), degrees);
-        pidOutput = MathUtil.clamp(pidOutput, -0.75, 0.75);
-        //System.out.println("Degrees: " + getYaw() + " Pidoutput: " + pidOutput);
-		//System.out.println("Yaw: " + getYaw());
-		//System.out.println(pidOutput);
-		teleopRotate(pidOutput);
+		rotateError = rotateController.calculate(ahrs.getYaw(), degrees);
+        rotateError = MathUtil.clamp(rotateError, -0.75, 0.75);
+		teleopRotate(rotateError);
 
 		// CHECK: Routine Complete
 		if (rotateController.atSetpoint() == true) {
             count++;            
-			System.out.println("Count: " + count);
 
 			if (count == ON_ANGLE_COUNT) {
 				count = 0;
                 rotateFirstTime = true;
                 rotateController.reset();
-
-                disableMotors();                
-                System.out.println("DONE");
-                
+                stopWheels();                                
                 return Robot.DONE;
             }
             else {
@@ -436,23 +489,44 @@ public class Drive {
 		}
 		else {    
 			count = 0;
-            
             return Robot.CONT;
 		}
     }
 
 
-
-
-    /**
-     * The getYaw function for the NavX
-     * @return The NavX's Yaw
-     */
-    public double getYaw(){
-        return ahrs.getYaw();
+    /****************************************************************************************** 
+    *
+    *    getAverageEncoder()
+    *    Returns average value of all 4 wheels' encoders
+    * 
+    ******************************************************************************************/
+    private double getAverageEncoder(){
+        double sum =    frontRightWheel.getEncoderValue() +
+                        frontLeftWheel.getEncoderValue()  +
+                        rearRightWheel.getEncoderValue()  +
+                        rearLeftWheel.getEncoderValue();
+        return sum / 4.0;
     }
 
 
+    /****************************************************************************************** 
+    *
+    *    stopWheels()
+    *    Turns off all motors instead of turning wheels back to 0 degrees
+    * 
+    ******************************************************************************************/
+    public void stopWheels(){
+        frontLeftWheel.setDriveMotorPower(0);
+        frontRightWheel.setDriveMotorPower(0);
+        rearLeftWheel.setDriveMotorPower(0);
+        rearRightWheel.setDriveMotorPower(0);
+
+        frontLeftWheel.setRotateMotorPower(0);
+        frontRightWheel.setRotateMotorPower(0);
+        rearLeftWheel.setRotateMotorPower(0);
+        rearRightWheel.setRotateMotorPower(0);
+
+    }
 
 
 
@@ -527,7 +601,7 @@ public class Drive {
                 limeLightFirstTime = true;
                 targetController.reset();
 
-                teleopRotate(0.00);
+                stopWheels();
                 
                 //Displays a failed attempt on the LED's
                 led.limelightNoValidTarget();
@@ -563,7 +637,7 @@ public class Drive {
             limeLightFirstTime = true;
             targetController.reset();
             
-			teleopRotate(0.00);
+			stopWheels();
             
             //Makes the LED's show that the robot is done targeting 
             led.limelightFinished();
@@ -581,7 +655,7 @@ public class Drive {
             
             targetController.reset();
             
-            teleopRotate(0.00);
+            stopWheels();
             
             led.limelightNoValidTarget();
             
@@ -591,6 +665,7 @@ public class Drive {
 			return Robot.FAIL;
         }
         
+        //DO WE DO AUTOKILL HERE OR IN ROBOT WHEELS CONTROL?
         if (controls.autoKill() == true) {
             //Returns the error code for failure
             return Robot.FAIL;
@@ -598,10 +673,6 @@ public class Drive {
 
 		return Robot.CONT;   
     }
-
-
-
-
 
     /** 
      * tan(a1+a2) = (h2-h1) / d
@@ -627,10 +698,6 @@ public class Drive {
 	  // outputs the distance calculated
 	  return distance; 
 	}
-
-
-
-
 
 	/** 
 	 * a1 = arctan((h2 - h1) / d - tan(a2)). This equation, with a known distance input, helps find the 
@@ -661,10 +728,6 @@ public class Drive {
 	  return cameraMountingAngle; // output result
 	}
 
-
-
-
-
 	/**
 	 * Change Limelight Modes
 	 */
@@ -673,10 +736,6 @@ public class Drive {
 		// Limelight Pipeline
 		limelightEntries.getEntry("pipeline").setNumber(pipeline);
 	}
-    
-    
-
-
 
 	// Change Limelight LED's
 	public void changeLimelightLED(int mode) {
@@ -684,159 +743,14 @@ public class Drive {
 		limelightEntries.getEntry("ledMode").setNumber(mode);
 	}
     
-
-
-    private double getAverageEncoder(){
-        double sum =    frontRightWheel.getEncoderValue() +
-                        frontLeftWheel.getEncoderValue()  +
-                        rearRightWheel.getEncoderValue()  +
-                        rearLeftWheel.getEncoderValue();
-        return sum / 4.0;
-
-    }
-
-    public void stopWheels(){
-        frontLeftWheel.setDriveMotorPower(0);
-        frontRightWheel.setDriveMotorPower(0);
-        rearLeftWheel.setDriveMotorPower(0);
-        rearRightWheel.setDriveMotorPower(0);
-
-        frontLeftWheel.setRotateMotorPower(0);
-        frontRightWheel.setRotateMotorPower(0);
-        rearLeftWheel.setRotateMotorPower(0);
-        rearRightWheel.setRotateMotorPower(0);
-
-    }
-
-
-    /**
-     * AUTONOMOUS DRIVE METHODS
-     */
-    /**
-     * Autonomous drive:
-     * drives a certain number of feet at a certain angle
-     * @param distance - the number of feet the robot drives
-     * @param targetDegrees - angle the robot drives
-     * @param power 
-     * @return status
-     */
    
 
-    public int autoCrabDrive(double distance, double targetDegrees) { //Generic function for autoCrabDrive with default power of 0.6
-        return autoCrabDrive(distance, targetDegrees, 0.6);
-    }
-    public int autoCrabDrive(double distance, double targetDegrees, double power) {
 
-        double x = power * Math.sin(Math.toRadians(targetDegrees));
-        double y = power * Math.cos(Math.toRadians(targetDegrees));
-
-        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
-        //double encoderCurrent = frontLeftWheel.getEncoderValue();
-
-        //First time through initializes target values
-        if(firstTime == true){
-            firstTime = false;
-            targetYaw = getYaw();
-            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
-        }
-
-        //Adjusts wheel angles
-        double pidOutput;
-        pidOutput = autoCrabDriveController.calculate(getYaw(), targetYaw); 
-        System.out.println("Yaw: " + getYaw() + " pidoutput: " + pidOutput);
-        teleopSwerve(x, y, pidOutput); //Add pidOutput to targetDegrees if we want to use yaw
-
-        //teleopSwerveDrive(targetDegrees, power, somepidoutput)
-
-        //Checks if target distance has been reached, then ends function if so
-        if (distance >= 0) {
-            if(encoderCurrent >= encoderTarget){
-                firstTime = true;
-                teleopCrabDrive(0, 0);
-                rotateController.reset();
-                return Robot.DONE;
-            } 
-            else {
-                return Robot.CONT;
-            }
-        } 
-        else { //Distance < 0 
-            if(encoderCurrent <= encoderTarget){
-                firstTime = true;
-                teleopCrabDrive(0, 0);
-                rotateController.reset();
-                return Robot.DONE;
-            } 
-            else {
-                return Robot.CONT;
-            }
-        }
-
-    }
-
-
-    /**
-     * Autonomous field drive:
-     * drives a certain number of feet at a certain angle relative to the field
-     * @param distance - the number of feet the robot drives
-     * @param targetDegrees - angle the robot drives
-     * @param power 
-     * @return status
-     */
-    public int autoFieldDrive(double distance, double targetDegrees, double power){
-        //autoDrive but 0 degrees is always the same direction, regardless of robot orientation
-        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
-        
-        //First time through initializes target values
-        if(firstTime == true){
-            firstTime = false;
-            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
-        }
-
-        //Calculates how far wheels need to correct themselves to drive on correct yaw, then drives
-        double pidOutput;
-        pidOutput = rotateController.calculate(targetDegrees, getYaw()); 
-		pidOutput = MathUtil.clamp(pidOutput, -0.25, 0.25);
-        teleopCrabDrive(targetDegrees + pidOutput, power);
-
-        //Checks if target distance has been reached, then ends function if so
-        if (distance >= 0) {
-            if(encoderCurrent >= encoderTarget){
-                firstTime = true;
-                teleopSwerve(0, 0, 0);
-                rotateController.reset();
-                return Robot.DONE;
-            } 
-            else {
-                return Robot.CONT;
-            }
-        } 
-        else { //Distance < 0 
-            if(encoderCurrent <= encoderTarget){
-                firstTime = true;
-                teleopSwerve(0, 0, 0);
-                rotateController.reset();
-                return Robot.DONE;
-            } 
-            else {
-                return Robot.CONT;
-            }
-        }
-    }
-    public int autoFieldDrive(double distance, double targetDegrees) { //Generic function for autoFieldDrive with default power of 0.6
-        return autoFieldDrive(distance, targetDegrees, 0.6);
-    }
-
-
-
-
-    /**
-     * TEST FUNCTIONS
-     */
-    public void disableMotors() {
-        teleopSwerve(0.00, 0.00, 0.00);
-    }
-
+    /****************************************************************************************** 
+    *
+    *    TEST FUNCTIONS
+    * 
+    ******************************************************************************************/
     public void testWheel(){
         rearRightWheel.setDriveMotorPower(-0.5);
     }
