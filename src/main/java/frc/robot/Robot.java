@@ -194,6 +194,7 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void teleopInit() {
+    //
   }
 
 
@@ -316,8 +317,18 @@ public class Robot extends TimedRobot {
       if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (rotatePower > 0.01)) {
         drive.teleopSwerve(driveX, driveY, rotatePower);
       } 
-      else { //Robot is in dead zone
+      else {
+        //Robot is in dead zone
         drive.stopWheels();
+      }
+
+      //Ensures that the drivers can actually see the limelight signals
+      ledCurrent ++;
+
+      if (ledCurrent >= LED_DELAY) {
+        ledCurrent = 0;
+
+        led.defaultMode("Team");
       }
     }
     //Limelight targetting
@@ -332,6 +343,8 @@ public class Robot extends TimedRobot {
       else if (targetingStatus == Robot.FAIL) {
         wheelMode = Drive.WheelMode.MANUAL;
       }
+
+      ledCurrent = 0;
     }
   }
 
@@ -359,15 +372,15 @@ public class Robot extends TimedRobot {
      * Get inputs from the Xbox controller & Joystick
      */
     //Grabber
-		grabberDeployRetract          = controls.grabberDeployRetract();
-		grabberDirection              = controls.getGrabberDir();
+		grabberDeployRetract = controls.grabberDeployRetract();
+		grabberDirection     = controls.getGrabberDir();
     
     //Shooter
-    feederDirection               = controls.ballFeederControl();
-    hoodPosition                  = controls.hoodMotorControl();
-    hailMary                      = controls.hailMary();
-    trenchShot                    = controls.enableTrenchShot();
-		shooterEnable                 = controls.enableShooter();
+    feederDirection      = controls.ballFeederControl();
+    hoodPosition         = controls.hoodMotorControl();
+    hailMary             = controls.hailMary();
+    trenchShot           = controls.enableTrenchShot();
+		shooterEnable        = controls.enableShooter();
     
 
     /*****   Grabber Deploy Retract   *****/
@@ -489,18 +502,18 @@ public class Robot extends TimedRobot {
   }
 
 
-   /****************************************************************************************** 
-    *
-    *    fieldDrive()
-    *    returns if we are in field drive mode   
-    * 
-    ******************************************************************************************/
-  private boolean fieldDrive() {
+  /****************************************************************************************** 
+   *
+   *    fieldDrive()
+   *    returns if we are in field drive mode   
+   * 
+   ******************************************************************************************/
+   private boolean fieldDrive() {
 
     if (controls.toggleFieldDrive() == true) {
       fieldDriveState = !fieldDriveState; //Toggles fieldDriveState
     }
     return fieldDriveState;
-}
+  }
 
 } // End of the Robot Class
