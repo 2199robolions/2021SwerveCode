@@ -63,7 +63,7 @@ public class Shooter {
 	// SPARK MAX
 	private CANSparkMax shooter_1;
 	private CANSparkMax shooter_2;
-	private CANSparkMax hood_Motor;
+	private CANSparkMax hoodMotor;
 
 	// Victor SP
 	private VictorSP ball_Feeder; //Negative power makes it intake balls
@@ -83,7 +83,7 @@ public class Shooter {
 	// Encoders
 	private CANEncoder shooter_1_Encoder;
 	private CANEncoder shooter_2_Encoder;
-	private CANEncoder hood_Motor_Encoder;
+	private CANEncoder hoodMotorEncoder;
 
 	//DIO SENSORS
 	private DigitalInput limitSwitch_1; //Makes it shoot lower (closet to the front of the robot)
@@ -105,17 +105,20 @@ public class Shooter {
 	public final double HAIL_MARY_TARGET_RPM = 5530; //5325
 
 	// HOOD MOTOR CONSTANTS
-	public static double originalPosition;
-	public static double avgPosition;
-	public static double highShot;
-	public static double lowShot;
+	public static double         originalPosition;
+	public static double         avgPosition;
+	public static double         highShot;
+	public static double         lowShot;
+
+	private static final double  HOOD_POWER = 0.075; //May need to be negative after changing internal gear ratio
+	private static final int     HOOD_CURRENT_LIMIT = 5;
 
 	// Variables
-	public  double targetVelocity;
-	private double targetPower;
-	private int targetCount = 0;
+	public  double                targetVelocity;
+	private double                targetPower;
+	private int                   targetCount = 0;
 	private Shooter.ShootLocation shotLocation = null;
-	Shooter.HoodMotorPosition hoodPrevPosition = null;
+	Shooter.HoodMotorPosition     hoodPrevPosition = null;
 
 	public static enum ShootLocation {
 		HAIL_MARY,
@@ -145,14 +148,18 @@ public class Shooter {
 	private static final double kI = 0.00;
 	private static final double kD = 0.00;
 	
-	/**
-	 * CONSTRUCTOR
-	 */
+
+
+	/****************************************************************************************** 
+    *
+    *    Constructor
+    *   
+    ******************************************************************************************/
 	public Shooter() {
 		// SPARK Max
 		shooter_1   = new CANSparkMax(SHOOTER_1_ID, MotorType.kBrushless);
 		shooter_2   = new CANSparkMax(SHOOTER_2_ID, MotorType.kBrushless);
-		hood_Motor  = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
+		hoodMotor  = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
 
 		//Victor SP
 		ball_Feeder = new VictorSP(BALL_FEEDER_ID);
@@ -160,13 +167,13 @@ public class Shooter {
 		// Set Shooter related motors to off to Start the Match
 		shooter_1.set  (0.0);
 		shooter_2.set  (0.0);
-		hood_Motor.set (0.0);
+		hoodMotor.set (0.0);
 		ball_Feeder.set(0.0);
 
 		// Encoders
 		shooter_1_Encoder  = shooter_1.getEncoder();
 		shooter_2_Encoder  = shooter_2.getEncoder();
-		hood_Motor_Encoder = hood_Motor.getEncoder();
+		hoodMotorEncoder = hoodMotor.getEncoder();
 
 		// DIO Sensors
 		limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
@@ -174,8 +181,9 @@ public class Shooter {
 
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
-		//shooterController.enableContinuousInput(0.0, 5500.0);
-		//shooterController.setIntegratorRange(0.0, 1.0);
+
+		//Current limits
+		//hoodMotor.setSmartCurrentLimit(hoodCurrentLimit);
 	}
 
 	//  private int    calibrateStatus = Robot.CONT;
@@ -614,7 +622,7 @@ public class Shooter {
 			rpm = shooter_2_Encoder.getVelocity();
 		}
 		else if (MOTOR_CAN_ID == HOOD_MOTOR_ID) {
-			rpm = hood_Motor_Encoder.getVelocity();
+			rpm = hoodMotorEncoder.getVelocity();
 		}
 		else {
 			//It should never come to this case
@@ -666,18 +674,65 @@ public class Shooter {
 	}
 
 	public void enableHoodMotor(double power) {
-		hood_Motor.set(power);
+		hoodMotor.set(power);
 	}
 
 	public void disableHoodMotor() {
-		hood_Motor.set(0.00);
+		hoodMotor.set(0.00);
 	}
 
+
+   /****************************************************************************************** 
+   *
+   *    hoodMotorPosiiton()
+   *    Returns hood motor encoder value
+   *    Positive power increases encoder value
+   * 
+   ******************************************************************************************/
 	public double hoodMotorPosition() {
 		double motorPosition;
-		motorPosition = hood_Motor_Encoder.getPosition();
+		motorPosition = hoodMotorEncoder.getPosition();
 
 		return motorPosition;
+	}
+
+
+
+   /****************************************************************************************** 
+   *
+   *    moveHoodFullForward()
+   *    Moves hood to forward sensor and calibrates encoders
+   * 
+   ******************************************************************************************/
+	public int moveHoodFullForward() {
+
+		if (limitSwitch1Value() == true) { //Reached position sensor
+			disableHoodMotor();
+			hoodMotorEncoder.setPosition(0.0);
+			System.out.println("At sensor 1");
+			return Robot.DONE;
+		}
+		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
+			disableHoodMotor();
+			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
+			return Robot.DONE;
+		} 
+		else { //No need to stop
+			hoodMotor.set(HOOD_POWER);
+			return Robot.CONT;
+		}
+	}
+
+
+   /****************************************************************************************** 
+   *
+   *    Test functions for shooter 
+   * 
+   ******************************************************************************************/
+	public void testHoodMotor(double power) {
+		//Positive power moves hood forward. Reasonable speed is 0.75
+		hoodMotor.set(power);
+		System.out.println("Amps: " + hoodMotor.getOutputCurrent() + " Encoder: " + hoodMotorEncoder.getPosition());
 	}
 
 } //End of the Shooter Class

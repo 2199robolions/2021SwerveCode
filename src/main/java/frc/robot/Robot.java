@@ -33,6 +33,7 @@ public class Robot extends TimedRobot {
   private double  driveY;
   private boolean fieldDriveState = false;
   private Climber.ClimberState climberState;
+  private double testHoodPower;
 
 
   //Setting Up WheelMode for limelight
@@ -120,6 +121,10 @@ public class Robot extends TimedRobot {
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
+
+    //Smartdashboard test values
+    SmartDashboard.putNumber("Hood power", 0.05);
+
   }
 
 
@@ -275,7 +280,9 @@ public class Robot extends TimedRobot {
     }
 
     if (autoStatus == Robot.CONT) {
-      drive.testWheelAngle();
+      //autoStatus = shooter.moveHoodFullForward();
+      //System.out.println(shooter.hoodMotorPosition());
+      shooter.testHoodMotor(0.075);
     }
  
     /*double tempPower;
