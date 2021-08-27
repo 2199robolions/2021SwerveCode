@@ -66,7 +66,7 @@ public class Shooter {
 	private CANSparkMax hoodMotor;
 
 	// Victor SP
-	private VictorSP ball_Feeder; //Negative power makes it intake balls
+	private VictorSP feedMotor; //Negative power makes it intake balls
 
 	// SPARK MAX ID's
 	private int SHOOTER_1_ID  = 17;
@@ -94,7 +94,7 @@ public class Shooter {
 	public final double TEN_FOOT_POWER  = 0.622; //0.66
 	public final double TRENCH_POWER    = 0.52 ; //.648 //.645
 	public final double HAIL_MARY_POWER = 1.00 ;
-	public final double FEED_POWER      = -0.50;
+	public final double FEED_POWER      = -0.25;
 
 	// RPM CONSTANTS
 	public final double OFF_TARGET_RPM       = 0;
@@ -105,13 +105,16 @@ public class Shooter {
 	public final double HAIL_MARY_TARGET_RPM = 5530; //5325
 
 	// HOOD MOTOR CONSTANTS
+	public static double         TEN_FOOT_HOOD_ENCODER = -6;
+
+
 	public static double         originalPosition;
 	public static double         avgPosition;
 	public static double         highShot;
 	public static double         lowShot;
 
 	private static final double  HOOD_POWER = 0.075; //May need to be negative after changing internal gear ratio
-	private static final int     HOOD_CURRENT_LIMIT = 5;
+	private static final int     HOOD_CURRENT_LIMIT = 3;
 
 	// Variables
 	public  double                targetVelocity;
@@ -162,13 +165,13 @@ public class Shooter {
 		hoodMotor  = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
 
 		//Victor SP
-		ball_Feeder = new VictorSP(BALL_FEEDER_ID);
+		feedMotor = new VictorSP(BALL_FEEDER_ID);
 		
 		// Set Shooter related motors to off to Start the Match
 		shooter_1.set  (0.0);
 		shooter_2.set  (0.0);
 		hoodMotor.set (0.0);
-		ball_Feeder.set(0.0);
+		feedMotor.set(0.0);
 
 		// Encoders
 		shooter_1_Encoder  = shooter_1.getEncoder();
@@ -283,7 +286,7 @@ public class Shooter {
 		if (location == ShootLocation.OFF) {
 			shooter_1.set(OFF_POWER);
 			shooter_2.set(OFF_POWER);
-			ball_Feeder.set(OFF_POWER);
+			feedMotor.set(OFF_POWER);
 
 			targetVelocity = OFF_TARGET_RPM;
 		}
@@ -308,7 +311,7 @@ public class Shooter {
 		else {
 			shooter_1.set(OFF_POWER);
 			shooter_2.set(OFF_POWER);
-			ball_Feeder.set(OFF_POWER);
+			feedMotor.set(OFF_POWER);
 			
 			targetVelocity = OFF_TARGET_RPM;
 		}
@@ -354,13 +357,13 @@ public class Shooter {
 	 */
 	public void manualBallFeederControl(BallFeederDirection dir) {
 		if (dir == BallFeederDirection.FORWARD) {
-			ball_Feeder.set(FEED_POWER);
+			feedMotor.set(FEED_POWER);
 		}
 		else if (dir == BallFeederDirection.REVERSE) {
-			ball_Feeder.set(FEED_POWER * -1);
+			feedMotor.set(FEED_POWER * -1);
 		}
 		else {
-			ball_Feeder.set(OFF_POWER);
+			feedMotor.set(OFF_POWER);
 		}
 	}
 
@@ -369,10 +372,10 @@ public class Shooter {
 	 */
 	public void autoBallFeederControl() {
 		if (shooterReadyAuto() == true) {
-			ball_Feeder.set(FEED_POWER);
+			feedMotor.set(FEED_POWER);
 		}
 		else {
-			ball_Feeder.set(OFF_POWER);
+			feedMotor.set(OFF_POWER);
 		}
 	}
 
@@ -498,7 +501,7 @@ public class Shooter {
 	public void testShoooter(double power) {
 		shooter_1.set(power * -1);
 		shooter_2.set(power);
-		ball_Feeder.set(power * -1); //Negative power makes it intake
+		feedMotor.set(power * -1); //Negative power makes it intake
 
 		System.out.println("Power: " + power + " RPM: " + getabsRPM(SHOOTER_1_ID));
 	}
@@ -534,7 +537,7 @@ public class Shooter {
 	public void enableShooterFullPower() {
 		shooter_1.set(-0.70);
 		shooter_2.set(0.70);
-		ball_Feeder.set(FEED_POWER);
+		feedMotor.set(FEED_POWER);
 
 		System.out.println("RPM 1: " + getabsRPM(SHOOTER_1_ID));
 		System.out.println("RPM 2: " + getabsRPM(SHOOTER_2_ID));
@@ -559,7 +562,7 @@ public class Shooter {
 	}
 
 	private void enableBallFeeder() {
-		ball_Feeder.set(-0.50);
+		feedMotor.set(-0.50);
 	}
 
 	/**
@@ -581,7 +584,7 @@ public class Shooter {
 	}
 
 	private void disableBallFeeder() {
-		ball_Feeder.set(0.00);
+		feedMotor.set(0.00);
 	}
 
 	/**
@@ -715,13 +718,38 @@ public class Shooter {
 		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
 			disableHoodMotor();
 			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
-			return Robot.DONE;
+			return Robot.FAIL;
 		} 
 		else { //No need to stop
 			hoodMotor.set(HOOD_POWER);
 			return Robot.CONT;
 		}
 	}
+
+	/****************************************************************************************** 
+   *
+   *    moveHoodFullForward()
+   *    Moves hood to forward sensor and calibrates encoders
+   * 
+   ******************************************************************************************/
+  public int moveHoodToTenFeet() {
+
+	if (limitSwitch1Value() == true) { //Reached position sensor
+		disableHoodMotor();
+		hoodMotorEncoder.setPosition(0.0);
+		System.out.println("At sensor 1");
+		return Robot.DONE;
+	}
+	else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
+		disableHoodMotor();
+		System.out.println("Amps: " + hoodMotor.getOutputCurrent());
+		return Robot.FAIL;
+	} 
+	else { //No need to stop
+		hoodMotor.set(HOOD_POWER);
+		return Robot.CONT;
+	}
+}
 
 
    /****************************************************************************************** 
@@ -734,5 +762,39 @@ public class Shooter {
 		hoodMotor.set(power);
 		System.out.println("Amps: " + hoodMotor.getOutputCurrent() + " Encoder: " + hoodMotorEncoder.getPosition());
 	}
+
+	public void testFeedMotor(double power) {
+		//Negative values makes it intake balls
+		feedMotor.set(power);
+	}
+
+	public void testShootMotors(double power) {
+		//Shooter motor 1 (left motor) needs to be negative to shoot a ball
+		//Shooter motor 2 (right motor) needs to be positive to shoot a ball
+		//shooter_1.set(-power);
+		shooter_1.follow(shooter_2, true); //put in the constructor
+		shooter_2.set(power);
+		System.out.println("Shooter motor power: " + shooter_2.getOutputCurrent());
+	}
+
+	public int testHoodMotorEncoder(double encoderTarget){
+		
+		double encoderCurrent = hoodMotorPosition();
+
+		//Hasn't reached target yet
+		if (encoderCurrent > encoderTarget){
+			hoodMotor.set(-1* HOOD_POWER);
+			return Robot.CONT;
+		}
+		else if (encoderCurrent <= encoderTarget) {
+			hoodMotor.set(0.00);
+			return Robot.DONE;
+		}
+		else {
+			return Robot.FAIL;
+		}
+
+	}
+
 
 } //End of the Shooter Class

@@ -33,7 +33,9 @@ public class Robot extends TimedRobot {
   private double  driveY;
   private boolean fieldDriveState = false;
   private Climber.ClimberState climberState;
-  private double testHoodPower;
+  private double  testHoodPower;
+  private int     step = 1;
+
 
 
   //Setting Up WheelMode for limelight
@@ -123,7 +125,8 @@ public class Robot extends TimedRobot {
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
 
     //Smartdashboard test values
-    SmartDashboard.putNumber("Hood power", 0.05);
+    //SmartDashboard.putNumber("Hood power", 0.05);
+    SmartDashboard.putNumber("Hood target", -2);
 
   }
 
@@ -262,6 +265,7 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   public void testInit() {
     autoStatus = Robot.CONT;
+    step = 1;
   }
 
 
@@ -279,11 +283,32 @@ public class Robot extends TimedRobot {
       autoStatus = Robot.FAIL;
     }
 
-    if (autoStatus == Robot.CONT) {
+    switch (step) {
+      case 1:
+        autoStatus = shooter.moveHoodFullForward();
+        break;
+      case 2:
+        autoStatus = shooter.testHoodMotorEncoder(SmartDashboard.getNumber("Hood target", -2));
+        break;
+      case 3:
+        shooter.testShootMotors(1.0);
+        shooter.testFeedMotor(shooter.FEED_POWER);
+        break;
+      default:
+        step = 1;
+    }
+
+    if ( (autoStatus == Robot.DONE) || (autoStatus == Robot.FAIL) ) {
+      step++;
+    }
+  
       //autoStatus = shooter.moveHoodFullForward();
       //System.out.println(shooter.hoodMotorPosition());
-      shooter.testHoodMotor(0.075);
-    }
+      //shooter.testHoodMotor(0.075);
+      //shooter.testFeedMotor(-0.25);
+      //shooter.testShootMotors(1);
+    
+
  
     /*double tempPower;
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
