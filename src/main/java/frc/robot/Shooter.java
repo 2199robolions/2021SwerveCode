@@ -33,26 +33,8 @@ import edu.wpi.first.wpiutil.math.MathUtil;
 	  .90		4942
 	  .95		5182
 	  1.00		5422
-
-	  ruler			limelight		power
-	  distance		distance		to make shot
-	  10							.65
-	  11							.65
-	  12							.65
-	  13							.65
-	  14							
-	  15							
-	  16							
-	  17							.58
-	  18							
-	  19			17.5			.60
-	  20			18.3			.62 .65
-	  21			18.4			.65
-	  22			18.9			.68
-	  23			19.7			.70
-	  24			20.4			.70
-	  25			20.9			.70
-	  */
+		*/
+	
 
 public class Shooter {
 	// SPARK MAX
@@ -96,8 +78,8 @@ public class Shooter {
 	public static  final double   TEN_FOOT_HOOD_ENCODER    = -6;
 	public static  final double   TRENCH_SHOT_HOOD_ENCODER = -4; //Not certain
 	public static  final double   HAIL_MARY_HOOD_ENCODER   = -7; //Not tested
-	public static  final double   LOW_SHOT                 = 0;
-	public static  final double   HIGH_SHOT                = -15; //Not tested     
+	public static  final double   LOW_SHOT_HOOD_ENCODER    = 0;
+	public static  final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested     
 
 	private static final double   HOOD_POWER = 0.075;
 	private static final int      HOOD_CURRENT_LIMIT = 3;
@@ -106,12 +88,16 @@ public class Shooter {
 	private static final double   FEED_POWER = -0.25;
 
 	// Variables
-	public  double                targetVelocity;
-	private double                targetPower;
-	private int                   targetCount = 0;
-	private boolean               hoodCalibrated = false;
-	private Shooter.ShootLocation shotLocation = null;
-	Shooter.HoodMotorPosition     hoodPrevPosition = null;
+	public  double                     targetVelocity;
+	private double                     targetPower;
+	private int                        targetCount = 0;
+	private boolean                    hoodCalibrated = false;
+	private Shooter.ShootLocation      shotLocation = null;
+	Shooter.HoodMotorPosition          hoodPrevPosition = null;
+	private boolean                    firstTime = true;
+	private double                     hoodTargetPosition = 0;
+	private Shooter.HoodMotorDirection hoodDirection = HoodMotorDirection.OFF;
+
 
 	public static enum ShootLocation {
 		HAIL_MARY,
@@ -121,6 +107,12 @@ public class Shooter {
 	}
 
 	public static enum BallFeederDirection {
+		FORWARD,
+		REVERSE,
+		OFF;
+	}
+
+	public static enum HoodMotorDirection {
 		FORWARD,
 		REVERSE,
 		OFF;
@@ -311,25 +303,109 @@ public class Shooter {
 
 
 	
-	/**
-	 * Allows for manual control of the Hood Motor
-	 * @param motorPosition
-	 */
-	public void manualHoodMotorControl(Shooter.HoodMotorPosition motorPosition) {
-		//Shorter enum names because I'm lazy
-		Shooter.HoodMotorPosition high = Shooter.HoodMotorPosition.HIGH_SHOT;
-		Shooter.HoodMotorPosition low  = Shooter.HoodMotorPosition.LOW_SHOT;
-		Shooter.HoodMotorPosition avg  = Shooter.HoodMotorPosition.AVERAGE_POSITION;
+	/****************************************************************************************** 
+    *
+    *    manualHoodMotorControl()
+	*    Moves hood to given location
+    *   
+    ******************************************************************************************/
+	public int manualHoodMotorControl(Shooter.HoodMotorPosition motorPosition) {
+
+		//Calibrates hood motor if it hasn't been done yet
+		if (hoodCalibrated == false) {
+			moveHoodFullForward(); //Once moveHoodFullForward is complete it will set hoodCalibrated to true and not run this line again
+		}
 
 		//Variables
 		boolean limit1 = limitSwitch1Value();
 		boolean limit2 = limitSwitch2Value();
 		double  hoodPosition = hoodMotorPosition();
 
-		//CONSTANTS
-		double  deadZone = 5;
-		double  power = 0.10;
 
+		//First time through, setting initial values
+		if (firstTime == true) {
+			double firstPosition = hoodPosition;
+
+			//Sets target encoder value
+			if (motorPosition == HoodMotorPosition.LOW_SHOT) {
+				hoodTargetPosition = LOW_SHOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == HoodMotorPosition.HIGH_SHOT) {
+				hoodTargetPosition = HIGH_SHOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == HoodMotorPosition.TEN_FOOT) {
+				hoodTargetPosition = TEN_FOOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == HoodMotorPosition.TRENCH_SHOT) {
+				hoodTargetPosition = TRENCH_SHOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == HoodMotorPosition.HAIL_MARY) {
+				hoodTargetPosition = HAIL_MARY_HOOD_ENCODER;
+			}
+			else {
+				return Robot.FAIL;
+			}
+
+			//Finds direction that hood needs to move
+			if (firstPosition > hoodTargetPosition) {
+				direction = HoodMotorDirection.REVERSE;
+			}
+			else if (firstPosition < hoodTargetPosition) {
+				direction = HoodMotorDirection.FORWARD;
+			}
+			else if (firstPosition == hoodTargetPosition) {
+				direction = HoodMotorDirection.OFF;
+			}
+			else {
+				return Robot.FAIL;
+			}
+
+			firstTime == false;
+		}
+
+
+		//Error checking
+		if (hoodMotor.getOutputCurrent > HOOD_CURRENT_LIMIT) {
+			firstTime = true;
+			hoodMotor.set(OFF_POWER);
+			return Robot.FAIL;
+		}
+		else if ( ((hoodPosition > limit1) || (limit1)) && (direction == HoodMotorDirection.FORWARD) ){ //Going forward and at limit switch
+			firstTime = true;
+			hoodMotor.set(OFF_POWER);
+			return Robot.DONE;
+		}
+
+
+		//Checking if we have reached target
+		if (direction == HoodMotorDirection.FORWARD) {
+			if (hoodPosition > hoodTargetPosition) {
+				firstTime = true;
+				hoodMotor.set(OFF_POWER);
+				return Robot.DONE;
+			}
+			else {
+				hoodMotor.set(HOOD_POWER);
+				return Robot.CONT;
+			}
+		}
+		else if (direction == HoodMotorDirection.REVERSE) {
+			if (hoodPosition < hoodTargetPosition) {
+				firstTime = true;
+				hoodMotor.set(OFF_POWER);
+				return Robot.DONE;
+			}
+			else {
+				hoodMotor.set(-1 * HOOD_POWER);
+				return Robot.CONT;
+			}
+		}
+		else {
+			return Robot.FAIL;
+		}
+
+
+/*
 		if (motorPosition == high) {
 			if (hoodPrevPosition == low || hoodPrevPosition == avg) {
 				if (limit1 == false) {
@@ -406,20 +482,27 @@ public class Shooter {
 		else {
 			disableHoodMotor();
 		}
-	}
+	}*/
 
-	/**
-	 * Automatic control of the Hood Motor
-	 */
+
+
+
+
+	/****************************************************************************************** 
+    *
+    *    autoHoodMotorControl()
+	*    Moves hood to location that we are shooting from
+    *   
+    ******************************************************************************************/
 	public void autoHoodControl() {
 		if (shotLocation == Shooter.ShootLocation.TEN_FOOT) {
-			manualHoodMotorControl( Shooter.HoodMotorPosition.HIGH_SHOT );
+			manualHoodMotorControl( Shooter.HoodMotorPosition.TEN_FOOT_SHOT );
 		}
 		else if (shotLocation == Shooter.ShootLocation.TRENCH) {
-			manualHoodMotorControl( Shooter.HoodMotorPosition.AVERAGE_POSITION );
+			manualHoodMotorControl( Shooter.HoodMotorPosition.TRENCH_SHOT );
 		}
 		else if (shotLocation == Shooter.ShootLocation.HAIL_MARY) {
-			manualHoodMotorControl( Shooter.HoodMotorPosition.LOW_SHOT );
+			manualHoodMotorControl( Shooter.HoodMotorPosition.HAIL_MARY_SHOT );
 		}
 		else {
 			disableHoodMotor();
@@ -645,6 +728,7 @@ public class Shooter {
 			disableHoodMotor();
 			hoodMotorEncoder.setPosition(0.0);
 			System.out.println("At sensor 1");
+			hoodCalibrated = true;
 			return Robot.DONE;
 		}
 		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
