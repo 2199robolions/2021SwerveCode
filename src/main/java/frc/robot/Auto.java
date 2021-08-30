@@ -33,6 +33,10 @@ public class Auto {
 		calibrationStep = 1;
 	}
 
+	/**
+	 * Old Method to calibrate the hood motor
+	 */
+	/* I assume that this method won't be used anymore? 
 	public int calibrateHoodMotor() {
 		//Standard Auto Variables
 		int status = Robot.CONT;
@@ -142,7 +146,7 @@ public class Auto {
 		}
 
 		return Robot.CONT;
-	}
+	}*/
 	
 	/**
 	 * Default Auto

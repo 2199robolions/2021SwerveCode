@@ -347,6 +347,7 @@ public class Controls {
 
     /**
      * XBox Controller Left Stick
+     * NEEDS IMEDIATE FIXING
      */
     public Shooter.HoodMotorPosition hoodMotorControl() {
         double xboxY;
@@ -359,7 +360,8 @@ public class Controls {
             return Shooter.HoodMotorPosition.HIGH_SHOT;
         }
         else {
-            return Shooter.HoodMotorPosition.AVERAGE_POSITION;
+            return null; //TEMPORARY
+            //return Shooter.HoodMotorPosition.AVERAGE_POSITION;
         }
     }
 

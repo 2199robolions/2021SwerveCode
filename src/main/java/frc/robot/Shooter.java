@@ -85,15 +85,16 @@ public class Shooter {
 	private static final int      HOOD_CURRENT_LIMIT = 3;
 
 	// FEED MOTOR CONSTANTS
-	private static final double   FEED_POWER = -0.25;
+	public static final double   FEED_POWER = -0.25;
 
 	// Variables
 	public  double                     targetVelocity;
 	private double                     targetPower;
-	private int                        targetCount = 0;
-	private boolean                    hoodCalibrated = false;
-	private Shooter.ShootLocation      shotLocation = null;
+	private int                        targetCount      = 0;
+	private boolean                    hoodCalibrated   = false;
+	private Shooter.ShootLocation      shotLocation     = null;
 	Shooter.HoodMotorPosition          hoodPrevPosition = null;
+	HoodMotorDirection                 direction        = null;
 	private boolean                    firstTime = true;
 	private double                     hoodTargetPosition = 0;
 	private Shooter.HoodMotorDirection hoodDirection = HoodMotorDirection.OFF;
@@ -146,7 +147,7 @@ public class Shooter {
 		rightShooter   = new CANSparkMax(RIGHT_SHOOTER_ID, MotorType.kBrushless); //Shooter 2 requires positive power to shoot
 		hoodMotor      = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
 
-		leftShooter.follow(RIGHT_SHOOTER_ID, true); 
+		leftShooter.follow(rightShooter, true); 
 
 		//Victor SP
 		feedMotor = new VictorSP(BALL_FEEDER_ID);
@@ -249,7 +250,7 @@ public class Shooter {
 		
 		System.out.println("RPM: " + rpm);
 		
-		if ((rpm > targetVelocity )  {
+		if ( rpm > targetVelocity )  {
 			targetCount ++;
 			
 			if(targetCount >= 5) { 
@@ -333,13 +334,13 @@ public class Shooter {
 			else if (motorPosition == HoodMotorPosition.HIGH_SHOT) {
 				hoodTargetPosition = HIGH_SHOT_HOOD_ENCODER;
 			}
-			else if (motorPosition == HoodMotorPosition.TEN_FOOT) {
+			else if (motorPosition == HoodMotorPosition.TEN_FOOT_SHOT) {
 				hoodTargetPosition = TEN_FOOT_HOOD_ENCODER;
 			}
 			else if (motorPosition == HoodMotorPosition.TRENCH_SHOT) {
 				hoodTargetPosition = TRENCH_SHOT_HOOD_ENCODER;
 			}
-			else if (motorPosition == HoodMotorPosition.HAIL_MARY) {
+			else if (motorPosition == HoodMotorPosition.HAIL_MARY_SHOT) {
 				hoodTargetPosition = HAIL_MARY_HOOD_ENCODER;
 			}
 			else {
@@ -360,21 +361,23 @@ public class Shooter {
 				return Robot.FAIL;
 			}
 
-			firstTime == false;
+			firstTime = false;
 		}
 
 
 		//Error checking
-		if (hoodMotor.getOutputCurrent > HOOD_CURRENT_LIMIT) {
+		if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
 			firstTime = true;
 			hoodMotor.set(OFF_POWER);
 			return Robot.FAIL;
 		}
+		/* This is faulty logic. I haven't taken the time to figure it out, but it won't work
 		else if ( ((hoodPosition > limit1) || (limit1)) && (direction == HoodMotorDirection.FORWARD) ){ //Going forward and at limit switch
 			firstTime = true;
 			hoodMotor.set(OFF_POWER);
 			return Robot.DONE;
 		}
+		*/
 
 
 		//Checking if we have reached target
@@ -403,6 +406,7 @@ public class Shooter {
 		else {
 			return Robot.FAIL;
 		}
+	}
 
 
 /*
@@ -634,10 +638,10 @@ public class Shooter {
 		double absRPM;
 
 		if (MOTOR_CAN_ID == LEFT_SHOOTER_ID) {
-			rpm = leftShooter_Encoder.getVelocity();
+			rpm = leftShooterEncoder.getVelocity();
 		}
 		else if (MOTOR_CAN_ID == RIGHT_SHOOTER_ID) {
-			rpm = rightShooter_Encoder.getVelocity();
+			rpm = rightShooterEncoder.getVelocity();
 		}
 		else if (MOTOR_CAN_ID == HOOD_MOTOR_ID) {
 			rpm = hoodMotorEncoder.getVelocity();

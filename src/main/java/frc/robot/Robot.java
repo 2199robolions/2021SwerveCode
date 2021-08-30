@@ -292,7 +292,7 @@ public class Robot extends TimedRobot {
         break;
       case 3:
         shooter.testShootMotors(1.0);
-        shooter.testFeedMotor(shooter.FEED_POWER);
+        shooter.testFeedMotor(Shooter.FEED_POWER);
         break;
       default:
         step = 1;
