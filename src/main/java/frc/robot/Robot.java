@@ -394,7 +394,7 @@ public class Robot extends TimedRobot {
     
     //Shooter Variables
     Shooter.BallFeederDirection feederDirection;
-    Shooter.HoodMotorPosition   hoodPosition;
+    Shooter.HoodMotorDirection   hoodDirection;
     boolean hailMary;
     boolean trenchShot;
     boolean shooterEnable;
@@ -409,7 +409,7 @@ public class Robot extends TimedRobot {
     
     //Shooter
     feederDirection      = controls.ballFeederControl();
-    hoodPosition         = controls.hoodMotorControl();
+    hoodDirection         = controls.hoodMotorControl();
     hailMary             = controls.hailMary();
     trenchShot           = controls.enableTrenchShot();
 		shooterEnable        = controls.enableShooter();
@@ -447,10 +447,10 @@ public class Robot extends TimedRobot {
     /*****   Hood Motor Control   *****/
     //Hood motor stuff
     if (shooterEnable == true) {
-      shooter.autoHoodControl();
+      shooter.autoHoodMotorControl();
     }
     else {
-      shooter.manualHoodMotorControl(hoodPosition);
+      shooter.powerHoodMotor(hoodDirection);
     }
 
     /*****   Ball Feeder Control   *****/
@@ -472,7 +472,7 @@ public class Robot extends TimedRobot {
     }
     else {
       shooter.manualBallFeederControl(feederDirection);
-      shooter.manualHoodMotorControl (hoodPosition);
+      shooter.powerHoodMotor(hoodDirection);
     }
   }
 

@@ -345,23 +345,24 @@ public class Controls {
         }
     }
 
-    /**
-     * XBox Controller Left Stick
-     * NEEDS IMEDIATE FIXING
-     */
-    public Shooter.HoodMotorPosition hoodMotorControl() {
+    /****************************************************************************************** 
+    *
+    *    hoodMotorControl()
+	*    Uses left xbox stick to move hood
+    *   
+    ******************************************************************************************/
+    public Shooter.HoodMotorDirection hoodMotorControl() {
         double xboxY;
         xboxY = xboxController.getY(Hand.kLeft) * -1;
 
         if (xboxY >= 0.2) {
-            return Shooter.HoodMotorPosition.LOW_SHOT;
+            return Shooter.HoodMotorDirection.FORWARD;
         }
         else if (xboxY <= -0.2) {
-            return Shooter.HoodMotorPosition.HIGH_SHOT;
+            return Shooter.HoodMotorDirection.REVERSE;
         }
         else {
-            return null; //TEMPORARY
-            //return Shooter.HoodMotorPosition.AVERAGE_POSITION;
+            return Shooter.HoodMotorDirection.OFF; 
         }
     }
 

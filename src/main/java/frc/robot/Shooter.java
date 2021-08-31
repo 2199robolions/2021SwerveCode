@@ -179,6 +179,7 @@ public class Shooter {
     *   
     ******************************************************************************************/
 	public void autoShooterControl(ShootLocation location) {
+		shotLocation = location;
 		double  powerError;
 		double  power;
 
@@ -315,6 +316,7 @@ public class Shooter {
 		//Calibrates hood motor if it hasn't been done yet
 		if (hoodCalibrated == false) {
 			moveHoodFullForward(); //Once moveHoodFullForward is complete it will set hoodCalibrated to true and not run this line again
+			return Robot.CONT;
 		}
 
 		//Variables
@@ -371,13 +373,12 @@ public class Shooter {
 			hoodMotor.set(OFF_POWER);
 			return Robot.FAIL;
 		}
-		/* This is faulty logic. I haven't taken the time to figure it out, but it won't work
-		else if ( ((hoodPosition > limit1) || (limit1)) && (direction == HoodMotorDirection.FORWARD) ){ //Going forward and at limit switch
+		else if (   ((hoodPosition > 0) || (limit1))    && (direction == HoodMotorDirection.FORWARD) ){ //Going forward and at limit switch
 			firstTime = true;
 			hoodMotor.set(OFF_POWER);
 			return Robot.DONE;
 		}
-		*/
+		
 
 
 		//Checking if we have reached target
@@ -409,85 +410,45 @@ public class Shooter {
 	}
 
 
-/*
-		if (motorPosition == high) {
-			if (hoodPrevPosition == low || hoodPrevPosition == avg) {
-				if (limit1 == false) {
-					if (hoodPosition < (lowShot - deadZone)) {
-						enableHoodMotor(power);
-					}
-					else {
-						disableHoodMotor();
-					}					
-				}
-				else {
-					disableHoodMotor();
-				}
-			}
-			else {
-				disableHoodMotor();
-			}
+	/****************************************************************************************** 
+    *
+    *    powerHoodMotor
+	*    Moves hood in given direction
+    *   
+    ******************************************************************************************/
+	public void powerHoodMotor(Shooter.HoodMotorDirection motorDirection) {
 
-			hoodPrevPosition = high;
+		//Variables
+		boolean limit1 = limitSwitch1Value();
+		boolean limit2 = limitSwitch2Value();
+		double  hoodPosition = hoodMotorPosition();
+
+
+		//Error checking
+		if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
+			firstTime = true;
+			hoodMotor.set(OFF_POWER);
+			return;
 		}
-		else if (motorPosition == low) {
-			if (hoodPrevPosition == high || hoodPrevPosition == avg) {
-				if (limit2 == false) {
-					if (hoodPosition > (lowShot + deadZone)) {
-						enableHoodMotor(power * -1);
-					}
-					else {
-						disableHoodMotor();
-					}
-				}
-				else {
-					disableHoodMotor();
-				}
-			}
-			else {
-				disableHoodMotor();
-			}
-
-			hoodPrevPosition = low;
+		else if (   ((hoodPosition > 0) || (limit1))    && (motorDirection == HoodMotorDirection.FORWARD) ){ //Going forward and at limit switch
+			firstTime = true;
+			hoodMotor.set(OFF_POWER);
+			return;
 		}
-		else if (motorPosition == avg) {
-			if (hoodPrevPosition == low) {
-				if (limit1 == false) {
-					if (hoodPosition < (avgPosition - deadZone)) {
-						enableHoodMotor(power);
-					}
-					else {
-						disableHoodMotor();
-					}
-				}
-				else {
-					disableHoodMotor();
-				}
-			}
-			else if (hoodPrevPosition == high) {
-				if (limit2 == false) {
-					if (hoodPosition > (avgPosition + deadZone)) {
-						enableHoodMotor(power * -1);
-					}
-					else {
-						disableHoodMotor();
-					}
-				}
-				else {
-					disableHoodMotor();
-				}
-			}
-			else {
-				disableHoodMotor();
-			}
 
-			hoodPrevPosition = avg;
+
+		//Moving hood motor
+		if (motorDirection == HoodMotorDirection.FORWARD) {
+			hoodMotor.set(HOOD_POWER);
+		}
+		else if (motorDirection == HoodMotorDirection.REVERSE) {
+			hoodMotor.set(-1 * HOOD_POWER);
 		}
 		else {
-			disableHoodMotor();
+			hoodMotor.set(OFF_POWER);
 		}
-	}*/
 
+	}
 
 
 
@@ -498,7 +459,7 @@ public class Shooter {
 	*    Moves hood to location that we are shooting from
     *   
     ******************************************************************************************/
-	public void autoHoodControl() {
+	public void autoHoodMotorControl() {
 		if (shotLocation == Shooter.ShootLocation.TEN_FOOT) {
 			manualHoodMotorControl( Shooter.HoodMotorPosition.TEN_FOOT_SHOT );
 		}
