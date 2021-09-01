@@ -35,6 +35,8 @@ public class Robot extends TimedRobot {
   private Climber.ClimberState climberState;
   private double  testHoodPower;
   private int     step = 1;
+  private boolean hoodCalibrated = false;
+
 
 
 
@@ -346,7 +348,7 @@ public class Robot extends TimedRobot {
     if (wheelMode == Drive.WheelMode.MANUAL) {
 
       //If robot is out of deadzone, drive normally
-      if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (rotatePower > 0.01)) {
+      if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (Math.abs(rotatePower) > 0.01)) {
         drive.teleopSwerve(driveX, driveY, rotatePower);
       } 
       else {
@@ -394,11 +396,12 @@ public class Robot extends TimedRobot {
     
     //Shooter Variables
     Shooter.BallFeederDirection feederDirection;
-    Shooter.HoodMotorDirection   hoodDirection;
     boolean hailMary;
     boolean trenchShot;
     boolean shooterEnable;
     boolean shooterReady = shooter.shooterReadyAuto();
+
+    int hoodStatus = Robot.CONT;
 
     /**
      * Get inputs from the Xbox controller & Joystick
@@ -409,11 +412,20 @@ public class Robot extends TimedRobot {
     
     //Shooter
     feederDirection      = controls.ballFeederControl();
-    hoodDirection         = controls.hoodMotorControl();
     hailMary             = controls.hailMary();
     trenchShot           = controls.enableTrenchShot();
-		shooterEnable        = controls.enableShooter();
+    shooterEnable        = controls.enableShooter();
     
+    //Calibrates hood before doing any ball-related stuff
+    if (hoodCalibrated == false) {
+      hoodStatus = shooter.moveHoodFullForward();
+      if ( (hoodStatus == Robot.DONE) || (hoodStatus == Robot.FAIL) ) {
+        hoodCalibrated = true;
+      }
+      System.out.println("Calibrating hood motor");
+      return;
+    }
+
 
     /*****   Grabber Deploy Retract   *****/
 		if (grabberDeployRetract == true) {
@@ -428,31 +440,26 @@ public class Robot extends TimedRobot {
 		if (shooterEnable == true) {
 			if (hailMary == true) {
         //Prepares the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
+        shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
+        shooter.manualHoodMotorControl(Shooter.ShootLocation.HAIL_MARY);
 			}
 			else if (trenchShot == true) {
         //Prepares the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
+        shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
+        shooter.manualHoodMotorControl(Shooter.ShootLocation.TRENCH);
 			}
 			else {
         //Prepaers the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
+        shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
+        shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
       }
 		}
 		else {
       //Turns the shooter off
-			shooter.manualShooterControl( Shooter.ShootLocation.OFF );
+      shooter.manualShooterControl( Shooter.ShootLocation.OFF );
     }
 
-    /*****   Hood Motor Control   *****/
-    //Hood motor stuff
-    if (shooterEnable == true) {
-      shooter.autoHoodMotorControl();
-    }
-    else {
-      shooter.powerHoodMotor(hoodDirection);
-    }
-
+    
     /*****   Ball Feeder Control   *****/
     // Can't have grabber & shooter on at same time
     if ((grabberDirection == Grabber.GrabberDirection.OFF) && (shooterEnable == true)) {
@@ -472,7 +479,6 @@ public class Robot extends TimedRobot {
     }
     else {
       shooter.manualBallFeederControl(feederDirection);
-      shooter.powerHoodMotor(hoodDirection);
     }
   }
 

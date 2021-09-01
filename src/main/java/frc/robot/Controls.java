@@ -95,12 +95,13 @@ public class Controls {
         double power = joystick.getZ();
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
+            System.out.println("In dead zone, power (noncubed) is " + power);
             return 0;
         }
         else {
             //Cubing power because the rotate is SUPER sensitive
-            powerCubed = Math.pow(power, 3); 
-            
+            powerCubed = Math.pow(power, 1); 
+            System.out.println("Rotate power: " + powerCubed);
             return powerCubed;
         }        
     }
@@ -345,26 +346,6 @@ public class Controls {
         }
     }
 
-    /****************************************************************************************** 
-    *
-    *    hoodMotorControl()
-	*    Uses left xbox stick to move hood
-    *   
-    ******************************************************************************************/
-    public Shooter.HoodMotorDirection hoodMotorControl() {
-        double xboxY;
-        xboxY = xboxController.getY(Hand.kLeft) * -1;
-
-        if (xboxY >= 0.2) {
-            return Shooter.HoodMotorDirection.FORWARD;
-        }
-        else if (xboxY <= -0.2) {
-            return Shooter.HoodMotorDirection.REVERSE;
-        }
-        else {
-            return Shooter.HoodMotorDirection.OFF; 
-        }
-    }
 
     /**
      * XBox Controller Right Stick Pressed
