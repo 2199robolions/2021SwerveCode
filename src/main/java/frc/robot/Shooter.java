@@ -54,8 +54,8 @@ public class Shooter {
 	private int BALL_FEEDER_ID = 5;
 
 	// DIO Ports
-	public final int LIMITSWITCH_1_ID = 0;
-	public final int LIMITSWITCH_2_ID = 1;
+	public final int LOW_SHOT_ID  = 0; //public final int LIMITSWITCH_1_ID = 0;
+	public final int HIGH_SHOT_ID = 1; //public final int LIMITSWITCH_2_ID = 1;
 
 	// Encoders
 	private CANEncoder leftShooterEncoder;
@@ -63,12 +63,12 @@ public class Shooter {
 	private CANEncoder hoodMotorEncoder;
 
 	//DIO SENSORS
-	private DigitalInput limitSwitch_1; //Makes it shoot lower (closet to the front of the robot)
-	private DigitalInput limitSwitch_2;
+	private DigitalInput lowShotSwitch; //This one is the sensor closest to the front of the robot
+	private DigitalInput highShotSwitch; //This one is the sensor closest to the back of the robot
 
 	// POWER CONSTANTS
-	public final double SHOOT_POWER     = 1.00; //It's more effective to adjust the angle for each shot than the speed
-	public final double OFF_POWER       = 0.00;
+	public final double SHOOT_POWER = 1.00; //It's more effective to adjust the angle for each shot than the speed
+	public final double OFF_POWER   = 0.00;
 
 	// RPM CONSTANTS
 	public final double SHOOT_TARGET_RPM   = 5000; //Not tested
@@ -92,7 +92,7 @@ public class Shooter {
 	private double                     targetPower;
 	private int                        targetCount        = 0;
 	private Shooter.ShootLocation      shotLocation       = null;
-	Shooter.ShootLocation              hoodPrevPosition   = null;
+	private Shooter.ShootLocation      hoodPrevPosition   = null;
 	private boolean                    firstTime          = true;
 	private boolean                    hoodFirstTime      = true;
 	private double                     hoodTargetEncoder  = 0;
@@ -134,25 +134,30 @@ public class Shooter {
 		rightShooter   = new CANSparkMax(RIGHT_SHOOTER_ID, MotorType.kBrushless); //Shooter 2 requires positive power to shoot
 		hoodMotor      = new CANSparkMax(HOOD_MOTOR_ID, MotorType.kBrushless);
 
-		leftShooter.follow(rightShooter, true); 
+		leftShooter.follow(rightShooter, true);
+
+		// Sets the mode of the motors (if this works in the code)
+		leftShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		rightShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		hoodMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
 		//Victor SP
 		feedMotor = new VictorSP(BALL_FEEDER_ID);
 		
 		// Set Shooter related motors to off to Start the Match
-		leftShooter.set (0.0);
-		rightShooter.set (0.0);
+		//leftShooter.set (0.0);
+		rightShooter.set(0.0);
 		hoodMotor.set (0.0);
 		feedMotor.set (0.0);
 
 		// Encoders
 		leftShooterEncoder  = leftShooter.getEncoder();
-		rightShooterEncoder  = rightShooter.getEncoder();
-		hoodMotorEncoder   = hoodMotor.getEncoder();
+		rightShooterEncoder = rightShooter.getEncoder();
+		hoodMotorEncoder    = hoodMotor.getEncoder();
 
 		// DIO Sensors
-		limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
-		limitSwitch_2 = new DigitalInput(LIMITSWITCH_2_ID);
+		lowShotSwitch  = new DigitalInput(LOW_SHOT_ID); //limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
+		highShotSwitch = new DigitalInput(HIGH_SHOT_ID); //limitSwitch_2 = new DigitalInput(LIMITSWITCH_2_ID);
 
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
@@ -301,8 +306,8 @@ public class Shooter {
 	public int manualHoodMotorControl(Shooter.ShootLocation motorPosition) {
 
 		//Variables
-		boolean limit1 = limitSwitch1Value();
-		boolean limit2 = limitSwitch2Value();
+		boolean limit1 = getLowShotSwitchValue();
+		boolean limit2 = getHighShotSwitchValue();
 		double  hoodCurrentEncoder = hoodMotorPosition();
 
 
@@ -407,21 +412,149 @@ public class Shooter {
 		}
 	}
 
+	/****************************************************************************************** 
+     *
+     *    Methods relating to the hood motor and its sensors
+     * 
+     ******************************************************************************************/
 	/**
-	 * A test function for the shooter
+	 * Gets the value from the lowShotSwitch
+	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
+	 * @return The value of the lowShotSwitch
+	 */
+	public boolean getLowShotSwitchValue() {
+		boolean lowShotSwitchTriggered;
+
+		lowShotSwitchTriggered = lowShotSwitch.get();
+
+		if (lowShotSwitchTriggered == false) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
+	 * Gets the value from the highShotSwitch
+	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
+	 * @return The value of the highShotSwitch
+	 */
+	public boolean getHighShotSwitchValue() {
+		boolean highShotSwitchTriggered;
+
+		highShotSwitchTriggered = highShotSwitch.get();
+
+		if (highShotSwitchTriggered == false) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public void enableHoodMotor(double power) {
+		hoodMotor.set(power);
+	}
+
+	public void disableHoodMotor() {
+		hoodMotor.set(0.00);
+	}
+
+
+   /****************************************************************************************** 
+     *
+     *    hoodMotorPosiiton()
+     *    Returns hood motor encoder value
+     *    Positive power increases encoder value
+     * 
+     ******************************************************************************************/
+	public double hoodMotorPosition() {
+		double motorPosition;
+		motorPosition = hoodMotorEncoder.getPosition();
+
+		return motorPosition;
+	}
+
+
+
+   /****************************************************************************************** 
+     *
+     *    moveHoodFullForward()
+     *    Moves hood to forward sensor and calibrates encoders
+     * 
+     ******************************************************************************************/
+	public int moveHoodFullForward() {
+
+		if (calibrateStartTime == 0) {
+			calibrateStartTime = System.currentTimeMillis();
+		}
+		double currentTime = System.currentTimeMillis();
+
+		if (getLowShotSwitchValue() == true) { //Reached position sensor
+			disableHoodMotor();
+			hoodMotorEncoder.setPosition(0.0);
+			System.out.println("At sensor 1");
+			return Robot.DONE;
+		}
+		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
+			disableHoodMotor();
+			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
+			return Robot.FAIL;
+		} 
+		else if (currentTime - calibrateStartTime > 10000) {
+			disableHoodMotor();
+			return Robot.FAIL;
+		}
+		else { //No need to stop
+			hoodMotor.set(HOOD_POWER);
+			return Robot.CONT;
+		}
+	}
+
+	/******************************************************************************************
+	 * 
+	 *  moveHoodToTenFeet()
+	 *  Moves the hood to forward sensor and calibrates encoders
+	 * 
+	 ******************************************************************************************/
+	public int moveHoodToTenFeet() {
+		if (getHighShotSwitchValue() == true) { //Reached position sensor
+			disableHoodMotor();
+			hoodMotorEncoder.setPosition( 0.0 );
+			System.out.println("At sensor 1");
+
+			return Robot.DONE;
+		}
+		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
+			disableHoodMotor();
+			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
+
+			return Robot.FAIL;
+		}
+		else { //No need to stop
+			hoodMotor.set(HOOD_POWER);
+			
+			return Robot.CONT;
+		}
+	}
+
+	/**
+	 * DEBUG / TEST FUNCTIONS
+	 */
+	
+	 /**
+	 * A debug function for the shooter
 	 * @param power
 	 */
 	public void testShoooter(double power) {
-		leftShooter.set(power * -1);
+		//leftShooter.set(power * -1);
 		rightShooter.set(power);
 		feedMotor.set(power * -1); //Negative power makes it intake
 
 		System.out.println("Power: " + power + " RPM: " + getabsRPM(LEFT_SHOOTER_ID));
 	}
 
-	/**
-	 * DEBUG / TEST FUNCTIONS
-	 */
 	/**
 	 * Prints the speed of the wheel
 	 */
@@ -448,7 +581,7 @@ public class Shooter {
 	}
 
 	public void enableShooterFullPower() {
-		leftShooter.set(-0.70);
+		//leftShooter.set(-0.70);
 		rightShooter.set(0.70);
 		feedMotor.set(FEED_POWER);
 
@@ -457,20 +590,20 @@ public class Shooter {
 	}
 
 	/**
-	 * Test function to enable all three shooting related motors 
+	 * Debug function to enable all three shooting related motors 
 	 */
 	public void enableShooter(double power) {
-		enableShooterMotor1(power);
-		enableShooterMotor2(power);
+		//enableLeftShooterMotor(power);
+		enableRightShooterMotor(power);
 
 		enableBallFeeder();
 	}
 
-	private void enableShooterMotor1(double power) {
+	/*private void enableLeftShooterMotor(double power) { //Was enableShooterMotor1() 
 		leftShooter.set(power * -1);
-	}
+	}*/
 
-	private void enableShooterMotor2(double power) {
+	private void enableRightShooterMotor(double power) { //Was enableShooterMotor2()
 		rightShooter.set(power);
 	}
 
@@ -479,20 +612,20 @@ public class Shooter {
 	}
 
 	/**
-	 * Test function to disable all motors that are controlled by this class
+	 * Debug function to disable all motors that are controlled by this class
 	 */
 	public void disableShooter(){
-		disableShooterMotor1();
-		disableShooterMotor2();
+		//disableLeftShooterMotor();
+		disableRightShooterMotor();
 		disableBallFeeder();
 		disableHoodMotor();
 	}
 
-	private void disableShooterMotor1() {
+	/*private void disableLeftShooterMotor() { //Was disableShooterMotor1
 		leftShooter.set(0.00);
-	}
+	}*/
 
-	private void disableShooterMotor2() {
+	private void disableRightShooterMotor() { //Was disableShooterMotor2
 		rightShooter.set(0.00);
 	}
 
@@ -549,130 +682,6 @@ public class Shooter {
 
 		return absRPM;
 	}
-
-	/**
-	 * Methods relating to the Hood Motor and its sensors
-	 */
-	/**
-	 * Gets the value from limit switch 1
-	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
-	 * @return The value of limitswitch 1
-	 */
-	public boolean limitSwitch1Value() {
-		boolean limitSwitch1Triggered;
-
-		limitSwitch1Triggered = limitSwitch_1.get();
-
-		if (limitSwitch1Triggered == false) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	/**
-	 * Gets the value from limit switch 2
-	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
-	 * @return The value of limitswitch 2
-	 */
-	public boolean limitSwitch2Value() {
-		boolean limitSwitch2Triggered;
-
-		limitSwitch2Triggered = limitSwitch_2.get();
-
-		if (limitSwitch2Triggered == false) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	public void enableHoodMotor(double power) {
-		hoodMotor.set(power);
-	}
-
-	public void disableHoodMotor() {
-		hoodMotor.set(0.00);
-	}
-
-
-   /****************************************************************************************** 
-   *
-   *    hoodMotorPosiiton()
-   *    Returns hood motor encoder value
-   *    Positive power increases encoder value
-   * 
-   ******************************************************************************************/
-	public double hoodMotorPosition() {
-		double motorPosition;
-		motorPosition = hoodMotorEncoder.getPosition();
-
-		return motorPosition;
-	}
-
-
-
-   /****************************************************************************************** 
-   *
-   *    moveHoodFullForward()
-   *    Moves hood to forward sensor and calibrates encoders
-   * 
-   ******************************************************************************************/
-	public int moveHoodFullForward() {
-
-		if (calibrateStartTime == 0) {
-			calibrateStartTime = System.currentTimeMillis();
-		}
-		double currentTime = System.currentTimeMillis();
-
-		if (limitSwitch1Value() == true) { //Reached position sensor
-			disableHoodMotor();
-			hoodMotorEncoder.setPosition(0.0);
-			System.out.println("At sensor 1");
-			return Robot.DONE;
-		}
-		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
-			disableHoodMotor();
-			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
-			return Robot.FAIL;
-		} 
-		else if (currentTime - calibrateStartTime > 10000) {
-			disableHoodMotor();
-			return Robot.FAIL;
-		}
-		else { //No need to stop
-			hoodMotor.set(HOOD_POWER);
-			return Robot.CONT;
-		}
-	}
-
-	/****************************************************************************************** 
-   *
-   *    moveHoodToTenFeet()
-   *    Moves hood to forward sensor and calibrates encoders
-   * 
-   ******************************************************************************************/
-  public int moveHoodToTenFeet() {
-
-	if (limitSwitch1Value() == true) { //Reached position sensor
-		disableHoodMotor();
-		hoodMotorEncoder.setPosition(0.0);
-		System.out.println("At sensor 1");
-		return Robot.DONE;
-	}
-	else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
-		disableHoodMotor();
-		System.out.println("Amps: " + hoodMotor.getOutputCurrent());
-		return Robot.FAIL;
-	} 
-	else { //No need to stop
-		hoodMotor.set(HOOD_POWER);
-		return Robot.CONT;
-	}
-}
-
 
    /****************************************************************************************** 
    *
