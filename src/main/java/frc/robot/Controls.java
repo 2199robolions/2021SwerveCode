@@ -182,6 +182,37 @@ public class Controls {
         return isPressed;
     }
 
+
+    /****************************************************************************************** 
+    *
+    *    getShooterLocation()
+	*    Finds what location shooter should shoot at
+    *   
+    ******************************************************************************************/
+    public Shooter.ShootLocation getShooterLocation(){
+
+        //Shooter on
+        if (joystick.getTrigger() == true) {
+            //Button 4 = trench shot
+            if (joystick.getRawButton(4) == true) {
+                return Shooter.ShootLocation.TRENCH;
+            }
+            //Button 2 = hail mary
+            else if (joystick.getRawButton(2)) {
+                return Shooter.ShootLocation.HAIL_MARY;
+            }
+            //No buttons = ten foot
+            else {
+                return Shooter.ShootLocation.TEN_FOOT;
+            }
+        }
+        else {
+            return Shooter.ShootLocation.OFF;
+        }
+    }
+
+
+
     /**
      * Joystick trigger
      * @return Whether or not the shooter should fire
@@ -193,21 +224,7 @@ public class Controls {
         return isPressed;
     }
 
-    /**
-     * Joystick button 4
-     * @return
-     */
-    public boolean enableTrenchShot() {
-        return joystick.getRawButton(4);
-    }
-
-    /**
-     * Joystick button 2
-     * @return 
-     */
-    public boolean hailMary() {
-        return joystick.getRawButton(2);
-    }
+    
 
     /**
      * Returns the decimal value of the throttle, with all the way at the bottom being 0

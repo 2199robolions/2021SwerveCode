@@ -186,6 +186,10 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void autonomousPeriodic() {
+
+    //Calibrates robot when necessary
+    calibrateRobot();
+
     if (autoStatus == Robot.CONT) {
       autoStatus = drive.autoCrabDrive(5, 45, 0.4);
     }
@@ -220,6 +224,9 @@ public class Robot extends TimedRobot {
 
     //Sets the color of the LED's (when we get them)
     led.defaultMode("Blue");
+
+    //Calibrates robot when necessary
+    calibrateRobot();
 
     //Controls the wheels
     wheelControl();
@@ -401,8 +408,6 @@ public class Robot extends TimedRobot {
     boolean shooterEnable;
     boolean shooterReady = shooter.shooterReadyAuto();
 
-    int hoodStatus = Robot.CONT;
-
     /**
      * Get inputs from the Xbox controller & Joystick
      */
@@ -412,21 +417,10 @@ public class Robot extends TimedRobot {
     
     //Shooter
     feederDirection      = controls.ballFeederControl();
-    hailMary             = controls.hailMary();
-    trenchShot           = controls.enableTrenchShot();
+    //hailMary             = controls.hailMary();
+    //trenchShot           = controls.enableTrenchShot();
     shooterEnable        = controls.enableShooter();
     
-    //Calibrates hood before doing any ball-related stuff
-    if (hoodCalibrated == false) {
-      hoodStatus = shooter.moveHoodFullForward();
-      if ( (hoodStatus == Robot.DONE) || (hoodStatus == Robot.FAIL) ) {
-        hoodCalibrated = true;
-      }
-      System.out.println("Calibrating hood motor");
-      return;
-    }
-
-
     /*****   Grabber Deploy Retract   *****/
 		if (grabberDeployRetract == true) {
 			grabber.deployRetract();
@@ -436,28 +430,32 @@ public class Robot extends TimedRobot {
 		/******   Allows the grabber to be on when shooter on   *****/
     grabber.setGrabberMotor(grabberDirection);
 
-		/*****   Shooter Control   *****/
+    /*****   Shooter Control   *****/
+    shooter.manualShooterControl(  controls.getShooterLocation());
+    shooter.manualHoodMotorControl(controls.getShooterLocation());
+
+    /*
 		if (shooterEnable == true) {
 			if (hailMary == true) {
         //Prepares the robot to shoot
-        shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
+        shooter.manualShooterControl( Shooter.ShootLocation.HAIL_MARY );
         shooter.manualHoodMotorControl(Shooter.ShootLocation.HAIL_MARY);
 			}
 			else if (trenchShot == true) {
         //Prepares the robot to shoot
-        shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
+        shooter.manualShooterControl( Shooter.ShootLocation.TRENCH );
         shooter.manualHoodMotorControl(Shooter.ShootLocation.TRENCH);
 			}
 			else {
         //Prepaers the robot to shoot
-        shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
+        shooter.manualShooterControl( Shooter.ShootLocation.TEN_FOOT );
         shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
       }
 		}
 		else {
       //Turns the shooter off
       shooter.manualShooterControl( Shooter.ShootLocation.OFF );
-    }
+    }*/
 
     
     /*****   Ball Feeder Control   *****/
@@ -539,6 +537,24 @@ public class Robot extends TimedRobot {
 		}
   }
 
+  /****************************************************************************************** 
+  *
+  *    calibrateRobot()
+  *    Calibrates hoodMotor and anything else the robot may need to calibrate, called in auto or teleop once
+  * 
+  ******************************************************************************************/
+  private void calibrateRobot() {
+    //Calibrates hood motor    
+    if (hoodCalibrated == false) {
+      int hoodStatus;
+      hoodStatus = shooter.moveHoodFullForward();
+      if ( (hoodStatus == Robot.DONE) || (hoodStatus == Robot.FAIL) ) {
+        hoodCalibrated = true;
+      }
+      System.out.println("Calibrating hood motor");
+      return;
+    }
+  }
 
   /****************************************************************************************** 
    *
