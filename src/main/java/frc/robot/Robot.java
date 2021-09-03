@@ -11,6 +11,12 @@ public class Robot extends TimedRobot {
   public static final int DONE =  2;
   public static final int CONT =  3;
 
+  //SHOOTER STEPS
+  public static final int REVERSE_FEEDER = 1;
+  public static final int POWER_SHOOTER  = 2;
+  public static final int MOVE_HOOD      = 3;
+  public static final int ENABLE_FEEDER  = 4;
+
   //OBJECT CREATION
   private LedLights led;
   private Auto      auto;
@@ -28,16 +34,19 @@ public class Robot extends TimedRobot {
   private int     ledCurrent;
   private int     delaySeconds;
   private int     autoStatus      = Robot.CONT;
+  private int     shooterStatus   = Robot.CONT;
   private double  rotatePower;
   private double  driveX;
   private double  driveY;
   private boolean fieldDriveState = false;
-  private Climber.ClimberState climberState;
   private double  testHoodPower;
-  private int     step = 1;
+  private int     step           = 1;
+  private int     shooterStep    = 1;
   private boolean hoodCalibrated = false;
 
-
+  private Shooter.ShootLocation shootLocation     = Shooter.ShootLocation.OFF;
+  private Shooter.ShootLocation prevShootLocation = Shooter.ShootLocation.OFF;
+  private Climber.ClimberState  climberState;
 
 
   //Setting Up WheelMode for limelight
@@ -408,18 +417,17 @@ public class Robot extends TimedRobot {
     boolean shooterEnable;
     boolean shooterReady = shooter.shooterReadyAuto();
 
-    /**
-     * Get inputs from the Xbox controller & Joystick
-     */
     //Grabber
 		grabberDeployRetract = controls.grabberDeployRetract();
 		grabberDirection     = controls.getGrabberDir();
     
     //Shooter
     feederDirection      = controls.ballFeederControl();
-    //hailMary             = controls.hailMary();
-    //trenchShot           = controls.enableTrenchShot();
     shooterEnable        = controls.enableShooter();
+    prevShootLocation    = shootLocation;
+    shootLocation        = controls.getShooterLocation();
+
+    boolean changedShootLocation = (prevShootLocation != shootLocation);
     
     /*****   Grabber Deploy Retract   *****/
 		if (grabberDeployRetract == true) {
@@ -427,58 +435,73 @@ public class Robot extends TimedRobot {
 		}
 		
 		/******   Grabber motor Forward, Reverse or OFF   *****/
-		/******   Allows the grabber to be on when shooter on   *****/
     grabber.setGrabberMotor(grabberDirection);
 
-    /*****   Shooter Control   *****/
-    shooter.manualShooterControl(  controls.getShooterLocation());
-    shooter.manualHoodMotorControl(controls.getShooterLocation());
 
-    /*
-		if (shooterEnable == true) {
-			if (hailMary == true) {
-        //Prepares the robot to shoot
-        shooter.manualShooterControl( Shooter.ShootLocation.HAIL_MARY );
-        shooter.manualHoodMotorControl(Shooter.ShootLocation.HAIL_MARY);
-			}
-			else if (trenchShot == true) {
-        //Prepares the robot to shoot
-        shooter.manualShooterControl( Shooter.ShootLocation.TRENCH );
-        shooter.manualHoodMotorControl(Shooter.ShootLocation.TRENCH);
-			}
-			else {
-        //Prepaers the robot to shoot
-        shooter.manualShooterControl( Shooter.ShootLocation.TEN_FOOT );
-        shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
+    //Shooter state machine
+    if (shooterEnable == true) {
+      switch (shooterStep) {
+
+        //Reverses feeder to prevent jams
+        case REVERSE_FEEDER:
+          shooterStatus = shooter.reverseFeeder();
+          break;
+
+        //Turns on shooter motors to start getting them to speed
+        case POWER_SHOOTER:
+          shooter.manualShooterControl(shootLocation);
+          shooterStatus = DONE;
+          break;
+
+        //Moves hood to proper location
+        case MOVE_HOOD:
+          //If the shootLocation is changed the state machine will go back to POWER_SHOOTER step to allow the hood movement to reset
+          if (changedShootLocation == true) {
+            shooterStep   = POWER_SHOOTER;
+            shooterStatus = CONT;
+            shooter.hoodFirstTime = true;
+            shooter.disableShooter();
+            break;
+          }
+          shooterStatus = shooter.manualHoodMotorControl(shootLocation);
+          break;
+
+        //Prepares the feeder to turn on
+        case ENABLE_FEEDER:
+          if (changedShootLocation == true) {
+            shooterStep   = POWER_SHOOTER;
+            shooterStatus = CONT;
+            shooter.hoodFirstTime = true;
+            shooter.disableShooter();
+            break;
+          }
+          //Only turns on feeder if shooter is up to speed
+          else if (shooterReady == true) {
+            shooter.enableFeeder();
+          }   
+          break;
+
+        //Resets value at end of routine
+        default:
+          shooterStep   = REVERSE_FEEDER;
+          shooterStatus = CONT;
       }
-		}
-		else {
-      //Turns the shooter off
-      shooter.manualShooterControl( Shooter.ShootLocation.OFF );
-    }*/
-
-    
-    /*****   Ball Feeder Control   *****/
-    // Can't have grabber & shooter on at same time
-    if ((grabberDirection == Grabber.GrabberDirection.OFF) && (shooterEnable == true)) {
-      //Waits for the shooter to get up to speed
-      if (shooterReady == true) {
-        System.out.println("Shooter ready. Fire away!");
-
-        //Shooter at required RPM, turn Feed Motor On
-        shooter.autoBallFeederControl();
+      if (shooterStatus == DONE) {
+        shooterStep ++;
       }
-      else { //AKA shooterReady == false
-        System.out.println("Shooter NOT ready!");
 
-        //Shooter below required RPM, turn Feed Motor Off
-        shooter.autoBallFeederControl();
-      }
     }
+    //Resets values if shooter turns off
     else {
-      shooter.manualBallFeederControl(feederDirection);
+      shooterStep   = 1;
+      shooterStatus = CONT;
+      shooter.disableShooter();
     }
+    
   }
+
+
+
 
   /*****   Climber Control   *****/
   //Climber stuff

@@ -97,7 +97,7 @@ public class Shooter {
 	private Shooter.ShootLocation      shotLocation       = null;
 	private Shooter.ShootLocation      hoodPrevPosition   = null;
 	private boolean                    firstTime          = true;
-	private boolean                    hoodFirstTime      = true;
+	public  boolean                    hoodFirstTime      = true;
 	private double                     hoodTargetEncoder  = 0;
 	private double                     calibrateStartTime = 0;
 	private double                     hoodStartEncoder;
