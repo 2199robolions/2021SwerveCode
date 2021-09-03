@@ -189,7 +189,7 @@ public class Controls {
 	*    Finds what location shooter should shoot at
     *   
     ******************************************************************************************/
-    public Shooter.ShootLocation getShooterLocation(){
+    public Shooter.ShootLocation getShooterLocation() {
 
         //Shooter on
         if (joystick.getTrigger() == true) {

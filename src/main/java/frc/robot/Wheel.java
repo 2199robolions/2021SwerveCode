@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
@@ -28,6 +29,9 @@ public class Wheel {
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
+    // CONSTANTS
+    private static final int WHEEL_CURRENT_LIMIT = 120;
+
 
 
     /****************************************************************************************** 
@@ -41,6 +45,10 @@ public class Wheel {
         this.driveEncoder = driveMotor.getEncoder();
         this.rotateMotor  = new VictorSP(rotateMotorID);
         this.name         = motorName;
+
+        // Adds a current limit and sets the motor mode
+        this.driveMotor.setSmartCurrentLimit(WHEEL_CURRENT_LIMIT);
+        this.driveMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
 
         // Rotate Sensor Instantiation
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);

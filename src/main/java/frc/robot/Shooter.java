@@ -54,8 +54,8 @@ public class Shooter {
 	private int BALL_FEEDER_ID = 5;
 
 	// DIO Ports
-	public final int LOW_SHOT_ID  = 0; //public final int LIMITSWITCH_1_ID = 0;
-	public final int HIGH_SHOT_ID = 1; //public final int LIMITSWITCH_2_ID = 1;
+	public final int FRONT_SWITCH_ID = 0; //public final int LIMITSWITCH_1_ID = 0;
+	public final int REAR_SWITCH_ID  = 1; //public final int LIMITSWITCH_2_ID = 1;
 
 	// Encoders
 	private CANEncoder leftShooterEncoder;
@@ -63,8 +63,8 @@ public class Shooter {
 	private CANEncoder hoodMotorEncoder;
 
 	//DIO SENSORS
-	private DigitalInput lowShotSwitch; //This one is the sensor closest to the front of the robot
-	private DigitalInput highShotSwitch; //This one is the sensor closest to the back of the robot
+	private DigitalInput frontSwitch; //This one is the sensor closest to the front of the robot
+	private DigitalInput rearSwitch; //This one is the sensor closest to the back of the robot
 
 	// POWER CONSTANTS
 	public final double SHOOT_POWER = 1.00; //It's more effective to adjust the angle for each shot than the speed
@@ -82,7 +82,10 @@ public class Shooter {
 	public static  final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested     
 
 	private static final double   HOOD_POWER = 0.075;
-	private static final int      HOOD_CURRENT_LIMIT = 3;
+
+	// Current Limit Constants
+	private static final int SHOOTER_CURRENT_LIMIT = 80;
+	private static final int HOOD_CURRENT_LIMIT    = 3;
 
 	// FEED MOTOR CONSTANTS
 	public static final double   FEED_POWER = -0.25;
@@ -136,16 +139,21 @@ public class Shooter {
 
 		leftShooter.follow(rightShooter, true);
 
+		// Sets the current limtis for the motors
+		leftShooter .setSmartCurrentLimit(SHOOTER_CURRENT_LIMIT);
+		rightShooter.setSmartCurrentLimit(SHOOTER_CURRENT_LIMIT);
+		hoodMotor   .setSmartCurrentLimit(HOOD_CURRENT_LIMIT);
+
 		// Sets the mode of the motors (if this works in the code)
-		leftShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
+		leftShooter. setIdleMode(CANSparkMax.IdleMode.kCoast);
 		rightShooter.setIdleMode(CANSparkMax.IdleMode.kCoast);
-		hoodMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+		hoodMotor.   setIdleMode(CANSparkMax.IdleMode.kBrake);
 
 		//Victor SP
 		feedMotor = new VictorSP(BALL_FEEDER_ID);
 		
 		// Set Shooter related motors to off to Start the Match
-		//leftShooter.set (0.0);
+		leftShooter .set(0.0);
 		rightShooter.set(0.0);
 		hoodMotor.set (0.0);
 		feedMotor.set (0.0);
@@ -156,8 +164,8 @@ public class Shooter {
 		hoodMotorEncoder    = hoodMotor.getEncoder();
 
 		// DIO Sensors
-		lowShotSwitch  = new DigitalInput(LOW_SHOT_ID); //limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
-		highShotSwitch = new DigitalInput(HIGH_SHOT_ID); //limitSwitch_2 = new DigitalInput(LIMITSWITCH_2_ID);
+		frontSwitch = new DigitalInput(FRONT_SWITCH_ID); //limitSwitch_1 = new DigitalInput(LIMITSWITCH_1_ID);
+		rearSwitch  = new DigitalInput(REAR_SWITCH_ID ); //limitSwitch_2 = new DigitalInput(LIMITSWITCH_2_ID);
 
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
@@ -224,7 +232,7 @@ public class Shooter {
 			targetVelocity = SHOOT_TARGET_RPM;
 		}
 		else {
-			//rightShooter.set(OFF_POWER); don't want to completely stop the motor whenever shooter is inactive
+			rightShooter.set(OFF_POWER);
 			feedMotor.set(OFF_POWER);
 			targetVelocity = OFF_TARGET_RPM;
 		}
@@ -306,8 +314,8 @@ public class Shooter {
 	public int manualHoodMotorControl(Shooter.ShootLocation motorPosition) {
 
 		//Variables
-		boolean limit1 = getLowShotSwitchValue();
-		boolean limit2 = getHighShotSwitchValue();
+		boolean limit1 = getFrontSwitchValue();
+		boolean limit2 = getRearSwitchValue ();
 		double  hoodCurrentEncoder = hoodMotorEncoder.getPosition();
 
 
@@ -397,16 +405,16 @@ public class Shooter {
     * 
     ******************************************************************************************/
 	/**
-	 * Gets the value from the lowShotSwitch
+	 * Gets the value from the frontSwitch
 	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
-	 * @return The value of the lowShotSwitch
+	 * @return The value of the frontSwitch
 	 */
-	public boolean getLowShotSwitchValue() {
-		boolean lowShotSwitchTriggered;
+	public boolean getFrontSwitchValue() {
+		boolean frontSwitchTriggered;
 
-		lowShotSwitchTriggered = lowShotSwitch.get();
+		frontSwitchTriggered = frontSwitch.get();
 
-		if (lowShotSwitchTriggered == false) {
+		if (frontSwitchTriggered == false) {
 			return true;
 		}
 		else {
@@ -415,16 +423,16 @@ public class Shooter {
 	}
 
 	/**
-	 * Gets the value from the highShotSwitch
+	 * Gets the value from the rearSwitch
 	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
-	 * @return The value of the highShotSwitch
+	 * @return The value of the rearSwitch
 	 */
-	public boolean getHighShotSwitchValue() {
-		boolean highShotSwitchTriggered;
+	public boolean getRearSwitchValue() {
+		boolean rearSwitchTriggered;
 
-		highShotSwitchTriggered = highShotSwitch.get();
+		rearSwitchTriggered = rearSwitch.get();
 
-		if (highShotSwitchTriggered == false) {
+		if (rearSwitchTriggered == false) {
 			return true;
 		}
 		else {
@@ -454,7 +462,7 @@ public class Shooter {
 		}
 		double currentTime = System.currentTimeMillis();
 
-		if (getLowShotSwitchValue() == true) { //Reached position sensor
+		if (getFrontSwitchValue() == true) { //Reached position sensor
 			disableHoodMotor();
 			hoodMotorEncoder.setPosition(0.0);
 			System.out.println("At sensor 1");
