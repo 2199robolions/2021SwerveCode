@@ -91,16 +91,17 @@ public class Shooter {
 	public static final double   FEED_POWER = -0.25;
 
 	// Variables
-	public  double                     targetVelocity;
-	private double                     targetPower;
-	private int                        targetCount        = 0;
-	private Shooter.ShootLocation      shotLocation       = null;
-	private Shooter.ShootLocation      hoodPrevPosition   = null;
-	private boolean                    firstTime          = true;
-	public  boolean                    hoodFirstTime      = true;
-	private double                     hoodTargetEncoder  = 0;
-	private double                     calibrateStartTime = 0;
-	private double                     hoodStartEncoder;
+	public  double                targetVelocity;
+	private double                targetPower;
+	private int                   targetCount        = 0;
+	private Shooter.ShootLocation shotLocation       = null;
+	private Shooter.ShootLocation hoodPrevPosition   = null;
+	private boolean               firstTime          = true;
+	public  boolean               hoodFirstTime      = true;
+	private double                hoodTargetEncoder  = 0;
+	private double                calibrateStartTime = 0;
+	private double                hoodStartEncoder;
+	private double                startSec           = 0;     
 
 
 	public static enum ShootLocation {
@@ -239,7 +240,6 @@ public class Shooter {
 	}
 
 
-
 	/****************************************************************************************** 
     *
     *    shooterReadyAuto()
@@ -271,25 +271,6 @@ public class Shooter {
 
 	/****************************************************************************************** 
     *
-    *    manualBallFeederControl()
-	*    Manually controls the feeder motor
-    *   
-    ******************************************************************************************/
-	public void manualBallFeederControl(BallFeederDirection dir) {
-		if (dir == BallFeederDirection.FORWARD) {
-			feedMotor.set(FEED_POWER);
-		}
-		else if (dir == BallFeederDirection.REVERSE) {
-			feedMotor.set(FEED_POWER * -1);
-		}
-		else {
-			feedMotor.set(OFF_POWER);
-		}
-	}
-
-
-	/****************************************************************************************** 
-    *
     *    autoShooterControl()
 	*    Feeds balls if the shooter is up to speed
     *   
@@ -304,13 +285,85 @@ public class Shooter {
 	}
 
 
-	
 	/****************************************************************************************** 
-    *
-    *    manualHoodMotorControl()
-	*    Moves hood to given location
-    *   
-    ******************************************************************************************/
+     *
+     *    Methods relating to the ball feeder
+     * 
+     ******************************************************************************************/
+	/**
+	 * Manually controls the feed motor
+	 * @param dir
+	 */
+	public void manualBallFeederControl(BallFeederDirection dir) {
+		if (dir == BallFeederDirection.FORWARD) {
+			feedMotor.set(FEED_POWER);
+		}
+		else if (dir == BallFeederDirection.REVERSE) {
+			feedMotor.set(FEED_POWER * -1);
+		}
+		else {
+			feedMotor.set(OFF_POWER);
+		}
+	}
+
+	/**
+	 * Enables the feed motor
+	 */
+	public void enableFeeder() {
+		//No need to rewrite what already exists
+		manualBallFeederControl(BallFeederDirection.FORWARD);
+	}
+
+	/**
+	 * Reverses the feeder motor for 0.5 seconds
+	 * @param activePeriodSec
+	 * @return status
+	 */
+	public int reverseFeeder(double activePeriodSec) {
+		//Variables
+		long startMili;
+		long currentTimeMilli;
+		double currentTimeSec;
+
+		//Gets the current time
+		currentTimeMilli = System.currentTimeMillis();
+		//Allows for calculations in seconds
+		currentTimeSec = currentTimeMilli / 1000;
+
+		//First Time routine
+		if (firstTime == true) {
+			//Gets the time at the start of the program
+			startMili = System.currentTimeMillis();
+			//Allows for calculations in seconds
+			startSec = startMili / 1000;
+
+			firstTime = false;
+		}
+
+		if ( (currentTimeSec - startSec) <= activePeriodSec ) {
+			manualBallFeederControl(BallFeederDirection.REVERSE);
+			
+			return Robot.CONT;
+		}
+		else if ( (currentTimeSec - startSec) > activePeriodSec ) {
+			disableBallFeeder();
+
+			return Robot.DONE;
+		}
+		else { //There is no case that I can think of that will trigger this
+			disableBallFeeder();
+
+			return Robot.FAIL;
+		}
+	}
+
+
+	/****************************************************************************************** 
+     *
+     *    manualHoodMotorControl()
+	 *    Moves hood to given location
+     *   
+     ******************************************************************************************/
 	public int manualHoodMotorControl(Shooter.ShootLocation motorPosition) {
 
 		//Variables
@@ -342,7 +395,6 @@ public class Shooter {
 			hoodFirstTime = false;
 		}
 
-
 		//Error checking
 		if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
 			hoodFirstTime = true;
@@ -360,8 +412,6 @@ public class Shooter {
 			return Robot.DONE;
 		}
 		
-
-
 		//Checking if we have reached target
 
 		//Started behind the target position, move hood forward
@@ -398,12 +448,11 @@ public class Shooter {
 	}
 
 
-
 	/****************************************************************************************** 
-    *
-    *    Methods relating to the hood motor and its sensors
-    * 
-    ******************************************************************************************/
+     *
+     *    Methods relating to the hood motor and its sensors
+     * 
+     ******************************************************************************************/
 	/**
 	 * Gets the value from the frontSwitch
 	 * The value returned is opposite from what the sensor gets since it returns true when there is nothing
