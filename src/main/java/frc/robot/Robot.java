@@ -11,12 +11,6 @@ public class Robot extends TimedRobot {
   public static final int DONE =  2;
   public static final int CONT =  3;
 
-  //SHOOTER STEPS
-  public static final int REVERSE_FEEDER = 1;
-  public static final int POWER_SHOOTER  = 2;
-  public static final int MOVE_HOOD      = 3;
-  public static final int ENABLE_FEEDER  = 4;
-
   //OBJECT CREATION
   private LedLights led;
   private Auto      auto;
@@ -41,12 +35,20 @@ public class Robot extends TimedRobot {
   private boolean fieldDriveState = false;
   private double  testHoodPower;
   private int     step           = 1;
-  private int     shooterStep    = 1;
   private boolean hoodCalibrated = false;
 
   private Shooter.ShootLocation shootLocation     = Shooter.ShootLocation.OFF;
   private Shooter.ShootLocation prevShootLocation = Shooter.ShootLocation.OFF;
   private Climber.ClimberState  climberState;
+
+  private static enum ShooterState {
+    SHOOTER_OFF_STATE,
+    REVERSE_FEEDER_STATE,
+    POWER_SHOOTER_STATE,
+    MOVE_HOOD_STATE, 
+    ENABLE_FEEDER_STATE; 
+  }
+  private ShooterState shooterState = ShooterState.SHOOTER_OFF_STATE;
 
 
   //Setting Up WheelMode for limelight
@@ -423,7 +425,6 @@ public class Robot extends TimedRobot {
     
     //Shooter
     feederDirection      = controls.ballFeederControl();
-    shooterEnable        = controls.enableShooter();
     prevShootLocation    = shootLocation;
     shootLocation        = controls.getShooterLocation();
 
@@ -438,65 +439,85 @@ public class Robot extends TimedRobot {
     grabber.setGrabberMotor(grabberDirection);
 
 
-    //Shooter state machine
-    if (shooterEnable == true) {
-      switch (shooterStep) {
-
-        //Reverses feeder to prevent jams
-        case REVERSE_FEEDER:
-          shooterStatus = shooter.reverseFeeder();
-          break;
-
-        //Turns on shooter motors to start getting them to speed
-        case POWER_SHOOTER:
-          shooter.manualShooterControl(shootLocation);
-          shooterStatus = DONE;
-          break;
-
-        //Moves hood to proper location
-        case MOVE_HOOD:
-          //If the shootLocation is changed the state machine will go back to POWER_SHOOTER step to allow the hood movement to reset
-          if (changedShootLocation == true) {
-            shooterStep   = POWER_SHOOTER;
-            shooterStatus = CONT;
-            shooter.hoodFirstTime = true;
-            shooter.disableShooter();
-            break;
-          }
-          shooterStatus = shooter.manualHoodMotorControl(shootLocation);
-          break;
-
-        //Prepares the feeder to turn on
-        case ENABLE_FEEDER:
-          if (changedShootLocation == true) {
-            shooterStep   = POWER_SHOOTER;
-            shooterStatus = CONT;
-            shooter.hoodFirstTime = true;
-            shooter.disableShooter();
-            break;
-          }
-          //Only turns on feeder if shooter is up to speed
-          else if (shooterReady == true) {
-            shooter.enableFeeder();
-          }   
-          break;
-
-        //Resets value at end of routine
-        default:
-          shooterStep   = REVERSE_FEEDER;
-          shooterStatus = CONT;
-      }
-      if (shooterStatus == DONE) {
-        shooterStep ++;
-      }
-
+    /*
+      SHOOTER STATE MACHINE
+    */
+    //Each run through this checks if we should go back to the off state
+    if (shootLocation == Shooter.ShootLocation.OFF) {
+      shooterState = ShooterState.SHOOTER_OFF_STATE;
     }
-    //Resets values if shooter turns off
-    else {
-      shooterStep   = 1;
+
+  
+    //Shooter is off, reset values and check if we should begin to shoot
+    if (shooterState == ShooterState.SHOOTER_OFF_STATE) {
+      //Resetting values
       shooterStatus = CONT;
       shooter.disableShooter();
+
+      //Checking if shooting should begin
+      if (shootLocation != Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.REVERSE_FEEDER_STATE;
+      }
     }
+
+    //Feed motor reverses to clear jams then moves on
+    else if (shooterState == ShooterState.REVERSE_FEEDER_STATE) {
+      shooterStatus = shooter.reverseFeeder();
+
+      if (shooterStatus == DONE) {
+        shooterState = ShooterState.POWER_SHOOTER_STATE;
+      }
+      else if (shooterStatus == CONT) {
+        shooterState = ShooterState.REVERSE_FEEDER_STATE;
+      }
+      else if (shooterStatus == FAIL) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }
+    } 
+
+    //Turns on shooter motor and goes to next step
+    else if (shooterState == ShooterState.POWER_SHOOTER_STATE) {
+      shooter.manualShooterControl(shootLocation);
+      shooterState = ShooterState.MOVE_HOOD_STATE;
+    }
+
+    //Moves hood to proper location. Goes back to previous step if user changed shoot location
+    else if (shooterState == ShooterState.MOVE_HOOD_STATE) {
+      if (changedShootLocation == true) {
+        shooterStatus = CONT;
+        shooter.hoodFirstTime = true;
+        shooter.disableShooter();
+        shooterState = ShooterState.POWER_SHOOTER_STATE;
+      }
+      else {
+        shooterStatus = shooter.manualHoodMotorControl(shootLocation);
+      }
+
+      if (shooterStatus == DONE) {
+        shooterState = ShooterState.ENABLE_FEEDER_STATE;
+      }
+      else if (shooterStatus == CONT) {
+        shooterState = ShooterState.MOVE_HOOD_STATE;
+      }
+      else if (shooterStatus == FAIL) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }
+    }
+
+    //Turns on feed motor if shooter is up to speed
+    else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
+      if (changedShootLocation == true) {
+        shooterStatus = CONT;
+        shooter.hoodFirstTime = true;
+        shooter.disableShooter();
+        shooterState = ShooterState.POWER_SHOOTER_STATE;
+      }
+      //Only turns on feeder if shooter is up to speed
+      else if (shooterReady == true) {
+        shooter.enableFeeder();
+      }   
+    }
+
     
   }
 
