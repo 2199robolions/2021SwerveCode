@@ -90,19 +90,20 @@ public class Controls {
      */
     public double getRotatePower() {
         double deadZone = 0.2;
-
-        double powerCubed;
+        double powerhalfed;
         double power = joystick.getZ();
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
-            System.out.println("In dead zone, power (noncubed) is " + power);
+            System.out.println("In dead zone, power (not halfed) is " + power);
+            
             return 0;
         }
         else {
             //Cubing power because the rotate is SUPER sensitive
-            powerCubed = Math.pow(power, 1); 
-            System.out.println("Rotate power: " + powerCubed);
-            return powerCubed;
+            powerhalfed = power / 2; 
+            System.out.println("Rotate power: " + powerhalfed);
+            
+            return powerhalfed;
         }        
     }
 
@@ -115,9 +116,9 @@ public class Controls {
         double y = joystick.getY() * -1;
         double powerMultiplier = powerMultiplier();
         double drivePower;
-        
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
+
         //This will make it reach power 1 faster at a 45 degrees
         hypClamp = MathUtil.clamp(hyp, -1, 1);
         //hypClamp = hyp / Math.sqrt(2);
@@ -363,6 +364,10 @@ public class Controls {
         }
     }
 
+    /**
+     * XBox Controller Left Stick
+     */
+    // Nothing so far
 
     /**
      * XBox Controller Right Stick Pressed

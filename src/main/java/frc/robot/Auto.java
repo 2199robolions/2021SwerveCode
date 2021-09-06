@@ -5,7 +5,7 @@ package frc.robot;
 public class Auto {
 	// Variables
 	private int          step;
-	private int          calibrationStep;
+	//private int          calibrationStep;
 	private long         startMs; 
 	private boolean      firstTime = true;
 
@@ -30,7 +30,7 @@ public class Auto {
 
 		//Sets the step variables
 		step = 1;
-		calibrationStep = 1;
+		//calibrationStep = 1;
 	}
 
 	/**
