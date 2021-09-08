@@ -75,7 +75,7 @@ public class Shooter {
 	// HOOD MOTOR CONSTANTS
 	public static  final double   TEN_FOOT_HOOD_ENCODER    = -6;
 	public static  final double   TRENCH_SHOT_HOOD_ENCODER = -4; //Not certain
-	public static  final double   HAIL_MARY_HOOD_ENCODER   = -7; //Not tested
+	public static  final double   HAIL_MARY_HOOD_ENCODER   = -2; //Not tested
 	public static  final double   LOW_SHOT_HOOD_ENCODER    = 0;
 	public static  final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested     
 
@@ -83,7 +83,7 @@ public class Shooter {
 
 	// Current Limit Constants
 	private static final int SHOOTER_CURRENT_LIMIT = 80;
-	private static final int HOOD_CURRENT_LIMIT    = 3;
+	private static final int HOOD_CURRENT_LIMIT    = 5;
 
 	// FEED MOTOR CONSTANTS
 	public static final double   FEED_POWER = -0.25;
@@ -100,6 +100,7 @@ public class Shooter {
 	private double                calibrateStartTime = 0;
 	private double                hoodStartEncoder;
 	private double                startSec           = 0;     
+	Shooter.ShootLocation         startPosition      = Shooter.ShootLocation.OFF;
 
 
 	public static enum ShootLocation {
@@ -308,8 +309,9 @@ public class Shooter {
 	 * Enables the feed motor
 	 */
 	public void enableFeeder() {
-		//No need to rewrite what already exists
-		manualBallFeederControl(BallFeederDirection.FORWARD);
+		if (shooterReadyAuto() == true) {
+			manualBallFeederControl(BallFeederDirection.FORWARD);
+		}
 	}
 
 	/**
@@ -369,10 +371,10 @@ public class Shooter {
 		boolean limit2 = getRearSwitchValue ();
 		double  hoodCurrentEncoder = hoodMotorEncoder.getPosition();
 
-
 		//First time through, setting initial values
 		if (hoodFirstTime == true) {
 			hoodStartEncoder = hoodCurrentEncoder;
+			startPosition = motorPosition;
 
 			//Sets target encoder value
 			if (motorPosition == ShootLocation.TEN_FOOT) {
@@ -393,8 +395,16 @@ public class Shooter {
 			hoodFirstTime = false;
 		}
 
+		boolean changedShootLocation = (startPosition != motorPosition);
+
 		//Error checking
-		if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
+		if (changedShootLocation == true) {
+			hoodFirstTime = true;
+			disableHoodMotor();
+			System.out.println("Changed shoot location, resetting hood movement");
+			return Robot.FAIL;
+		}
+		else if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
 			hoodFirstTime = true;
 			disableHoodMotor();
 			return Robot.FAIL;
@@ -512,16 +522,17 @@ public class Shooter {
 		if (getFrontSwitchValue() == true) { //Reached position sensor
 			disableHoodMotor();
 			hoodMotorEncoder.setPosition(0.0);
-			System.out.println("At sensor 1");
+			System.out.println("Hood at sensor 1");
 			return Robot.DONE;
 		}
 		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
 			disableHoodMotor();
-			System.out.println("Amps: " + hoodMotor.getOutputCurrent());
+			System.out.println("Hood motor amps: " + hoodMotor.getOutputCurrent());
 			return Robot.FAIL;
 		} 
 		else if (currentTime - calibrateStartTime > 10000) {
 			disableHoodMotor();
+			System.out.println("Hood calibration timed out");
 			return Robot.FAIL;
 		}
 		else { //No need to stop

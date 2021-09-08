@@ -94,14 +94,12 @@ public class Controls {
         double power = joystick.getZ();
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
-            System.out.println("In dead zone, power (not halfed) is " + power);
             
             return 0;
         }
         else {
             //Cubing power because the rotate is SUPER sensitive
             powerhalfed = power / 2; 
-            System.out.println("Rotate power: " + powerhalfed);
             
             return powerhalfed;
         }        
@@ -339,15 +337,11 @@ public class Controls {
         }
     }
 
-    /**
-     * Left Trigger
-     */
-    //May become color wheel
-
+    
     /**
      * XBox Controller Right Stick
      * @return Direction of the Ball Feeder Motor
-     */
+     **/
     public Shooter.BallFeederDirection ballFeederControl() {
         double xboxY;
         xboxY = xboxController.getY(Hand.kRight) * -1;
@@ -363,20 +357,5 @@ public class Controls {
             return Shooter.BallFeederDirection.OFF;
         }
     }
-
-    /**
-     * XBox Controller Left Stick
-     */
-    // Nothing so far
-
-    /**
-     * XBox Controller Right Stick Pressed
-     */
-    // Nothing so far
-
-    /**
-     * XBox Controller Left Stick Pressed
-     */
-    // Nothing so far
 
 } // End of the Controls class

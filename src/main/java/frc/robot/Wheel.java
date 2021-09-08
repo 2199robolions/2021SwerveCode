@@ -47,7 +47,7 @@ public class Wheel {
 
         // Adds a current limit and sets the motor mode
         this.driveMotor.setSmartCurrentLimit(WHEEL_CURRENT_LIMIT);
-        this.driveMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+        this.driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
         // Rotate Sensor Instantiation
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);

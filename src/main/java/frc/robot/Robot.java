@@ -21,7 +21,8 @@ public class Robot extends TimedRobot {
   private Climber   climber;
 
   //CONSTANTS
-  private final int LED_DELAY = 15;
+  private final int    LED_DELAY           = 15;
+  private final double REVERSE_FEEDER_TIME = 0.25;
 
   //VARIABLES
   private int     climberStatus;
@@ -236,14 +237,16 @@ public class Robot extends TimedRobot {
     //Sets the color of the LED's (when we get them)
     led.defaultMode("Blue");
 
-    //Calibrates robot when necessary
-    calibrateRobot();
-
     //Controls the wheels
     wheelControl();
 
     //Controls the grabber and shooter
-    ballControl();
+    if (hoodCalibrated == true) {
+      ballControl();
+    }
+    else {
+      calibrateRobot();
+    }
 
     //Controls the climber arm and motor
     climberControl();
@@ -412,22 +415,14 @@ public class Robot extends TimedRobot {
     boolean grabberDeployRetract;
     Grabber.GrabberDirection grabberDirection;
     
-    //Shooter Variables
-    Shooter.BallFeederDirection feederDirection;
-    boolean hailMary;
-    boolean trenchShot;
-    boolean shooterEnable;
-    boolean shooterReady = shooter.shooterReadyAuto();
-    boolean changedShootLocation = (prevShootLocation != shootLocation);
-
     //Grabber
 		grabberDeployRetract = controls.grabberDeployRetract();
 		grabberDirection     = controls.getGrabberDir();
     
     //Shooter
-    feederDirection      = controls.ballFeederControl();
     prevShootLocation    = shootLocation;
     shootLocation        = controls.getShooterLocation();
+    boolean changedShooterLocation = (prevShootLocation != shootLocation);
 
     
     /*****   Grabber Deploy Retract   *****/
@@ -438,12 +433,9 @@ public class Robot extends TimedRobot {
 		/******   Grabber motor Forward, Reverse or OFF   *****/
     grabber.setGrabberMotor(grabberDirection);
 
-    /******   SHOOTER STATE MACHINE   *****/
-    //Each run through this checks if we should go back to the off state
-    if (shootLocation == Shooter.ShootLocation.OFF) {
-      shooterState = ShooterState.SHOOTER_OFF_STATE;
-    }
 
+
+    /******   SHOOTER STATE MACHINE   *****/
     //Shooter is off, reset values and check if we should begin to shoot
     if (shooterState == ShooterState.SHOOTER_OFF_STATE) {
       //Resetting values
@@ -456,42 +448,41 @@ public class Robot extends TimedRobot {
         shooterState = ShooterState.REVERSE_FEEDER_STATE;
       }
     }
+
+
     //Feed motor reverses to clear jams then moves on
     else if (shooterState == ShooterState.REVERSE_FEEDER_STATE) {
-      //CONSTANT (for easy editing)
-      final double ACTIVE_TIME = 0.5;
-
       //Method to reverse the feeder for a certain ammount of time
-      shooterStatus = shooter.reverseFeeder(ACTIVE_TIME);
+      shooterStatus = shooter.reverseFeeder(REVERSE_FEEDER_TIME);
 
       if (shooterStatus == Robot.DONE) {
         shooterState = ShooterState.POWER_SHOOTER_STATE;
       }
-      else if (shooterStatus == Robot.CONT) {
-        shooterState = ShooterState.REVERSE_FEEDER_STATE;
-      }
-      else if (shooterStatus == Robot.FAIL) {
+      else if ((shooterStatus == Robot.FAIL) || (shootLocation == Shooter.ShootLocation.OFF)) {
         shooterState = ShooterState.SHOOTER_OFF_STATE;
       }
+      else if (shooterStatus == Robot.CONT) {
+        shooterState = ShooterState.REVERSE_FEEDER_STATE;
+      }                                           
+      
     } 
+
+
     //Turns on shooter motor and goes to next step
     else if (shooterState == ShooterState.POWER_SHOOTER_STATE) {
-      shooterState = ShooterState.MOVE_HOOD_STATE;
-
       shooter.manualShooterControl(shootLocation);
-    }
-    //Moves hood to proper location. Goes back to previous step if user changed shoot location
-    else if (shooterState == ShooterState.MOVE_HOOD_STATE) {
-      if (changedShootLocation == true) {
-        shooterStatus = Robot.CONT;
-        shooterState = ShooterState.POWER_SHOOTER_STATE;
-        
-        shooter.hoodFirstTime = true;
-        shooter.disableShooter();
+      if (shootLocation == Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
       }
       else {
-        shooterStatus = shooter.manualHoodMotorControl(shootLocation);
+        shooterState = ShooterState.MOVE_HOOD_STATE;
       }
+    }
+
+
+    //Moves hood to proper location. Goes back to previous step if user changed shoot location
+    else if (shooterState == ShooterState.MOVE_HOOD_STATE) {
+      shooterStatus = shooter.manualHoodMotorControl(shootLocation);
 
       if (shooterStatus == Robot.DONE) {
         shooterState = ShooterState.ENABLE_FEEDER_STATE;
@@ -499,26 +490,29 @@ public class Robot extends TimedRobot {
       else if (shooterStatus == Robot.CONT) {
         shooterState = ShooterState.MOVE_HOOD_STATE;
       }
-      else if (shooterStatus == Robot.FAIL) {
+      else if ((shooterStatus == Robot.FAIL) || (shootLocation == Shooter.ShootLocation.OFF)) {
         shooterState = ShooterState.SHOOTER_OFF_STATE;
       }
     }
+
+
     //Turns on feed motor if shooter is up to speed
     else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
-      if (changedShootLocation == true) {
-        shooterStatus = Robot.CONT;
-        shooterState = ShooterState.POWER_SHOOTER_STATE;
+      shooter.enableFeeder();
 
-        shooter.hoodFirstTime = true;
-        shooter.disableShooter();
-      }
-      //Only turns on feeder if shooter is up to speed
-      else if (shooterReady == true) {
-        shooter.enableFeeder();
-      }
+      if (shootLocation == Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }    
+      else if (changedShooterLocation == true) {
+        shooterState = ShooterState.MOVE_HOOD_STATE;
+      } 
+      else {
+        shooterState = ShooterState.ENABLE_FEEDER_STATE;
+      }        
     }
-    else { //Allows for the use of the feeder (to get balls unstuck) when the state machine is not active 
-      shooter.manualBallFeederControl(feederDirection);
+
+    else { //Allows for the use of the feeder (to get balls unstuck) when the state machine is not active
+      shooterState = ShooterState.SHOOTER_OFF_STATE;
     }
   }
 
