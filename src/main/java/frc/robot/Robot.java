@@ -200,14 +200,19 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
 
     //Calibrates robot when necessary
-    calibrateRobot();
-
-    if (autoStatus == Robot.CONT) {
-      autoStatus = drive.autoCrabDrive(5, 45, 0.4);
+    if (hoodCalibrated == false) {
+      calibrateRobot();
     }
     else {
-      drive.stopWheels();
+      if (autoStatus == Robot.CONT) {
+        autoStatus = drive.autoCrabDrive(5, 45, 0.4);
+      }
+      else {
+        drive.stopWheels();
+      }
     }
+
+    
   }
 
 
@@ -305,7 +310,7 @@ public class Robot extends TimedRobot {
     if (controls.autoKill() == true) {
       autoStatus = Robot.FAIL;
     }
-
+  /*
     switch (step) {
       case 1:
         autoStatus = shooter.moveHoodFullForward();
@@ -323,11 +328,11 @@ public class Robot extends TimedRobot {
 
     if ( (autoStatus == Robot.DONE) || (autoStatus == Robot.FAIL) ) {
       step++;
-    }
+    }*/
   
       //autoStatus = shooter.moveHoodFullForward();
-      //System.out.println(shooter.hoodMotorPosition());
-      //shooter.testHoodMotor(0.075);
+      //shooter.testHoodMotorEncoder();
+      shooter.testHoodMotor(-0.03);
       //shooter.testFeedMotor(-0.25);
       //shooter.testShootMotors(1);
     
@@ -454,6 +459,8 @@ public class Robot extends TimedRobot {
     else if (shooterState == ShooterState.REVERSE_FEEDER_STATE) {
       //Method to reverse the feeder for a certain ammount of time
       shooterStatus = shooter.reverseFeeder(REVERSE_FEEDER_TIME);
+      shooter.disableHoodMotor();
+      shooter.disableShooter();
 
       if (shooterStatus == Robot.DONE) {
         shooterState = ShooterState.POWER_SHOOTER_STATE;
@@ -471,6 +478,9 @@ public class Robot extends TimedRobot {
     //Turns on shooter motor and goes to next step
     else if (shooterState == ShooterState.POWER_SHOOTER_STATE) {
       shooter.manualShooterControl(shootLocation);
+      shooter.disableHoodMotor();
+      shooter.disableFeeder();
+      
       if (shootLocation == Shooter.ShootLocation.OFF) {
         shooterState = ShooterState.SHOOTER_OFF_STATE;
       }
@@ -483,6 +493,8 @@ public class Robot extends TimedRobot {
     //Moves hood to proper location. Goes back to previous step if user changed shoot location
     else if (shooterState == ShooterState.MOVE_HOOD_STATE) {
       shooterStatus = shooter.manualHoodMotorControl(shootLocation);
+      shooter.disableFeeder();
+      //Leave shooter motor on, needs to maintain speed
 
       if (shooterStatus == Robot.DONE) {
         shooterState = ShooterState.ENABLE_FEEDER_STATE;
@@ -499,6 +511,8 @@ public class Robot extends TimedRobot {
     //Turns on feed motor if shooter is up to speed
     else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
       shooter.enableFeeder();
+      shooter.disableHoodMotor();
+      //Leave shooter motor on, needs to maintain speed
 
       if (shootLocation == Shooter.ShootLocation.OFF) {
         shooterState = ShooterState.SHOOTER_OFF_STATE;
@@ -511,7 +525,7 @@ public class Robot extends TimedRobot {
       }        
     }
 
-    else { //Allows for the use of the feeder (to get balls unstuck) when the state machine is not active
+    else { 
       shooterState = ShooterState.SHOOTER_OFF_STATE;
     }
   }

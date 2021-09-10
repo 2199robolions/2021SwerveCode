@@ -198,7 +198,7 @@ public class Controls {
             }
             //Button 2 = hail mary
             else if (joystick.getRawButton(2)) {
-                return Shooter.ShootLocation.HAIL_MARY;
+                return Shooter.ShootLocation.LAY_UP;
             }
             //No buttons = ten foot
             else {

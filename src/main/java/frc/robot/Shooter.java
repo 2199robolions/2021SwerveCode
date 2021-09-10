@@ -73,17 +73,19 @@ public class Shooter {
 	public final double OFF_TARGET_RPM     = 0;
 
 	// HOOD MOTOR CONSTANTS
-	public static  final double   TEN_FOOT_HOOD_ENCODER    = -6;
-	public static  final double   TRENCH_SHOT_HOOD_ENCODER = -4; //Not certain
-	public static  final double   HAIL_MARY_HOOD_ENCODER   = -2; //Not tested
-	public static  final double   LOW_SHOT_HOOD_ENCODER    = 0;
-	public static  final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested     
+	public static final double   TEN_FOOT_HOOD_ENCODER    = -9.20;
+	public static final double   TRENCH_SHOT_HOOD_ENCODER = -6; //Not certain
+	public static final double   LAY_UP_HOOD_ENCODER      = -12; //Not tested
+	public static final double   LOW_SHOT_HOOD_ENCODER    = 0;
+	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested
+	public static final double   FRONT_MAX_ENCODER        = 0;
+	public static final double   REAR_MAX_ENCODER         = -15;
 
 	private static final double   HOOD_POWER = 0.075;
 
 	// Current Limit Constants
 	private static final int SHOOTER_CURRENT_LIMIT = 80;
-	private static final int HOOD_CURRENT_LIMIT    = 5;
+	private static final int HOOD_CURRENT_LIMIT    = 30;
 
 	// FEED MOTOR CONSTANTS
 	public static final double   FEED_POWER = -0.25;
@@ -104,7 +106,7 @@ public class Shooter {
 
 
 	public static enum ShootLocation {
-		HAIL_MARY,
+		LAY_UP,
 		TRENCH,
 		TEN_FOOT,
 		OFF;
@@ -227,7 +229,7 @@ public class Shooter {
 			feedMotor.set(OFF_POWER);
 			targetVelocity = OFF_TARGET_RPM;
 		}
-		else if ( ((location == ShootLocation.TEN_FOOT) || (location == ShootLocation.TRENCH)) || (location == ShootLocation.HAIL_MARY) ) {
+		else if ( ((location == ShootLocation.TEN_FOOT) || (location == ShootLocation.TRENCH)) || (location == ShootLocation.LAY_UP) ) {
 			rightShooter.set(SHOOT_POWER);
 			targetVelocity = SHOOT_TARGET_RPM;
 		}
@@ -248,9 +250,7 @@ public class Shooter {
 	public boolean shooterReadyAuto() {
 		double rpm;
 		rpm = getabsRPM(LEFT_SHOOTER_ID);
-		
-		System.out.println("RPM: " + rpm);
-		
+				
 		if ( rpm > targetVelocity )  {
 			targetCount ++;
 			
@@ -314,6 +314,10 @@ public class Shooter {
 		}
 	}
 
+	public void disableFeeder() {
+		feedMotor.set(OFF_POWER);
+	}
+
 	/**
 	 * Reverses the feeder motor for 0.5 seconds
 	 * @param activePeriodSec
@@ -367,8 +371,8 @@ public class Shooter {
 	public int manualHoodMotorControl(Shooter.ShootLocation motorPosition) {
 
 		//Variables
-		boolean limit1 = getFrontSwitchValue();
-		boolean limit2 = getRearSwitchValue ();
+		boolean atFrontSwitch = getFrontSwitchValue();
+		boolean atRearSwitch  = getRearSwitchValue ();
 		double  hoodCurrentEncoder = hoodMotorEncoder.getPosition();
 
 		//First time through, setting initial values
@@ -383,8 +387,8 @@ public class Shooter {
 			else if (motorPosition == ShootLocation.TRENCH) {
 				hoodTargetEncoder = TRENCH_SHOT_HOOD_ENCODER;
 			}
-			else if (motorPosition == ShootLocation.HAIL_MARY) {
-				hoodTargetEncoder = HAIL_MARY_HOOD_ENCODER;
+			else if (motorPosition == ShootLocation.LAY_UP) {
+				hoodTargetEncoder = LAY_UP_HOOD_ENCODER;
 			}
 			else {
 				hoodFirstTime = true;
@@ -395,28 +399,29 @@ public class Shooter {
 			hoodFirstTime = false;
 		}
 
-		boolean changedShootLocation = (startPosition != motorPosition);
-
 		//Error checking
-		if (changedShootLocation == true) {
+		if (startPosition != motorPosition) {
 			hoodFirstTime = true;
 			disableHoodMotor();
 			System.out.println("Changed shoot location, resetting hood movement");
-			return Robot.FAIL;
+			return Robot.DONE;
 		}
 		else if (hoodMotor.getOutputCurrent() > HOOD_CURRENT_LIMIT) {
 			hoodFirstTime = true;
 			disableHoodMotor();
+			System.out.println("Hood current limit exceded. Value at " + hoodMotor.getOutputCurrent());
 			return Robot.FAIL;
 		}
-		else if (   ((hoodCurrentEncoder > 0) || (limit1))    && (hoodStartEncoder < hoodTargetEncoder) ){ //Going forward and at limit switch 1
+		else if (   ((hoodCurrentEncoder > FRONT_MAX_ENCODER) || (atFrontSwitch))    && (hoodStartEncoder < hoodTargetEncoder) ){ //Going forward and at limit switch 1
 			hoodFirstTime = true;
 			disableHoodMotor();
+			System.out.println("Hood at front limit");
 			return Robot.DONE;
 		}
-		else if (   (limit2)  &&  (hoodStartEncoder > hoodTargetEncoder) ){ //Going backwards and at limit switch 2
+		else if (   ((hoodCurrentEncoder < REAR_MAX_ENCODER) || (atRearSwitch))  &&  (hoodStartEncoder > hoodTargetEncoder) ){ //Going backwards and at limit switch 2
 			hoodFirstTime = true;
 			disableHoodMotor();
+			System.out.println("Hood at back limit");
 			return Robot.DONE;
 		}
 		
@@ -428,6 +433,7 @@ public class Shooter {
 			if (hoodCurrentEncoder > hoodTargetEncoder) {
 				hoodFirstTime = true;
 				disableHoodMotor();
+				System.out.println("Hood at target position of " + hoodTargetEncoder + ". Current encoder is " + hoodCurrentEncoder);
 				return Robot.DONE;
 			}
 			else {
@@ -441,6 +447,7 @@ public class Shooter {
 			if (hoodCurrentEncoder < hoodTargetEncoder) {
 				hoodFirstTime = true;
 				disableHoodMotor();
+				System.out.println("Hood at target position of " + hoodTargetEncoder + ". Current encoder is " + hoodCurrentEncoder);
 				return Robot.DONE;
 			}
 			else {
@@ -522,7 +529,7 @@ public class Shooter {
 		if (getFrontSwitchValue() == true) { //Reached position sensor
 			disableHoodMotor();
 			hoodMotorEncoder.setPosition(0.0);
-			System.out.println("Hood at sensor 1");
+			System.out.println("Hood at sensor 1, encoder is " + hoodMotorEncoder.getPosition());
 			return Robot.DONE;
 		}
 		else if (hoodMotor.getOutputCurrent() >= HOOD_CURRENT_LIMIT) { //Current spike
@@ -687,7 +694,9 @@ public class Shooter {
 	public void testHoodMotor(double power) {
 		//Positive power moves hood forward. Reasonable speed is 0.75
 		hoodMotor.set(power);
-		System.out.println("Amps: " + hoodMotor.getOutputCurrent() + " Encoder: " + hoodMotorEncoder.getPosition());
+		//System.out.println("Amps: " + hoodMotor.getOutputCurrent() + " Encoder: " + hoodMotorEncoder.getPosition());
+		System.out.println("Encoder: " + hoodMotorEncoder.getPosition());
+
 	}
 
 	public void testFeedMotor(double power) {
