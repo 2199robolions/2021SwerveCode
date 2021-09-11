@@ -61,7 +61,6 @@ public class Robot extends TimedRobot {
    * SMART DASHBOARD CHOICES
    */
   //Position
-	private static final String kDefaultAuto      = "Default";
 	private static final String kCustomAutoRight  = "Right";
 	private static final String kCustomAutoCenter = "Center";
 	private static final String kCustomAutoLeft   = "Left";
@@ -69,16 +68,6 @@ public class Robot extends TimedRobot {
 
 	private String m_positionSelected;
 	private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
-
-  //Delay
-	private static final String kDefaultTime    = "0";
-	private static final String kCustomChooser2 = "2";
-	private static final String kCustomChooser4 = "4";
-	private static final String kCustomChooser6 = "6";
-
-	private String m_delaySelected;
-	private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
-
 
 
   /**
@@ -115,32 +104,24 @@ public class Robot extends TimedRobot {
      * SMART DASHBOARD CHOICES
      */
     //Auto Positions
-		m_pathChooser.addOption(kDefaultAuto , kDefaultAuto);
 		m_pathChooser.addOption(kCustomAutoRight, kCustomAutoRight);
 		m_pathChooser.addOption(kCustomAutoCenter, kCustomAutoCenter);
 		m_pathChooser.addOption(kCustomAutoLeft, kCustomAutoLeft);
 		m_pathChooser.addOption(kCustomAutoLRC, kCustomAutoLRC);
 
 		//Default Auto Position
-		m_pathChooser.setDefaultOption(kDefaultAuto, kDefaultAuto);
+		m_pathChooser.setDefaultOption(kCustomAutoLRC, kCustomAutoLRC);
 		SmartDashboard.putData("Auto Positions", m_pathChooser);
 
     //Auto Delay
-		m_delayChooser.addOption(kDefaultTime,    "0");
-		m_delayChooser.addOption(kCustomChooser2, "2");
-		m_delayChooser.addOption(kCustomChooser4, "4");
-		m_delayChooser.addOption(kCustomChooser6, "6");
+    SmartDashboard.putNumber("Auto delay", 0);
 		
-		//Default Auto Delay
-		m_delayChooser.setDefaultOption(kDefaultTime, kDefaultTime);
-		SmartDashboard.putData("Auto delay", m_delayChooser);
-
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
 
     //Smartdashboard test values
     //SmartDashboard.putNumber("Hood power", 0.05);
-    SmartDashboard.putNumber("Hood target", -2);
+    //SmartDashboard.putNumber("Hood target", -2);
 
   }
 
@@ -176,8 +157,7 @@ public class Robot extends TimedRobot {
     m_positionSelected = m_pathChooser.getSelected();
 
     //Auto Delay
-    m_delaySelected = m_delayChooser.getSelected();
-    delaySeconds = Integer.parseInt(m_delaySelected);
+    delaySeconds = (int) SmartDashboard.getNumber("Auto Delay", 0);
 
     //Telemetry
     System.out.println("Delay: "    + delaySeconds);
@@ -205,7 +185,7 @@ public class Robot extends TimedRobot {
     }
     else {
       if (autoStatus == Robot.CONT) {
-        autoStatus = drive.autoCrabDrive(5, 45, 0.4);
+        autoStatus = auto.competitionAuto(m_positionSelected, delaySeconds);
       }
       else {
         drive.stopWheels();
@@ -460,7 +440,7 @@ public class Robot extends TimedRobot {
       //Method to reverse the feeder for a certain ammount of time
       shooterStatus = shooter.reverseFeeder(REVERSE_FEEDER_TIME);
       shooter.disableHoodMotor();
-      shooter.disableShooter();
+      shooter.disableRightShooterMotor();
 
       if (shooterStatus == Robot.DONE) {
         shooterState = ShooterState.POWER_SHOOTER_STATE;

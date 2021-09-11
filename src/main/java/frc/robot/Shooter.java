@@ -628,7 +628,7 @@ public class Shooter {
 		disableHoodMotor();
 	}
 
-	private void disableRightShooterMotor() { //Was disableShooterMotor2
+	public void disableRightShooterMotor() { //Was disableShooterMotor2
 		rightShooter.set(0.00);
 	}
 

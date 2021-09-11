@@ -19,9 +19,12 @@ public class Auto {
 	private Grabber     grabber;
 	private Shooter     shooter;
 	
-	/**
-	 * CONTRUCTOR
-	 */
+
+	/****************************************************************************************** 
+    *
+    *    Constructor
+    * 
+    ******************************************************************************************/
 	public Auto (Drive drive, Grabber grabber, Shooter shooter) {
 		led             = LedLights.getInstance();
 		this.drive      = drive;
@@ -33,121 +36,267 @@ public class Auto {
 		//calibrationStep = 1;
 	}
 
-	/**
-	 * Old Method to calibrate the hood motor
-	 */
-	/* I assume that this method won't be used anymore? 
-	public int calibrateHoodMotor() {
-		//Standard Auto Variables
+
+	/****************************************************************************************** 
+    *
+    *    competitionAuto()
+	*    Runs auto program based on selected position
+    * 
+    ******************************************************************************************/
+	public int competitionAuto(String position, int delay) {
+		if (position.equals("Right")) {
+			return rightAuto(delay);
+		}
+		else if (position.equals("Left")) {
+			return leftAuto(delay);
+		}
+		else if (position.equals("Center")) {
+			return centerAuto(delay);
+		}
+		else if (position.equals("L/R/C Simple")) {
+			return basicAuto(delay);
+		}
+		else {
+			System.out.println("Auto position not selected");
+			return Robot.FAIL;
+		}
+	}
+
+
+	/****************************************************************************************** 
+    *
+    *    rightAuto()
+	*    Runs the auto code for the position right of the target
+    * 
+    ******************************************************************************************/
+	public int rightAuto(int delay) {
 		int status = Robot.CONT;
+		long delayMsec = delay * 1000;
 
-		//Variables
-		boolean limit1 = shooter.limitSwitch1Value();
-		boolean limit2 = shooter.limitSwitch2Value();
-		double  motorPositionInit;
-		double  motorPositionOne ;
-		double  motorPositionTwo ;
-		double  motorPositionAvg ;
-		double  power  = 0.10; //0.05 just barely makes the motor move
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
 
-		switch (calibrationStep) {
-			//Starts the calibration program
+		switch (step) {
+			// Starts Auto Program
 			case 1:
-				//Starts the LED's
 				led.autoMode();
-
-				status = Robot.DONE;
+				status = delay(delayMsec);
 				break;
 			case 2:
-				//Gets the starting position
-				motorPositionInit = shooter.hoodMotorPosition();
-			
-				//Prints the starting position's value
-				System.out.println("Initial Motor Position: " + motorPositionInit);
-
-				//Allows other methods in the code to use these numbers
-				Shooter.originalPosition = motorPositionInit;
-
-				status = Robot.DONE;
-
+				status = drive.autoCrabDrive(3, 0);
 				break;
 			case 3:
-				//System.out.println("Case 3");
-				if (limit1 == true) {
-					//Stops the motor
-					shooter.disableHoodMotor();
-
-					//Gets the first position
-					motorPositionOne = shooter.hoodMotorPosition();
-
-					//Prints position one's value
-					System.out.println("Motor Position One: " + motorPositionOne);
-				
-					//Allows other methods in the code to use these numbers
-					Shooter.lowShot = motorPositionOne;
-
-					status = Robot.DONE;
-				}
-				else {
-					//Starts slowly moving the motor forward to try and find the forward limit
-					shooter.enableHoodMotor(power);
-
-					status = Robot.CONT;
-				}
-				break;
-			case 4:
-				//System.out.println("Case 4");
-				if (limit2 == true) {
-					//Stops the motor
-					shooter.disableHoodMotor();
-
-					//Gets the second position
-					motorPositionTwo = shooter.hoodMotorPosition();
-
-					//Prints position two's value
-					System.out.println("Motor Position Two: " + motorPositionTwo);
-
-					//Allows other methods to use these numbers
-					Shooter.highShot = motorPositionTwo;
-
-					status = Robot.DONE;
-				}
-				else {
-					//Starts slowly moving the motor backward to try and find the backward limit
-					shooter.enableHoodMotor(power * -1);
-
-					status = Robot.CONT;
-				}
-				break;
-			case 5:
-				//Calculates the average position between the two limit switches
-				motorPositionAvg = (Shooter.lowShot + Shooter.highShot) / 2;
-
-				//Sets the average position
-				Shooter.avgPosition = motorPositionAvg;
-
-				//Sets hood motor to the average position and awaits further input
-				shooter.manualHoodMotorControl(Shooter.HoodMotorPosition.AVERAGE_POSITION);
-
-				status = Robot.DONE;
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			default:
-				//Sets calibrationStep to 1
-				calibrationStep = 1;
-
-				//Debatable if I want led's in here
+				step = 1;
+				firstTime = true;
 				led.autoModeFinished();
 
 				return Robot.DONE;
 		}
 
 		if (status == Robot.DONE) {
-			calibrationStep++;
+			step++;
 		}
 
 		return Robot.CONT;
-	}*/
+	}
+
+
+	/****************************************************************************************** 
+    *
+    *    leftAuto()
+	*    Runs the auto code for the position left of the target
+    * 
+    ******************************************************************************************/
+	public int leftAuto(int delay) {
+		int status = Robot.CONT;
+		long delayMsec = delay * 1000;
+
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
+		switch (step) {
+			// Starts Auto Program
+			case 1:
+				led.autoMode();
+				status = delay(delayMsec);
+				break;
+			case 2:
+				status = drive.autoCrabDrive(3, 0);
+				break;
+			case 3:
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				break;
+			default:
+				step = 1;
+				firstTime = true;
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
 	
+
+	/****************************************************************************************** 
+    *
+    *    centerAuto()
+	*    Runs the auto code for the position center of the target
+    * 
+    ******************************************************************************************/
+	public int centerAuto(int delay) {
+		int status = Robot.CONT;
+		long delayMsec = delay * 1000;
+
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
+		switch (step) {
+			// Starts Auto Program
+			case 1:
+				led.autoMode();
+				status = delay(delayMsec);
+				break;
+			case 2:
+				status = drive.autoCrabDrive(3, 0);
+				break;
+			case 3:
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				break;
+			default:
+				step = 1;
+				firstTime = true;
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
+
+
+	/****************************************************************************************** 
+    *
+    *    basicAuto()
+	*    Runs a basic code that can be ran at any position
+    * 
+    ******************************************************************************************/
+	public int basicAuto(int delay) {
+		int status = Robot.CONT;
+		long delayMsec = delay * 1000;
+
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
+		switch (step) {
+			// Starts Auto Program
+			case 1:
+				led.autoMode();
+				status = delay(delayMsec);
+				break;
+			case 2:
+				status = drive.autoCrabDrive(3, 0);
+				break;
+			case 3:
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				break;
+			default:
+				step = 1;
+				firstTime = true;
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
+
+
+	/****************************************************************************************** 
+    *
+    *    shootBall()
+	*    Autonomously shoots balls in the robot
+    * 
+    ******************************************************************************************/
+	public int shootBall(Shooter.ShootLocation shootLocation) {
+		int status = Robot.CONT;
+
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
+		switch (step) {
+			//Reverses feeder to clear jams
+			case 1:
+				shooter.disableHoodMotor();
+				shooter.disableRightShooterMotor();
+				status = shooter.reverseFeeder(0.25);
+				break;
+			//Starts up shooter
+			case 2:
+				shooter.disableFeeder();
+				shooter.disableHoodMotor();
+				shooter.manualShooterControl(shootLocation);
+				break;
+			//Moves hood to proper location
+			case 3:
+				shooter.disableFeeder();
+				status = shooter.manualHoodMotorControl(shootLocation);
+				break;
+			//Feeds balls if shooter is up to speed. Lasts for 5 seconds before moving on
+			case 4:
+				status = delay(5000);
+				shooter.disableHoodMotor();
+				if (shooter.shooterReadyAuto() == true) {
+					shooter.enableFeeder();
+				}
+				else {
+					shooter.disableFeeder();
+				}
+				break;
+			default:
+				step = 1;
+				firstTime = true;
+				shooter.disableShooter();
+				led.autoModeFinished();
+
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
+
+
+
+
 	/**
 	 * Default Auto
 	 * @param delay
