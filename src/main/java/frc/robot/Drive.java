@@ -530,10 +530,11 @@ public class Drive {
 
 
 
-
-    /**
-	 * LIMELIGHT METHODS
-	 */
+    /****************************************************************************************** 
+    *
+    *    LIMELIGHT METHODS
+    * 
+    ******************************************************************************************/
     /**
      * Limelight targeting using PID
      * @param pipeline
@@ -665,7 +666,7 @@ public class Drive {
 			return Robot.FAIL;
         }
         
-        //DO WE DO AUTOKILL HERE OR IN ROBOT WHEELS CONTROL?
+        //LIMELIGHT TARGETING KILL SWITCH
         if (controls.autoKill() == true) {
             //Returns the error code for failure
             return Robot.FAIL;
