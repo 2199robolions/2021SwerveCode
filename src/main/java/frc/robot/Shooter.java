@@ -309,9 +309,10 @@ public class Shooter {
 	 * Enables the feed motor
 	 */
 	public void enableFeeder() {
-		if (shooterReadyAuto() == true) {
+		/*if (shooterReadyAuto() == true) {
 			manualBallFeederControl(BallFeederDirection.FORWARD);
-		}
+		}*/
+		manualBallFeederControl(BallFeederDirection.FORWARD);
 	}
 
 	public void disableFeeder() {
@@ -548,6 +549,16 @@ public class Shooter {
 		}
 	}
 
+	/****************************************************************************************** 
+    *
+    *    getHoodEncoder()
+    *    returns hood encoder value
+    * 
+	******************************************************************************************/
+	public double getHoodEncoder() {
+		return hoodMotorEncoder.getPosition();
+	}
+
 
 	/**
 	 * DEBUG / TEST FUNCTIONS
@@ -592,7 +603,7 @@ public class Shooter {
 
 	public void enableShooterFullPower() {
 		//leftShooter.set(-0.70);
-		rightShooter.set(0.70);
+		rightShooter.set(1.00);
 		feedMotor.set(FEED_POWER);
 
 		System.out.println("RPM 1: " + getabsRPM(LEFT_SHOOTER_ID));

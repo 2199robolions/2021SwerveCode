@@ -34,7 +34,7 @@ public class Drive {
     private static final double acdD = 0;
 
 	//Target Controller
-	private static final double tP = 0.02; //0.2
+	private static final double tP = 0.033; //0.03
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
 
@@ -53,10 +53,10 @@ public class Drive {
 
 	//Limelight Variables
     private int     noTargetCount      = 0;
-    private int     limeCount          = 0;
+    private int     targetLockedCount  = 0;
     private long    timeOut;
     private boolean limeLightFirstTime = true;
-	private static final int ON_TARGET_COUNT = 20;
+	private static final int ON_TARGET_COUNT = 5;
     private static final int ON_ANGLE_COUNT  = 10;
 
     //Limelight
@@ -83,7 +83,8 @@ public class Drive {
      */
     public static enum WheelMode {
 		MANUAL,
-		TARGET_LOCK;
+        TRACKING,
+        LOCKED;
     }
     
     /**
@@ -550,11 +551,8 @@ public class Drive {
             limeLightFirstTime = false;
 
             //Resets the variables for tracking targets
-			noTargetCount = 0;
-            limeCount = 0;
-            
-            //Resets the targeting PID's zero
-			targetController.setSetpoint(0.0);
+			noTargetCount    = 0;
+            targetLockedCount = 0;
             
             //Sets and displays the forced time out
 			timeOut = currentMs + TIME_OUT;
@@ -562,17 +560,14 @@ public class Drive {
             
             //Turns the limelight on
             changeLimelightLED(LIMELIGHT_ON);
-
-            //Makes the LED's go to targeting mode 
-			led.limelightAdjusting();
 		}
 
 		// Whether the limelight has any valid targets (0 or 1)
         double tv = limelightEntries.getEntry("tv").getDouble(0);
-        System.out.println("tv: " + tv);
+        //System.out.println("tv: " + tv);
 		// Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees) [54 degree tolerance]
 		double tx = limelightEntries.getEntry("tx").getDouble(0);
-		System.out.println("tx: " + tx);
+        //System.out.println("tx: " + tx);
 
 		/*// Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
         double ty = limelightEntries.getEntry("ty").getDouble(0);
@@ -583,10 +578,7 @@ public class Drive {
         System.out.println("ta: " + ta);*/
 
 		if (tv < 1.0) {
-            //Has the LED's display that there is no valid target
-            led.limelightNoValidTarget();
-            
-			teleopRotate(0.00);
+            stopWheels();
 
             //Adds one to the noTargetCount (will exit this program if that count exceedes 5) 
 			noTargetCount++;
@@ -597,16 +589,13 @@ public class Drive {
 			}
 			else {
                 //Reset variables
-				noTargetCount = 0;
-                limeCount = 0;
+				noTargetCount     = 0;
+                targetLockedCount = 0;
                 limeLightFirstTime = true;
                 targetController.reset();
 
                 stopWheels();
-                
-                //Displays a failed attempt on the LED's
-                led.limelightNoValidTarget();
-                
+                                
                 //Returns the error code for failure
 				return Robot.FAIL;
 			}
@@ -614,36 +603,31 @@ public class Drive {
         else {
             //Keeps the no target count at 0
             noTargetCount = 0;
-
-            //Keeps the LED's displaying that the robot is targeting
-			led.limelightAdjusting();
 		}
 
 		// Rotate
 		m_LimelightCalculatedPower = targetController.calculate(tx, 0.0);
-		m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
-		teleopRotate(m_LimelightCalculatedPower);
-		System.out.println("Pid out: " + m_LimelightCalculatedPower);
+        m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
+		teleopRotate(m_LimelightCalculatedPower * -1);
+		//System.out.println("Pid out: " + m_LimelightCalculatedPower);
 
 		// CHECK: Routine Complete
 		if (targetController.atSetpoint() == true) {
-            limeCount++;
+            targetLockedCount++;
             
-			System.out.println("On target");
+			//System.out.println("On target");
 		}
 
-		if (limeCount >= ON_TARGET_COUNT) {
+		if (targetLockedCount >= ON_TARGET_COUNT) {
             //Reset variables
-			limeCount = 0;
+            targetLockedCount = 0;
+            noTargetCount     = 0;
             limeLightFirstTime = true;
             targetController.reset();
             
 			stopWheels();
-            
-            //Makes the LED's show that the robot is done targeting 
-            led.limelightFinished();
 
-            System.out.println("On target or not moving");
+            //System.out.println("On target or not moving");
 
             //Returns the error code for success
 			return Robot.DONE;
@@ -651,27 +635,19 @@ public class Drive {
         
 		// limelight time out readjust
 		if (currentMs > timeOut) {
-			limeCount = 0;
+            targetLockedCount = 0;
+            noTargetCount     = 0;
             limeLightFirstTime = true;
-            
             targetController.reset();
             
             stopWheels();
-            
-            led.limelightNoValidTarget();
-            
+                        
             System.out.println("timeout " + tx + " Target Acquired " + tv);
 
             //Returns the error code for failure
 			return Robot.FAIL;
         }
         
-        //LIMELIGHT TARGETING KILL SWITCH
-        if (controls.autoKill() == true) {
-            //Returns the error code for failure
-            return Robot.FAIL;
-        }
-
 		return Robot.CONT;   
     }
 
