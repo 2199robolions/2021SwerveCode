@@ -69,13 +69,13 @@ public class Shooter {
 	public final double OFF_POWER   = 0.00;
 
 	// RPM CONSTANTS
-	public final double SHOOT_TARGET_RPM   = 5000; //Not tested
+	public final double SHOOT_TARGET_RPM   = 5150;
 	public final double OFF_TARGET_RPM     = 0;
 
 	// HOOD MOTOR CONSTANTS
-	public static final double   TEN_FOOT_HOOD_ENCODER    = -9.20;
-	public static final double   TRENCH_SHOT_HOOD_ENCODER = -6; //Not certain
-	public static final double   LAY_UP_HOOD_ENCODER      = -12; //Not tested
+	public static final double   TEN_FOOT_HOOD_ENCODER    = -7.5; //-9.2
+	public static final double   TRENCH_SHOT_HOOD_ENCODER = -4.5; //Not certain
+	public static final double   LAY_UP_HOOD_ENCODER      = -14; //Not tested
 	public static final double   LOW_SHOT_HOOD_ENCODER    = 0;
 	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested
 	public static final double   FRONT_MAX_ENCODER        = 0;
@@ -123,7 +123,7 @@ public class Shooter {
 	private PIDController shooterController;
 
 	private static final double kP = 0.0004; //0.0003 old value
-	private static final double kI = 0.00;
+	private static final double kI = 0.0005;
 	private static final double kD = 0.00;
 	
 
@@ -171,6 +171,7 @@ public class Shooter {
 
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
+		shooterController.setIntegratorRange(-0.1, 0.1);
 	}
 
 
@@ -309,10 +310,9 @@ public class Shooter {
 	 * Enables the feed motor
 	 */
 	public void enableFeeder() {
-		/*if (shooterReadyAuto() == true) {
+		if (shooterReadyAuto() == true) {
 			manualBallFeederControl(BallFeederDirection.FORWARD);
-		}*/
-		manualBallFeederControl(BallFeederDirection.FORWARD);
+		}
 	}
 
 	public void disableFeeder() {

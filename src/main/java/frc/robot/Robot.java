@@ -295,7 +295,7 @@ public class Robot extends TimedRobot {
     switch (step) {
       case 1:
         shooter.testHoodMotor(-0.03);
-        if (shooter.getHoodEncoder() < -16) {
+        if (shooter.getHoodEncoder() < -13) {
           shooter.disableHoodMotor();
           autoStatus = DONE;
         }
@@ -344,17 +344,9 @@ public class Robot extends TimedRobot {
     boolean killTargetLock = false;
   
     //Only turns on targetLock mode if autoKill isn't being pressed
-    if (killTargetLock == true ) {
+    if (killTargetLock == true) {
 			wheelMode = Drive.WheelMode.MANUAL;
     } 
-    else if ( (shootLocation == Shooter.ShootLocation.TEN_FOOT) || (shootLocation == Shooter.ShootLocation.TRENCH) ) {
-      if (wheelMode == Drive.WheelMode.MANUAL) {
-        wheelMode = Drive.WheelMode.TRACKING;
-      }
-    } 
-    else {
-      wheelMode = Drive.WheelMode.MANUAL; 
-    }
 
 
     //Manual Drive
@@ -367,6 +359,13 @@ public class Robot extends TimedRobot {
       else {
         //Robot is in dead zone
         drive.stopWheels();
+      }
+
+      if ( (shootLocation == Shooter.ShootLocation.TEN_FOOT) || (shootLocation == Shooter.ShootLocation.TRENCH) ) {
+        wheelMode = Drive.WheelMode.TRACKING;
+      }
+      else if (shootLocation == Shooter.ShootLocation.LAY_UP) {
+        wheelMode = Drive.WheelMode.LOCKED;
       }
     }
     //Limelight targetting
@@ -384,11 +383,16 @@ public class Robot extends TimedRobot {
       else if (targetingStatus == Robot.CONT) {
         wheelMode = Drive.WheelMode.TRACKING;
       }
+      else if (shootLocation == Shooter.ShootLocation.OFF) {
+        wheelMode = Drive.WheelMode.MANUAL;
+      }
+      else if (shootLocation == Shooter.ShootLocation.LAY_UP) {
+        wheelMode = Drive.WheelMode.LOCKED;
+      }
     }
     // If a target has been aquired, or it times out
     else if (wheelMode == Drive.WheelMode.LOCKED) {
-      if ( (shootLocation == Shooter.ShootLocation.OFF) ||
-           (shootLocation == Shooter.ShootLocation.LAY_UP) ) {
+      if (shootLocation == Shooter.ShootLocation.OFF) {
         wheelMode = Drive.WheelMode.MANUAL;
       }
     }
@@ -496,11 +500,8 @@ public class Robot extends TimedRobot {
 
     //Turns on feed motor if shooter is up to speed
     else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
-      System.out.println("Enable Feeder State");
-      System.out.println(targetingStatus);
-      if ( (shootLocation == Shooter.ShootLocation.LAY_UP) || (targetingStatus == Robot.DONE) ) {
+      if (wheelMode == Drive.WheelMode.LOCKED) {
         shooter.enableFeeder();
-        System.out.println("We are in the if");
       }
       shooter.disableHoodMotor();
       //Leave shooter motor on, needs to maintain speed

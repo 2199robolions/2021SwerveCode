@@ -605,8 +605,8 @@ public class Drive {
             noTargetCount = 0;
 		}
 
-		// Rotate
-		m_LimelightCalculatedPower = targetController.calculate(tx, 0.0);
+		// Rotate                                  need -1 because limelight is slightly off
+		m_LimelightCalculatedPower = targetController.calculate(tx, -1.0);
         m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
 		teleopRotate(m_LimelightCalculatedPower * -1);
 		//System.out.println("Pid out: " + m_LimelightCalculatedPower);

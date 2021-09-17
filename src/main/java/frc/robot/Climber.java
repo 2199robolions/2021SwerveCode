@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 public class Climber {
 
-    /*// SPARK MAX
+    // SPARK MAX
     private CANSparkMax liftMotor;
 
     // SPARK ID's
@@ -40,14 +40,14 @@ public class Climber {
     private final int PCM_CAN_ID_TOP            = 0;
 
     //Solenoid ID's
-    private final int SOLENOID_RETRACT_BOTTOM   = 1;
+    private final int SOLENOID_RETRACT_BOTTOM   = 0;
     private final int SOLENOID_DEPLOY_BOTTOM    = 2;
 
-    private final int SOLENOID_RETRACT_MIDDLE   = 3;
-    private final int SOLENOID_DEPLOY_MIDDLE    = 4;
+    private final int SOLENOID_RETRACT_MIDDLE   = 0;
+    private final int SOLENOID_DEPLOY_MIDDLE    = 6;
 
-    private final int SOLENOID_RETRACT_TOP      = 5;
-    private final int SOLENOID_DEPLOY_TOP       = 6;*/
+    private final int SOLENOID_RETRACT_TOP      = 0;
+    private final int SOLENOID_DEPLOY_TOP       = 7;
 
     /**
      * Climber State Enumeration
@@ -75,7 +75,7 @@ public class Climber {
         liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
 
         // Set Motors to 0
-        liftMotor.set( 0.0 );
+        liftMotor.set( 0.0 );*/
 
         //Configure Bottom Piston
         pistonBottom = new DoubleSolenoid(PCM_CAN_ID_BOTTOM, SOLENOID_DEPLOY_BOTTOM, SOLENOID_RETRACT_BOTTOM);
@@ -89,7 +89,7 @@ public class Climber {
         //Retract all pistons
         pistonBottom.set(Value.kReverse);
         pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);*/
+        pistonTop.   set(Value.kReverse);
     }
 
     /**
@@ -102,15 +102,15 @@ public class Climber {
     }
 
     public void bottomArmUp() {
-        //pistonBottom.set(Value.kForward);
+        pistonBottom.set(Value.kForward);
     }
 
     public void middleArmUp() {
-        //pistonMiddle.set(Value.kForward);
+        pistonMiddle.set(Value.kForward);
     }
 
     public void topArmUp() {
-        //pistonTop.set   (Value.kForward);
+        pistonTop.set   (Value.kForward);
     }
 
     /**
@@ -123,15 +123,15 @@ public class Climber {
     }
 
     private void bottomArmDown() {
-        //pistonBottom.set(Value.kReverse);
+        pistonBottom.set(Value.kReverse);
     }
 
     private void middleArmDown() {
-        //pistonMiddle.set(Value.kReverse);
+        pistonMiddle.set(Value.kReverse);
     }
 
     public void topArmDown() {
-        //pistonTop.set   (Value.kReverse);
+        pistonTop.set   (Value.kReverse);
     }
 
     /**
