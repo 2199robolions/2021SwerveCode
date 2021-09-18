@@ -18,13 +18,13 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 public class Climber {
 
     // SPARK MAX
-    private CANSparkMax liftMotor;
+    //private CANSparkMax liftMotor;
 
     // SPARK ID's
     private final int LIFT_MOTOR_ID = 9;
 
     // ENCODERS
-    private CANEncoder lift_Motor_Encoder;
+    //private CANEncoder lift_Motor_Encoder;
 
     // SOLENOID
     private DoubleSolenoid pistonBottom;
