@@ -364,22 +364,21 @@ public class Auto {
 		 */
 		switch(step) {
 			case 1:
-				climber.middleArmUp();
-
+				climber.bottomAndMiddleArmUp();
 				status = Robot.DONE;
 				break;
-			case 2:
+			/*case 2:
 				status = delay(1);
 				break;
 			case 3:
 				climber.bottomArmUp();
 
 				status = Robot.DONE;
-				break;
-			case 4:
+				break;*/
+			case 2:
 				status = delay(1);
 				break;
-			case 5:
+			case 3:
 				climber.topArmUp();
 
 				status = Robot.DONE;

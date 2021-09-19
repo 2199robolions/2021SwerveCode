@@ -523,8 +523,12 @@ public class Robot extends TimedRobot {
   }
 
 
-  /*****   Climber Control   *****/
-  //Climber stuff
+  /****************************************************************************************** 
+  *
+  *    climberControl()
+  *    Controls the climber mechanism during teleop
+  * 
+  ******************************************************************************************/
   private void climberControl() {
     //Variables
     boolean enableAllArms;
@@ -538,8 +542,8 @@ public class Robot extends TimedRobot {
 
     //All Arms Down
     if (climberState == Climber.ClimberState.ALL_ARMS_DOWN) {
+      climber.climberDown();
       if (enableAllArms == true) {
-        climberStatus = auto.climberDeploy(climber);
 				climberState = Climber.ClimberState.START_ARMS_UP;
       }
     }
@@ -553,9 +557,7 @@ public class Robot extends TimedRobot {
 		}
 		else if (climberState == Climber.ClimberState.ALL_ARMS_UP) {
       // All arms are Up
-			if (DisableTopArm == true) {
-        climber.topArmDown();
-        
+			if (DisableTopArm == true) {        
 				climberState = Climber.ClimberState.TOP_ARM_DOWN;
 			}
 			// Attempting to redeploy arms
@@ -565,10 +567,9 @@ public class Robot extends TimedRobot {
 		}
 		else if (climberState == Climber.ClimberState.TOP_ARM_DOWN) {
       // Top arm Down and ready to climb, unless you need to redeploy the climber arms
-			if (climberMotorPower > 0) {
-				climber.pullRobotUp(climberMotorPower);
-        climber.climberDown();
-        
+      climber.topArmDown();
+
+			if (climberMotorPower > 0) {        
 				climberState = Climber.ClimberState.CLIMB;
 			}
 			else if (enableAllArms == true) {
@@ -577,7 +578,10 @@ public class Robot extends TimedRobot {
 		}
 		else if (climberState == Climber.ClimberState.CLIMB) {
       // You have climbed
-			climber.pullRobotUp(climberMotorPower);
+      if (climberMotorPower > 0) {
+        climber.climberDown();
+        climber.pullRobotUp(climberMotorPower);
+      }
 		}
   }
 

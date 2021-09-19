@@ -13,6 +13,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value; 
+import edu.wpi.first.wpilibj.Solenoid;
 
 
 public class Climber {
@@ -27,27 +28,28 @@ public class Climber {
     //private CANEncoder lift_Motor_Encoder;
 
     // SOLENOID
-    private DoubleSolenoid pistonBottom;
-    private DoubleSolenoid pistonMiddle;
-    private DoubleSolenoid pistonTop;
+    private Solenoid pistonBottomMiddle;
+    //private DoubleSolenoid pistonMiddle;
+    private Solenoid pistonTop;
 
     // Constants
     private int LIFTER_CURRENT_LIMIT = 50;
     
     // PCM CAN ID's
-    private final int PCM_CAN_ID_BOTTOM         = 0;
-    private final int PCM_CAN_ID_MIDDLE         = 0;
-    private final int PCM_CAN_ID_TOP            = 0;
+    private final int PCM_CAN_ID                = 0;
 
     //Solenoid ID's
-    private final int SOLENOID_RETRACT_BOTTOM   = 0;
+    private final int SOLENOID_BOTTOM_MIDDLE_ID    = 6;
+    private final int SOLENOID_TOP_ID              = 7;
+
+    /*private final int SOLENOID_RETRACT_BOTTOM   = 0;
     private final int SOLENOID_DEPLOY_BOTTOM    = 2;
 
     private final int SOLENOID_RETRACT_MIDDLE   = 0;
     private final int SOLENOID_DEPLOY_MIDDLE    = 6;
 
     private final int SOLENOID_RETRACT_TOP      = 0;
-    private final int SOLENOID_DEPLOY_TOP       = 7;
+    private final int SOLENOID_DEPLOY_TOP       = 7;*/
 
     /**
      * Climber State Enumeration
@@ -65,73 +67,68 @@ public class Climber {
      * CONSTRUCTOR
      */
     public Climber() {
-        /*// SPARKS
-        liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
-
-        // ENCODERS
-        lift_Motor_Encoder  = liftMotor.getEncoder();
+        // SPARKS
+    //    liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
 
         // Spark Current Limit
-        liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
+    //    liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
 
         // Set Motors to 0
-        liftMotor.set( 0.0 );
+    //    liftMotor.set( 0.0 );
 
         //Configure Bottom Piston
-        pistonBottom = new DoubleSolenoid(PCM_CAN_ID_BOTTOM, SOLENOID_DEPLOY_BOTTOM, SOLENOID_RETRACT_BOTTOM);
+        pistonBottomMiddle = new Solenoid(SOLENOID_BOTTOM_MIDDLE_ID);
 
         //Configure Middle Piston
-        pistonMiddle = new DoubleSolenoid(PCM_CAN_ID_MIDDLE, SOLENOID_DEPLOY_MIDDLE, SOLENOID_RETRACT_MIDDLE);
+        //pistonMiddle = new DoubleSolenoid(PCM_CAN_ID, SOLENOID_DEPLOY_MIDDLE, SOLENOID_RETRACT_MIDDLE);
 
         //Configure Top Piston
-        pistonTop    = new DoubleSolenoid  (PCM_CAN_ID_TOP, SOLENOID_DEPLOY_TOP, SOLENOID_RETRACT_TOP);
+        pistonTop    = new Solenoid(SOLENOID_TOP_ID);
 
         //Retract all pistons
-        pistonBottom.set(Value.kReverse);
-        pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);*/
+        pistonBottomMiddle.set(false);
+        //pistonMiddle.set(Value.kReverse);
+        pistonTop.set(false);
     }
 
     /**
      * Methods to raise the arms, either individually or as a whole 
      */
     public void climberUp() {
-        bottomArmUp();
-        middleArmUp();
+        bottomAndMiddleArmUp();
         topArmUp();
     }
 
-    public void bottomArmUp() {
-        pistonBottom.set(Value.kForward);
+    public void bottomAndMiddleArmUp() {
+        pistonBottomMiddle.set(true);
     }
 
-    public void middleArmUp() {
+    /*public void middleArmUp() {
         pistonMiddle.set(Value.kForward);
-    }
+    }*/
 
     public void topArmUp() {
-        pistonTop.set   (Value.kForward);
+        pistonTop.set(true);
     }
 
     /**
      * Methods to lower the arms, either individually or as a whole
      */
     public void climberDown() {
-        bottomArmDown();
-        middleArmDown();
+        bottomAndMiddleArmDown();
         topArmDown();
     }
 
-    private void bottomArmDown() {
-        pistonBottom.set(Value.kReverse);
+    private void bottomAndMiddleArmDown() {
+        pistonBottomMiddle.set(false);
     }
 
-    private void middleArmDown() {
+    /*private void middleArmDown() {
         pistonMiddle.set(Value.kReverse);
-    }
+    }*/
 
     public void topArmDown() {
-        pistonTop.set   (Value.kReverse);
+        pistonTop.set(false);
     }
 
     /**
