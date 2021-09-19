@@ -122,8 +122,8 @@ public class Shooter {
 	// Shooter PID Controller
 	private PIDController shooterController;
 
-	private static final double kP = 0.0004; //0.0003 old value
-	private static final double kI = 0.0005;
+	private static final double kP = 0.0001; //0.0003 old value
+	private static final double kI = 0.00;
 	private static final double kD = 0.00;
 	
 

@@ -75,7 +75,7 @@ public class Climber {
         liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
 
         // Set Motors to 0
-        liftMotor.set( 0.0 );*/
+        liftMotor.set( 0.0 );
 
         //Configure Bottom Piston
         pistonBottom = new DoubleSolenoid(PCM_CAN_ID_BOTTOM, SOLENOID_DEPLOY_BOTTOM, SOLENOID_RETRACT_BOTTOM);
@@ -89,7 +89,7 @@ public class Climber {
         //Retract all pistons
         pistonBottom.set(Value.kReverse);
         pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);
+        pistonTop.   set(Value.kReverse);*/
     }
 
     /**
