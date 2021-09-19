@@ -74,7 +74,7 @@ public class Shooter {
 
 	// HOOD MOTOR CONSTANTS
 	public static final double   TEN_FOOT_HOOD_ENCODER    = -7.5; //-9.2
-	public static final double   TRENCH_SHOT_HOOD_ENCODER = -4.5; //Not certain
+	public static final double   TRENCH_SHOT_HOOD_ENCODER = -3.75; //Not certain -4.0
 	public static final double   LAY_UP_HOOD_ENCODER      = -14; //Not tested
 	public static final double   LOW_SHOT_HOOD_ENCODER    = 0;
 	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested

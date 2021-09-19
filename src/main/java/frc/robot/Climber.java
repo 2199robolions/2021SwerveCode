@@ -39,7 +39,7 @@ public class Climber {
     private final int PCM_CAN_ID                = 0;
 
     //Solenoid ID's
-    private final int SOLENOID_BOTTOM_MIDDLE_ID    = 6;
+    private final int SOLENOID_BOTTOM_MIDDLE_ID    = 5;
     private final int SOLENOID_TOP_ID              = 7;
 
     /*private final int SOLENOID_RETRACT_BOTTOM   = 0;
@@ -86,7 +86,7 @@ public class Climber {
         pistonTop    = new Solenoid(SOLENOID_TOP_ID);
 
         //Retract all pistons
-        pistonBottomMiddle.set(false);
+        pistonBottomMiddle.set(true);
         //pistonMiddle.set(Value.kReverse);
         pistonTop.set(false);
     }
@@ -100,7 +100,7 @@ public class Climber {
     }
 
     public void bottomAndMiddleArmUp() {
-        pistonBottomMiddle.set(true);
+        pistonBottomMiddle.set(false);
     }
 
     /*public void middleArmUp() {
@@ -120,7 +120,7 @@ public class Climber {
     }
 
     private void bottomAndMiddleArmDown() {
-        pistonBottomMiddle.set(false);
+        pistonBottomMiddle.set(true);
     }
 
     /*private void middleArmDown() {
