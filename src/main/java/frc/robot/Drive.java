@@ -1,6 +1,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpiutil.math.MathUtil;
+
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.SPI;
@@ -60,16 +61,16 @@ public class Drive {
     private static final int ON_ANGLE_COUNT  = 10;
 
     //Limelight
-	public              boolean limeControl                   = false;
-	public              int     limeStatus                    = 0;
-	public static final int     LIMELIGHT_ON                  = 3;
-	public static final int     LIMELIGHT_OFF                 = 1;
+	public              boolean limeControl   = false;
+	public              int     limeStatus    = 0;
+	public static final int     LIMELIGHT_ON  = 3;
+    public static final int     LIMELIGHT_OFF = 1;
 
     //Limelight distance calc
-    private static final double CameraMountingAngle = 22.0;	                     // 25.6 degrees, 22.0
-	private static final double CameraHeightFeet 	= 26.5 / 12;	             // 16.5 inches
-	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	     // 8ft 2.25 inches
-	private static double mountingRadians = Math.toRadians(CameraMountingAngle); // a1, converted to radians
+    private static final double CameraMountingAngle = 22.0;	                               // 25.6 degrees, 22.0
+	private static final double CameraHeightFeet 	= 26.5 / 12;	                       // 16.5 inches
+	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	               // 8ft 2.25 inches
+	private static       double mountingRadians     = Math.toRadians(CameraMountingAngle); // a1, converted to radians
 
 	// find result of h2 - h1, or Δh
 	private static double DifferenceInHeight = TargetHeightFt - CameraHeightFeet;
@@ -285,7 +286,6 @@ public class Drive {
 
 
 
-
     /****************************************************************************************** 
     *
     *    calcSwerve()
@@ -320,9 +320,6 @@ public class Drive {
 
         return swerveNums;
     }
-
-
-
 
 
 
@@ -363,7 +360,6 @@ public class Drive {
         rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
     }
 
-    
 
    
     /****************************************************************************************** 
@@ -425,7 +421,6 @@ public class Drive {
 
 
 
-
     /****************************************************************************************** 
     *
     *    teleopRotate()
@@ -439,7 +434,6 @@ public class Drive {
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
-
 
 
 
@@ -572,10 +566,10 @@ public class Drive {
 		/*// Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
         double ty = limelightEntries.getEntry("ty").getDouble(0);
         System.out.println("ty: " + ty);*/
-		/*// Target Area (0% of image to 100% of image) [Basic way to determine distance]
+		// Target Area (0% of image to 100% of image) [Basic way to determine distance]
 		// Use lidar for more acurate readings in future
-        double ta = limelightEntries.getEntry("ta").getDouble(0);
-        System.out.println("ta: " + ta);*/
+        //double ta = limelightEntries.getEntry("ta").getDouble(0);
+        //System.out.println("ta: " + ta);
 
 		if (tv < 1.0) {
             stopWheels();
@@ -589,8 +583,8 @@ public class Drive {
 			}
 			else {
                 //Reset variables
-				noTargetCount     = 0;
-                targetLockedCount = 0;
+				noTargetCount      = 0;
+                targetLockedCount  = 0;
                 limeLightFirstTime = true;
                 targetController.reset();
 
@@ -605,7 +599,8 @@ public class Drive {
             noTargetCount = 0;
 		}
 
-		// Rotate                                  need -1 because limelight is slightly off
+        // Rotate
+        // Need a -1 angle because limelight is slightly offset
 		m_LimelightCalculatedPower = targetController.calculate(tx, -1.0);
         m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
 		teleopRotate(m_LimelightCalculatedPower * -1);
@@ -649,6 +644,55 @@ public class Drive {
         }
         
 		return Robot.CONT;   
+    }
+
+    /**
+     * This is a test method for moving the robot under the control of the limelight
+     * Do not use it yet as it isn't finished or checked
+     * @return limelight motion finished
+     */
+    public int limelightMotion() {
+        // Status Variables
+        int status = 0;
+
+        // Variables
+        Shooter.ShootLocation attemptedShot = controls.getShooterLocation();
+        Shooter.ShootLocation LAY_UP = Shooter.ShootLocation.LAY_UP;
+        Shooter.ShootLocation TEN_FOOT = Shooter.ShootLocation.TEN_FOOT;
+        Shooter.ShootLocation TRENCH = Shooter.ShootLocation.TRENCH;
+
+        // Limelight variables
+        final double LAY_UP_TARGET   = 0.00; //definitely not this
+        final double TEN_FOOT_TARGET = 1.83;
+        final double TRENCH_TARGET   = 0.00; //definitely not this
+        double ta = limelightEntries.getEntry("ta").getDouble(0);
+
+        if (attemptedShot == LAY_UP) {
+            if (ta - LAY_UP_TARGET > 0.01) { //ta is greater than 0.00, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - LAY_UP_TARGET < 0.01) { //ta is less than 0.00, a.k.a you're too far
+                //status = forward()
+            }
+        }
+        else if (attemptedShot == TEN_FOOT) {
+            if (ta - TEN_FOOT_TARGET > 0.01) { //ta is greater than 1.84, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - TEN_FOOT_TARGET < 0.01) { //ta is less than 1.82, a.k.a you're too far
+                //status = forward()
+            }
+        }
+        else if (attemptedShot == TRENCH) {
+            if (ta - TRENCH_TARGET > 0.01) { //ta is greater than 0.00, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - TRENCH_TARGET < 0.01) { //ta is less than 0.00, a.k.a you're too far
+                //status = forward()
+            }
+        }
+
+        return status;
     }
 
     /** 
