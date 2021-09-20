@@ -3,7 +3,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Shooter.ShootLocation;
 
 public class Robot extends TimedRobot {
   // ERROR CODES
@@ -35,7 +34,6 @@ public class Robot extends TimedRobot {
   private double  driveX;
   private double  driveY;
   private boolean fieldDriveState = false;
-  private double  testHoodPower;
   private int     step           = 1;
   private boolean hoodCalibrated = false;
 

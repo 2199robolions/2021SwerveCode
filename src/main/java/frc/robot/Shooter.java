@@ -81,7 +81,7 @@ public class Shooter {
 	public static final double   FRONT_MAX_ENCODER        = 0;
 	public static final double   REAR_MAX_ENCODER         = -15;
 
-	private static final double   HOOD_POWER = 0.075;
+	private static final double  HOOD_POWER = 0.075;
 
 	// Current Limit Constants
 	private static final int SHOOTER_CURRENT_LIMIT = 80;
@@ -95,7 +95,6 @@ public class Shooter {
 	private double                targetPower;
 	private int                   targetCount        = 0;
 	private Shooter.ShootLocation shotLocation       = null;
-	private Shooter.ShootLocation hoodPrevPosition   = null;
 	private boolean               firstTime          = true;
 	public  boolean               hoodFirstTime      = true;
 	private double                hoodTargetEncoder  = 0;

@@ -11,8 +11,6 @@ import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value; 
 import edu.wpi.first.wpilibj.Solenoid;
 
 
@@ -68,13 +66,13 @@ public class Climber {
      */
     public Climber() {
         // SPARKS
-    //    liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
+        //liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
 
         // Spark Current Limit
-    //    liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
+        //liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
 
         // Set Motors to 0
-    //    liftMotor.set( 0.0 );
+        //liftMotor.set( 0.0 );
 
         //Configure Bottom Piston
         pistonBottomMiddle = new Solenoid(SOLENOID_BOTTOM_MIDDLE_ID);
