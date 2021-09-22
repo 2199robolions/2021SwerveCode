@@ -61,8 +61,7 @@ public class Climber {
         pistonTop          = new DoubleSolenoid(TOP_DEPLOY_ID, TOP_RETRACT_ID);
 
         //Retract all pistons
-        pistonBottomMiddle.set(Value.kReverse);
-        pistonTop.set(Value.kReverse);
+        climberDown();
     }
 
 
@@ -70,6 +69,8 @@ public class Climber {
     *
     *    climberUp()
     *    Deploys all 3 climber arms
+    *    Not used at this time.  Done in auto.climberDeploy() with 1 sec delay
+    *    between bottom/middle and top arm deploy
     * 
     ******************************************************************************************/
     public void climberUp() {
@@ -106,7 +107,7 @@ public class Climber {
     ******************************************************************************************/
     public void climberDown() {
         pistonBottomMiddle.set(Value.kReverse);
-        pistonTop.set(Value.kForward);
+        topArmDown();
     }
 
     /****************************************************************************************** 
