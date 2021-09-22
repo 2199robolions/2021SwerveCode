@@ -54,7 +54,7 @@ public class Shooter {
 	public static final double   FRONT_MAX_ENCODER        = 0;
 	public static final double   REAR_MAX_ENCODER         = -15;
 
-	private static final double   HOOD_POWER = 0.075;
+	private static final double  HOOD_POWER = 0.075;
 
 	// Current Limit Constants
 	private static final int SHOOTER_CURRENT_LIMIT = 80;
