@@ -7,33 +7,6 @@ import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
-	/**
-	 * All of these numbers need to be fine tuned
-	 * At 0.6 Power RPM is 3240
-	 * At 0.69 Power RPM is 3834 MAX
-	 * At 0.7 Power RPM is 3750
-	 * At 0.8 Power RPM is 4220
-	 * At 0.9 Power RPM is 4770
-	 * At 1.0 Power RPM is 5240 (5400)
-	 */
-
-	 /****************************************
-	  * 
-	  *  Data from March 10, 2020
-	  *
-	  power		rpm
-	  .60		3420
-	  .65		3680
-	  .70		3942
-	  .75		4200
-	  .80		4451
-	  .85		4697
-	  .90		4942
-	  .95		5182
-	  1.00		5422
-		*/
-	
-
 public class Shooter {
 	// SPARK MAX
 	private CANSparkMax leftShooter;
@@ -52,8 +25,8 @@ public class Shooter {
 	private int BALL_FEEDER_ID = 5;
 
 	// DIO Ports
-	public final int FRONT_SWITCH_ID = 0; //public final int LIMITSWITCH_1_ID = 0;
-	public final int REAR_SWITCH_ID  = 1; //public final int LIMITSWITCH_2_ID = 1;
+	public final int FRONT_SWITCH_ID = 0; 
+	public final int REAR_SWITCH_ID  = 1;
 
 	// Encoders
 	private CANEncoder leftShooterEncoder;
@@ -61,8 +34,8 @@ public class Shooter {
 	private CANEncoder hoodMotorEncoder;
 
 	//DIO SENSORS
-	private DigitalInput frontSwitch; //This one is the sensor closest to the front of the robot
-	private DigitalInput rearSwitch; //This one is the sensor closest to the back of the robot
+	private DigitalInput frontSwitch;
+	private DigitalInput rearSwitch; 
 
 	// POWER CONSTANTS
 	public final double SHOOT_POWER = 1.00; //It's more effective to adjust the angle for each shot than the speed
@@ -73,11 +46,11 @@ public class Shooter {
 	public final double OFF_TARGET_RPM     = 0;
 
 	// HOOD MOTOR CONSTANTS
-	public static final double   TEN_FOOT_HOOD_ENCODER    = -7.5; //-9.2
-	public static final double   TRENCH_SHOT_HOOD_ENCODER = -3.75; //Not certain -4.0
-	public static final double   LAY_UP_HOOD_ENCODER      = -14; //Not tested
+	public static final double   TEN_FOOT_HOOD_ENCODER    = -7.5;
+	public static final double   TRENCH_SHOT_HOOD_ENCODER = -3.75; 
+	public static final double   LAY_UP_HOOD_ENCODER      = -14;
 	public static final double   LOW_SHOT_HOOD_ENCODER    = 0;
-	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15; //Not tested
+	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15;
 	public static final double   FRONT_MAX_ENCODER        = 0;
 	public static final double   REAR_MAX_ENCODER         = -15;
 
@@ -92,10 +65,7 @@ public class Shooter {
 
 	// Variables
 	public  double                targetVelocity;
-	private double                targetPower;
 	private int                   targetCount        = 0;
-	private Shooter.ShootLocation shotLocation       = null;
-	private Shooter.ShootLocation hoodPrevPosition   = null;
 	private boolean               firstTime          = true;
 	public  boolean               hoodFirstTime      = true;
 	private double                hoodTargetEncoder  = 0;
@@ -223,7 +193,6 @@ public class Shooter {
     *   
     ******************************************************************************************/
 	public void manualShooterControl(ShootLocation location) {
-		shotLocation = location;
 
 		if (location == ShootLocation.OFF) {
 			rightShooter.set(OFF_POWER);

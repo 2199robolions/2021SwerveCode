@@ -81,20 +81,17 @@ public class Auto {
 		switch (step) {
 			// Starts Auto Program
 			case 1:
-				led.autoMode();
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoCrabDrive(3, 0);
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
-				led.autoModeFinished();
-
 				return Robot.DONE;
 		}
 
@@ -128,16 +125,14 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoCrabDrive(3, 0);
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
-				led.autoModeFinished();
-
 				return Robot.DONE;
 		}
 
@@ -171,16 +166,14 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoCrabDrive(3, 0);
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
-				led.autoModeFinished();
-
 				return Robot.DONE;
 		}
 
@@ -214,16 +207,14 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				status = drive.autoCrabDrive(3, 0);
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
-				led.autoModeFinished();
-
 				return Robot.DONE;
 		}
 
@@ -255,35 +246,37 @@ public class Auto {
 				shooter.disableHoodMotor();
 				shooter.disableRightShooterMotor();
 				status = shooter.reverseFeeder(0.25);
+				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
 				break;
 			//Starts up shooter
 			case 2:
 				shooter.disableFeeder();
 				shooter.disableHoodMotor();
 				shooter.manualShooterControl(shootLocation);
+				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
 				break;
 			//Moves hood to proper location
 			case 3:
 				shooter.disableFeeder();
 				status = shooter.manualHoodMotorControl(shootLocation);
+				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
 				break;
 			//Feeds balls if shooter is up to speed. Lasts for 5 seconds before moving on
 			case 4:
-				status = delay(5000);
+				status = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				break;
+			case 5:
 				shooter.disableHoodMotor();
-				if (shooter.shooterReadyAuto() == true) {
-					shooter.enableFeeder();
-				}
-				else {
-					shooter.disableFeeder();
-				}
+				shooter.enableFeeder();
+				status = Robot.DONE;
+				break;
+			case 6:
+				status = delay(5000);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
 				shooter.disableShooter();
-				led.autoModeFinished();
-
 				return Robot.DONE;
 		}
 

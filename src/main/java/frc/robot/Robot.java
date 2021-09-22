@@ -26,7 +26,6 @@ public class Robot extends TimedRobot {
   private final double REVERSE_FEEDER_TIME = 0.25;
 
   //VARIABLES
-  private int     climberStatus;
   private int     ledCurrent;
   private int     delaySeconds;
   private int     autoStatus      = Robot.CONT;
@@ -88,7 +87,6 @@ public class Robot extends TimedRobot {
     ledCurrent = 0;
 
     //Set Different Status Cues
-    climberStatus = Robot.DONE;
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
     wheelMode     = Drive.WheelMode.MANUAL;
   }
@@ -163,9 +161,6 @@ public class Robot extends TimedRobot {
     //Telemetry
     System.out.println("Delay: "    + delaySeconds);
 		System.out.println("Position: " + m_positionSelected);
-    
-    //LED Color Set
-    led.autoMode();
   }
 
 
@@ -534,6 +529,7 @@ public class Robot extends TimedRobot {
     boolean enableAllArms;
 		boolean DisableTopArm;
     double  climberMotorPower;
+    int     climberStatus;
     
     //Get inputs from controllers
     enableAllArms     = controls.climberAllArmsUp();
