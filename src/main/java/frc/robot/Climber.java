@@ -95,7 +95,7 @@ public class Climber {
     * 
     ******************************************************************************************/
     public void topArmUp() {
-        pistonTop.set(Value.kReverse);
+        pistonTop.set(Value.kForward);
     }
 
 
@@ -117,7 +117,7 @@ public class Climber {
     *   
     ******************************************************************************************/
     public void topArmDown() {
-        pistonTop.set(Value.kForward);
+        pistonTop.set(Value.kReverse);
     }
 
 

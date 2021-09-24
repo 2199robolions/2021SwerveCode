@@ -574,7 +574,10 @@ public class Robot extends TimedRobot {
       // You have climbed
       if (climberMotorPower > 0) {
         climber.climberDown();
-        climber.pullRobotUp(climberMotorPower);
+      }
+      climber.pullRobotUp(climberMotorPower);
+      if (enableAllArms == true) {
+        climberState = Climber.ClimberState.START_ARMS_UP;
       }
 		}
   }
