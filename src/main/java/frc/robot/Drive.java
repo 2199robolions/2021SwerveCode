@@ -550,7 +550,7 @@ public class Drive {
             
             //Sets and displays the forced time out
 			timeOut = currentMs + TIME_OUT;
-            System.out.println("TimeOut " + timeOut / 1000 + " seconds");
+            System.out.println("Limelight timeOut " + timeOut / 1000 + " seconds");
             
             //Turns the limelight on
             changeLimelightLED(LIMELIGHT_ON);

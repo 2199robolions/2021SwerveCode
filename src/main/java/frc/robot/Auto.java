@@ -5,9 +5,13 @@ package frc.robot;
 public class Auto {
 	// Variables
 	private int          step;
+	private int          shootStep;
 	//private int          calibrationStep;
 	private long         startMs; 
-	private boolean      firstTime = true;
+	private boolean      firstTime        = true;
+	private boolean      shootFirstTime   = true;
+	private boolean      routineFirstTime = true;
+	private boolean      delayFirstTime   = true;
 
 	// Consants
 	//private final int TEST_DELAY = 1000;
@@ -33,6 +37,7 @@ public class Auto {
 
 		//Sets the step variables
 		step = 1;
+		shootStep = 1;
 		//calibrationStep = 1;
 	}
 
@@ -195,26 +200,27 @@ public class Auto {
 		int status = Robot.CONT;
 		long delayMsec = delay * 1000;
 
-		if (firstTime == true) {
-			firstTime = false;
+		if (routineFirstTime == true) {
+			routineFirstTime = false;
 			step = 1;
 		}
 
 		switch (step) {
 			// Starts Auto Program
 			case 1:
-				led.autoMode();
 				status = delay(delayMsec);
 				break;
 			case 2:
+				System.out.println("Shooting ball");
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
+				System.out.println("Driving");
 				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
 				step = 1;
-				firstTime = true;
+				routineFirstTime = true;
 				return Robot.DONE;
 		}
 
@@ -233,20 +239,22 @@ public class Auto {
     * 
     ******************************************************************************************/
 	public int shootBall(Shooter.ShootLocation shootLocation) {
-		int status = Robot.CONT;
+		int shootStatus = Robot.CONT;
 
-		if (firstTime == true) {
-			firstTime = false;
-			step = 1;
+		if (shootFirstTime == true) {
+			System.out.println("shoot first time");
+			shootFirstTime = false;
+			shootStep = 1;
 		}
 
-		switch (step) {
+		switch (shootStep) {
 			//Reverses feeder to clear jams
 			case 1:
 				shooter.disableHoodMotor();
 				shooter.disableRightShooterMotor();
-				status = shooter.reverseFeeder(0.25);
+				shootStatus = shooter.reverseFeeder(0.25);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				System.out.println("Case 1");
 				break;
 			//Starts up shooter
 			case 2:
@@ -254,34 +262,43 @@ public class Auto {
 				shooter.disableHoodMotor();
 				shooter.manualShooterControl(shootLocation);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				shootStatus = Robot.DONE;
+				System.out.println("Case 2");
 				break;
 			//Moves hood to proper location
 			case 3:
 				shooter.disableFeeder();
-				status = shooter.manualHoodMotorControl(shootLocation);
+				shootStatus = shooter.manualHoodMotorControl(shootLocation);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				System.out.println("Case 3");
 				break;
 			//Feeds balls if shooter is up to speed. Lasts for 5 seconds before moving on
 			case 4:
-				status = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				shootStatus = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
+				System.out.println("Case 4");
 				break;
 			case 5:
 				shooter.disableHoodMotor();
 				shooter.enableFeeder();
-				status = Robot.DONE;
+				shootStatus = Robot.DONE;
+				System.out.println("Case 5");
 				break;
 			case 6:
-				status = delay(5000);
+				shooter.enableFeeder();
+				shootStatus = delay(5000);
+				System.out.println("Case 6");
 				break;
 			default:
-				step = 1;
-				firstTime = true;
+				shootStep = 1;
+				shootFirstTime = true;
 				shooter.disableShooter();
+				System.out.println("Default");
 				return Robot.DONE;
 		}
 
-		if (status == Robot.DONE) {
-			step++;
+		if (shootStatus == Robot.DONE) {
+			System.out.println("Incrementing shootStep " + shootStep);
+			shootStep++;
 		}
 
 		return Robot.CONT;
@@ -398,13 +415,13 @@ public class Auto {
 	private int delay(long delayMsec) {
 		long currentMs = System.currentTimeMillis();
 
-		if (firstTime == true) {
-			firstTime = false;
+		if (delayFirstTime == true) {
+			delayFirstTime = false;
 			startMs = System.currentTimeMillis();
 		}
 
 		if ( (currentMs - startMs) > delayMsec) {
-			firstTime = true;
+			delayFirstTime = true;
 			return Robot.DONE;
 		}
 		else  {
