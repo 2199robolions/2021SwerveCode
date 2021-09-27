@@ -11,6 +11,17 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
  */
 public class Grabber {
 
+    //Singleton Method to insure that there is ever only one instance of Controls
+    private static Grabber instance = null;
+
+    public static synchronized Grabber getInstance() {
+        if (instance == null) {
+            instance = new Grabber();
+        }
+
+        return instance;
+	}
+
     //SPARK MAX ID's
     private static final int SPARK_ID  = 18;
 
@@ -52,7 +63,7 @@ public class Grabber {
     /**
      * CONSTRUCTOR
      */
-    public Grabber()  {
+    private Grabber()  {
         //Grabber Motor Init
         grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushless);
         grabberMotor.setSmartCurrentLimit(GRABBER_CURRENT_LIMIT);
@@ -81,11 +92,13 @@ public class Grabber {
 
         //System.out.println("Forwarding State: " + grabberState);
     }
+
     public void deploy(){
         //Sets piston to deploy position
         grabberPiston.set(Value.kForward);
         grabberState = GrabberState.DEPLOY;
     }
+
     public void retract(){
         //Sets piston to deploy position
         grabberPiston.set(Value.kReverse);
@@ -94,7 +107,7 @@ public class Grabber {
 
 
     public void setGrabberMotor(GrabberDirection dir) {
-        //Don't allow grabber to turn if it's retracted
+        //Don't allow grabber to turn manually if it's retracted
         if (grabberState == GrabberState.RETRACT)  {
             grabberMotor.set(0.0);
             return;
@@ -111,6 +124,17 @@ public class Grabber {
         else {
             grabberMotor.set(0.0);
         }    
+    }
+
+    /**
+     * A method to allow the Grabber to move and let balls pass through it
+     * EXPERIMENTAL
+     */
+    public void autoGrabberControl() {
+        if (grabberState == GrabberState.RETRACT) {
+            // Gives it a very slow intake
+            grabberMotor.set(GRABBER_POWER / 5);
+        }
     }
 
 } // End of the Grabber Class

@@ -3,15 +3,18 @@ package frc.robot;
 //import 
 
 public class Auto {
-	// Variables
+	// Step Variables
 	private int          step;
 	private int          shootStep;
-	//private int          calibrationStep;
-	private long         startMs; 
+
+	// First Time variables 
 	private boolean      firstTime        = true;
 	private boolean      shootFirstTime   = true;
 	private boolean      routineFirstTime = true;
 	private boolean      delayFirstTime   = true;
+
+	// Variables
+	private long         startMs; 
 
 	// Consants
 	//private final int TEST_DELAY = 1000;
@@ -38,7 +41,6 @@ public class Auto {
 		//Sets the step variables
 		step = 1;
 		shootStep = 1;
-		//calibrationStep = 1;
 	}
 
 
@@ -279,7 +281,6 @@ public class Auto {
 				break;
 			case 5:
 				shooter.disableHoodMotor();
-				shooter.enableFeeder();
 				shootStatus = Robot.DONE;
 				System.out.println("Case 5");
 				break;
@@ -292,7 +293,8 @@ public class Auto {
 				shootStep = 1;
 				shootFirstTime = true;
 				shooter.disableShooter();
-				System.out.println("Default");
+				grabber.setGrabberMotor(Grabber.GrabberDirection.OFF);
+
 				return Robot.DONE;
 		}
 

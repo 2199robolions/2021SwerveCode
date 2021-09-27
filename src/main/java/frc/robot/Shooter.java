@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.controller.PIDController;
 
 public class Shooter {
+	
 	// SPARK MAX
 	private CANSparkMax leftShooter;
 	private CANSparkMax rightShooter;
@@ -95,7 +96,9 @@ public class Shooter {
 	private static final double kP = 0.0001; //0.0003 old value
 	private static final double kI = 0.00;
 	private static final double kD = 0.00;
-	
+
+	//Object Creation
+	Grabber grabber;
 
 
 	/****************************************************************************************** 
@@ -142,6 +145,9 @@ public class Shooter {
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
 		shooterController.setIntegratorRange(-0.1, 0.1);
+
+		//Instance Creation
+		grabber = Grabber.getInstance();
 	}
 
 
@@ -239,22 +245,6 @@ public class Shooter {
 
 
 	/****************************************************************************************** 
-    *
-    *    autoShooterControl()
-	*    Feeds balls if the shooter is up to speed
-    *   
-    ******************************************************************************************/
-	public void autoBallFeederControl() {
-		if (shooterReadyAuto() == true) {
-			feedMotor.set(FEED_POWER);
-		}
-		else {
-			feedMotor.set(OFF_POWER);
-		}
-	}
-
-
-	/****************************************************************************************** 
      *
      *    Methods relating to the ball feeder
      * 
@@ -280,7 +270,11 @@ public class Shooter {
 	 */
 	public void enableFeeder() {
 		if (shooterReadyAuto() == true) {
+			//Turns the Feed motor on at a set power
 			manualBallFeederControl(BallFeederDirection.FORWARD);
+
+			//Sets the grabber to slowly rotate when shooting
+			grabber.autoGrabberControl();
 		}
 	}
 

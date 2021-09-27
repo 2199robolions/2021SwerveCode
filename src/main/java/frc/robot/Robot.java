@@ -76,7 +76,7 @@ public class Robot extends TimedRobot {
     led      = LedLights.getInstance();
     controls = Controls.getInstance();
     drive    = new Drive();
-    grabber  = new Grabber();
+    grabber  = Grabber.getInstance();
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
