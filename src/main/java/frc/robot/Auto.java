@@ -94,7 +94,10 @@ public class Auto {
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = drive.autoCrabDrive(3, 0);
+				status = drive.autoRotate(180);
+				break;
+			case 4:
+				//status = drive.autoCrabDrive(1.5, -90, 0.3);
 				break;
 			default:
 				step = 1;
@@ -213,11 +216,9 @@ public class Auto {
 				status = delay(delayMsec);
 				break;
 			case 2:
-				System.out.println("Shooting ball");
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				System.out.println("Driving");
 				status = drive.autoCrabDrive(3, 0);
 				break;
 			default:
@@ -244,7 +245,6 @@ public class Auto {
 		int shootStatus = Robot.CONT;
 
 		if (shootFirstTime == true) {
-			System.out.println("shoot first time");
 			shootFirstTime = false;
 			shootStep = 1;
 		}
@@ -256,7 +256,6 @@ public class Auto {
 				shooter.disableRightShooterMotor();
 				shootStatus = shooter.reverseFeeder(0.25);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
-				System.out.println("Case 1");
 				break;
 			//Starts up shooter
 			case 2:
@@ -265,29 +264,24 @@ public class Auto {
 				shooter.manualShooterControl(shootLocation);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
 				shootStatus = Robot.DONE;
-				System.out.println("Case 2");
 				break;
 			//Moves hood to proper location
 			case 3:
 				shooter.disableFeeder();
 				shootStatus = shooter.manualHoodMotorControl(shootLocation);
 				drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
-				System.out.println("Case 3");
 				break;
 			//Feeds balls if shooter is up to speed. Lasts for 5 seconds before moving on
 			case 4:
 				shootStatus = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
-				System.out.println("Case 4");
 				break;
 			case 5:
 				shooter.disableHoodMotor();
 				shootStatus = Robot.DONE;
-				System.out.println("Case 5");
 				break;
 			case 6:
 				shooter.enableFeeder();
 				shootStatus = delay(5000);
-				System.out.println("Case 6");
 				break;
 			default:
 				shootStep = 1;
@@ -299,7 +293,6 @@ public class Auto {
 		}
 
 		if (shootStatus == Robot.DONE) {
-			System.out.println("Incrementing shootStep " + shootStep);
 			shootStep++;
 		}
 

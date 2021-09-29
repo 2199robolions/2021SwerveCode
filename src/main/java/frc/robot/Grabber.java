@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
  */
 public class Grabber {
 
-    //Singleton Method to insure that there is ever only one instance of Controls
+    //Singleton Method to insure that there is ever only one instance of Grabber
     private static Grabber instance = null;
 
     public static synchronized Grabber getInstance() {
@@ -133,7 +133,7 @@ public class Grabber {
     public void autoGrabberControl() {
         if (grabberState == GrabberState.RETRACT) {
             // Gives it a very slow intake
-            grabberMotor.set(GRABBER_POWER / 5);
+            grabberMotor.set(GRABBER_POWER * -0.6);
         }
     }
 

@@ -367,10 +367,13 @@ public class Drive {
     *    autoCrabDrive()
     *    Drives robot for certain distance at a given heading and speed
     *    Generic function for autoCrabDrive with default power of 0.6
+    *    @param distanceInFeet
+    *    @param targetHeading
+    *    @return Robot Status
     * 
     ******************************************************************************************/
-    public int autoCrabDrive(double distance, double targetDegrees) { 
-        return autoCrabDrive(distance, targetDegrees, 0.6);
+    public int autoCrabDrive(double distance, double targetHeading) { 
+        return autoCrabDrive(distance, targetHeading, 0.6);
     }
 
 
@@ -380,6 +383,10 @@ public class Drive {
     *    Drives robot for certain distance at a given heading and speed
     *    Distance has to be positive
     *    Initial orientation of robot is maintained throughout function
+    *    @param distanceInFeet
+    *    @param targetHeading
+    *    @param power
+    *    @return Robot Status
     * 
     ******************************************************************************************/
     public int autoCrabDrive(double distance, double targetHeading, double power) {
@@ -396,7 +403,7 @@ public class Drive {
         }
 
         //First time through initializes target values
-        if(firstTime == true){
+        if (firstTime == true) {
             firstTime = false;
             targetOrientation = ahrs.getYaw();
             encoderTarget = encoderCurrent + (ticksPerFoot * distance);
@@ -407,7 +414,7 @@ public class Drive {
         teleopSwerve(x, y, orientationError);
 
         //Checks if target distance has been reached, then ends function if so
-        if(encoderCurrent >= encoderTarget){
+        if (encoderCurrent >= encoderTarget) {
             firstTime = true;
             stopWheels();
             rotateController.reset();
@@ -570,6 +577,7 @@ public class Drive {
 		// Use lidar for more acurate readings in future
         //double ta = limelightEntries.getEntry("ta").getDouble(0);
         //System.out.println("ta: " + ta);
+        //ta of 1.6% for the 10ft shot
 
 		if (tv < 1.0) {
             stopWheels();
