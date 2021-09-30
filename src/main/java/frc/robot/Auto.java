@@ -97,11 +97,26 @@ public class Auto {
 				status = drive.autoRotate(180);
 				break;
 			case 4:
-				//status = drive.autoCrabDrive(1.5, -90, 0.3);
+				grabber.setGrabberMotor(Grabber.GrabberDirection.FORWARD);
+				status = Robot.DONE;
+				break;
+			case 5:
+				status = drive.autoCrabDrive(7.5, 180, 0.25);
+				status = Robot.DONE;
+				break;
+			case 6:
+				status = drive.autoRotate(0.00);
+				break;
+			case 7:
+				status = drive.autoCrabDrive(5.0, 0);
+				break;
+			case 8:
+				status = shootBall(Shooter.ShootLocation.TRENCH);
 				break;
 			default:
 				step = 1;
 				firstTime = true;
+				grabber.setGrabberMotor(Grabber.GrabberDirection.OFF);
 				return Robot.DONE;
 		}
 
@@ -280,7 +295,7 @@ public class Auto {
 				shootStatus = Robot.DONE;
 				break;
 			case 6:
-				shooter.enableFeeder();
+				moveBalls();
 				shootStatus = delay(5000);
 				break;
 			default:
@@ -300,6 +315,24 @@ public class Auto {
 	}
 
 
+	/****************************************************************************************** 
+    *
+    *    moveBalls()
+	*    Enables the feeder and the grabber to assist with shooting
+    * 
+    ******************************************************************************************/
+	public void moveBalls() {
+		//Variables
+		boolean shooterReady = shooter.shooterReadyAuto();
+
+		//Enables the feeder
+		shooter.enableFeeder();
+
+		//Enables the grabber if the shooter is ready
+		if (shooterReady == true) {
+			grabber.autoGrabberControl();
+		}
+	}
 
 
 	/**

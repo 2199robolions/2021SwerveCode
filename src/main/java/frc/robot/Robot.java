@@ -65,7 +65,16 @@ public class Robot extends TimedRobot {
 	private static final String kCustomAutoLRC    = "L/R/C Simple";
 
 	private String m_positionSelected;
-	private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
+  private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
+  
+  //Auto Delay
+  private static final String kCustomDelayZero  = "0";
+	private static final String kCustomDelayTwo   = "2";
+	private static final String kCustomDelayFour  = "4";
+	private static final String kCustomDelaySix   = "6";
+
+	private String m_delaySelected;
+  private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
 
   /**
@@ -76,7 +85,7 @@ public class Robot extends TimedRobot {
     led      = LedLights.getInstance();
     controls = Controls.getInstance();
     drive    = new Drive();
-    grabber  = Grabber.getInstance();
+    grabber  = new Grabber();
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
@@ -110,15 +119,18 @@ public class Robot extends TimedRobot {
 		m_pathChooser.setDefaultOption(kCustomAutoLRC, kCustomAutoLRC);
 		SmartDashboard.putData("Auto Positions", m_pathChooser);
 
-    //Auto Delay
-    SmartDashboard.putNumber("Auto delay", 0);
+    //Default Auto Delay
+    m_pathChooser.addOption(kCustomDelayZero, kCustomDelayZero);
+		m_pathChooser.addOption(kCustomDelayTwo, kCustomDelayTwo);
+		m_pathChooser.addOption(kCustomDelayFour, kCustomDelayFour);
+    m_pathChooser.addOption(kCustomDelaySix, kCustomDelaySix);
+    
+    //Default Auto Position
+		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
+		SmartDashboard.putData("Auto Delay", m_delayChooser);
 		
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
-
-    //Smartdashboard test values
-    //SmartDashboard.putNumber("Hood power", 0.05);
-    //SmartDashboard.putNumber("Hood target", -2);
 
   }
 
@@ -494,7 +506,7 @@ public class Robot extends TimedRobot {
     //Turns on feed motor if shooter is up to speed
     else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
       if (wheelMode == Drive.WheelMode.LOCKED) {
-        shooter.enableFeeder();
+        auto.moveBalls();
       }
       shooter.disableHoodMotor();
       //Leave shooter motor on, needs to maintain speed

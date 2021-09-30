@@ -10,18 +10,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
  * Add your docs here.
  */
 public class Grabber {
-
-    //Singleton Method to insure that there is ever only one instance of Grabber
-    private static Grabber instance = null;
-
-    public static synchronized Grabber getInstance() {
-        if (instance == null) {
-            instance = new Grabber();
-        }
-
-        return instance;
-	}
-
     //SPARK MAX ID's
     private static final int SPARK_ID  = 18;
 
@@ -63,7 +51,7 @@ public class Grabber {
     /**
      * CONSTRUCTOR
      */
-    private Grabber()  {
+    public Grabber()  {
         //Grabber Motor Init
         grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushless);
         grabberMotor.setSmartCurrentLimit(GRABBER_CURRENT_LIMIT);

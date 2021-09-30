@@ -145,9 +145,6 @@ public class Shooter {
 		// PID Controller
 		shooterController = new PIDController(kP, kI, kD);
 		shooterController.setIntegratorRange(-0.1, 0.1);
-
-		//Instance Creation
-		grabber = Grabber.getInstance();
 	}
 
 
@@ -270,11 +267,7 @@ public class Shooter {
 	 */
 	public void enableFeeder() {
 		if (shooterReadyAuto() == true) {
-			//Turns the Feed motor on at a set power
 			manualBallFeederControl(BallFeederDirection.FORWARD);
-
-			//Sets the grabber to slowly rotate when shooting
-			grabber.autoGrabberControl();
 		}
 	}
 
