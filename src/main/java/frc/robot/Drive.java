@@ -30,7 +30,7 @@ public class Drive {
     private static final double kD = 0.00;
     
     //Auto crab drive controller
-    private static final double acdP = 0.03; //1.0 was used for the original autoCrabDrive, which adjusted the angles of the wheels instead of turning the robot
+    private static final double acdP = 0.02; //0.03
     private static final double acdI = 0;
     private static final double acdD = 0;
 

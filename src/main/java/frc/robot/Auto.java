@@ -89,34 +89,53 @@ public class Auto {
 			// Starts Auto Program
 			case 1:
 				status = delay(delayMsec);
+				System.out.println("Case 1");
 				break;
 			case 2:
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				System.out.println("Case 2");
 				break;
 			case 3:
 				status = drive.autoRotate(180);
+				System.out.println("Case 3");
 				break;
 			case 4:
-				grabber.setGrabberMotor(Grabber.GrabberDirection.FORWARD);
+				grabber.deployRetract();
+				System.out.println("Case 4");
 				status = Robot.DONE;
 				break;
 			case 5:
-				status = drive.autoCrabDrive(7.5, 180, 0.25);
-				status = Robot.DONE;
+				//Rotates wheels before driving
+				status = drive.autoCrabDrive(0, 0, 0);
+				System.out.println("Case 5");
 				break;
 			case 6:
-				status = drive.autoRotate(0.00);
+				//Drives and turns on grabber
+				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
+				status = drive.autoCrabDrive(14.0, 0.00, 0.4);
+				System.out.println("Case 6");
 				break;
 			case 7:
-				status = drive.autoCrabDrive(5.0, 0);
+				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
+				status = drive.autoCrabDrive(6.00, 180.0, 0.4);
+				status = Robot.DONE;
 				break;
 			case 8:
-				status = shootBall(Shooter.ShootLocation.TRENCH);
+				//status = drive.autoCrabDrive(5.0, 0, 0.25);
+				status = Robot.DONE;
+				break;
+			case 9:
+				//status = shootBall(Shooter.ShootLocation.TRENCH);
+				status = Robot.DONE;
 				break;
 			default:
 				step = 1;
 				firstTime = true;
+				
+				//Resets the grabber
 				grabber.setGrabberMotor(Grabber.GrabberDirection.OFF);
+				grabber.retract();
+				
 				return Robot.DONE;
 		}
 

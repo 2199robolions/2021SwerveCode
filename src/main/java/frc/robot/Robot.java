@@ -26,7 +26,6 @@ public class Robot extends TimedRobot {
 
   //VARIABLES
   private int     ledCurrent;
-  private int     delaySeconds;
   private int     autoStatus      = Robot.CONT;
   private int     shooterStatus   = Robot.CONT;
   private double  rotatePower;
@@ -73,7 +72,7 @@ public class Robot extends TimedRobot {
 	private static final String kCustomDelayFour  = "4";
 	private static final String kCustomDelaySix   = "6";
 
-	private String m_delaySelected;
+	private int m_delaySelected;
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
 
@@ -120,10 +119,10 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Auto Positions", m_pathChooser);
 
     //Default Auto Delay
-    m_pathChooser.addOption(kCustomDelayZero, kCustomDelayZero);
-		m_pathChooser.addOption(kCustomDelayTwo, kCustomDelayTwo);
-		m_pathChooser.addOption(kCustomDelayFour, kCustomDelayFour);
-    m_pathChooser.addOption(kCustomDelaySix, kCustomDelaySix);
+    m_delayChooser.addOption(kCustomDelayZero, kCustomDelayZero);
+		m_delayChooser.addOption(kCustomDelayTwo, kCustomDelayTwo);
+		m_delayChooser.addOption(kCustomDelayFour, kCustomDelayFour);
+    m_delayChooser.addOption(kCustomDelaySix, kCustomDelaySix);
     
     //Default Auto Position
 		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
@@ -166,10 +165,10 @@ public class Robot extends TimedRobot {
     m_positionSelected = m_pathChooser.getSelected();
 
     //Auto Delay
-    delaySeconds = (int) SmartDashboard.getNumber("Auto Delay", 0);
+    m_delaySelected = Integer.parseInt(m_delayChooser.getSelected());
 
     //Telemetry
-    System.out.println("Delay: "    + delaySeconds);
+    System.out.println("Delay: "    + m_delaySelected);
 		System.out.println("Position: " + m_positionSelected);
   }
 
@@ -191,7 +190,7 @@ public class Robot extends TimedRobot {
     }
     else {
       if (autoStatus == Robot.CONT) {
-        autoStatus = auto.competitionAuto(m_positionSelected, delaySeconds);
+        autoStatus = auto.competitionAuto(m_positionSelected, m_delaySelected);
       }
       else {
         drive.stopWheels();
