@@ -4,6 +4,12 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.vision.*;
+
+import frc.robot.GripPipeline;
+
 public class Robot extends TimedRobot {
   // ERROR CODES
   public static final int FAIL = -1;
@@ -75,6 +81,16 @@ public class Robot extends TimedRobot {
 	private int m_delaySelected;
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
+  //Vision processing stuff
+  //WARNING EXPERIMENTAL and not implemented
+  private static final int IMG_WIDTH = 640;
+  private static final int IMG_HEIGHT = 480;
+
+  private VisionThread visionThread;
+  private double centerX = 0.0;
+
+  private final Object imgLock = new Object();
+
 
   /**
    * Constructor
@@ -127,7 +143,22 @@ public class Robot extends TimedRobot {
     //Default Auto Position
 		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
 		SmartDashboard.putData("Auto Delay", m_delayChooser);
-		
+    
+    //Vision Processing
+    //WARNING EXPERIMENTAL and not implemented
+    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+
+    /*visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
+        if (!pipeline.filterContoursOutput().isEmpty()) {
+            Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+            synchronized (imgLock) {
+              centerX = r.x + (r.width / 2);
+            }
+        }
+    });
+    visionThread.start();*/
+
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
 
