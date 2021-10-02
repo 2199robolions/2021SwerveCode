@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 
-import edu.wpi.first.vision.VisionPipeline;
+import edu.wpi.first.wpilibj.vision.VisionPipeline;
 
 import org.opencv.core.*;
 import org.opencv.core.Core.*;
-import org.opencv.features2d.*;
+import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
 import org.opencv.objdetect.*;
@@ -41,20 +41,19 @@ public class GripPipeline implements VisionPipeline {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	@Override
-	public void process(Mat source0) {
+	@Override	public void process(Mat source0) {
 		// Step CV_resize0:
 		Mat cvResizeSrc = source0;
 		Size cvResizeDsize = new Size(0, 0);
-		double cvResizeFx = 1.00;
-		double cvResizeFy = 1.00;
+		double cvResizeFx = 0.75;
+		double cvResizeFy = 0.75;
 		int cvResizeInterpolation = Imgproc.INTER_LINEAR;
 		cvResize(cvResizeSrc, cvResizeDsize, cvResizeFx, cvResizeFy, cvResizeInterpolation, cvResizeOutput);
 
 		// Step HSV_Threshold0:
 		Mat hsvThresholdInput = cvResizeOutput;
-		double[] hsvThresholdHue = {0.0, 50.00};
-		double[] hsvThresholdSaturation = {52.74280575539568, 195.00};
+		double[] hsvThresholdHue = {0.0, 49.69696969696969};
+		double[] hsvThresholdSaturation = {52.74280575539568, 194.8989898989899};
 		double[] hsvThresholdValue = {123.83093525179855, 255.0};
 		hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
 
@@ -251,6 +250,8 @@ public class GripPipeline implements VisionPipeline {
 		blobDet.detect(input, blobList);
 	}
 
+
+
+
 }
 
-//End of the GripPipline class
