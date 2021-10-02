@@ -4,11 +4,13 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+//Object Tracking related imports
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.vision.*;
-
-import frc.robot.GripPipeline;
 
 public class Robot extends TimedRobot {
   // ERROR CODES
@@ -82,7 +84,7 @@ public class Robot extends TimedRobot {
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
   //Vision processing stuff
-  //WARNING EXPERIMENTAL and not implemented
+  //WARNING EXPERIMENTAL
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
 
@@ -145,19 +147,19 @@ public class Robot extends TimedRobot {
 		SmartDashboard.putData("Auto Delay", m_delayChooser);
     
     //Vision Processing
-    //WARNING EXPERIMENTAL and not implemented
-    UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-    camera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    //WARNING EXPERIMENTAL
+    UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-    /*visionThread = new VisionThread(camera, new GripPipeline(), pipeline -> {
-        if (!pipeline.filterContoursOutput().isEmpty()) {
-            Rect r = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
+    visionThread = new VisionThread(driveCamera, new GripPipeline(), pipeline -> {
+        if (!pipeline.findContoursOutput().isEmpty()) {
+            Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
             synchronized (imgLock) {
-              centerX = r.x + (r.width / 2);
+              centerX = cameraFOV.x + (cameraFOV.width / 2);
             }
         }
     });
-    visionThread.start();*/
+    visionThread.start();
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -327,7 +329,7 @@ public class Robot extends TimedRobot {
       autoStatus = Robot.FAIL;
     }
   
-    switch (step) {
+    /*switch (step) {
       case 1:
         shooter.testHoodMotor(-0.03);
         if (shooter.getHoodEncoder() < -13) {
@@ -347,19 +349,26 @@ public class Robot extends TimedRobot {
 
     if ( (autoStatus == Robot.DONE) || (autoStatus == Robot.FAIL) ) {
       step++;
-    }
+    }*/
   
-      //autoStatus = shooter.moveHoodFullForward();
-      //shooter.testHoodMotorEncoder();
-      //shooter.testHoodMotor(-0.03);
-      //shooter.testFeedMotor(-0.25);
-      //shooter.testShootMotors(1);
+    //autoStatus = shooter.moveHoodFullForward();
+    //shooter.testHoodMotorEncoder();
     
-
- 
     /*double tempPower;
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
     shooter.enableShooter(tempPower);*/
+
+    //Vision Processing
+    //WARNING EXPERIMENTAL
+    double centerX;
+    double turn;
+
+    synchronized (imgLock) {
+      centerX = this.centerX;
+    }
+    
+    turn = centerX - (IMG_WIDTH / 2);
+    drive.autoRotate(turn * 0.005);
   }
 
 
