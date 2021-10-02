@@ -32,6 +32,7 @@ public class GripPipeline implements VisionPipeline {
 	private Mat hsvThresholdOutput = new Mat();
 	private Mat cvErodeOutput = new Mat();
 	private Mat maskOutput = new Mat();
+	private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<MatOfPoint>();
 	private MatOfKeyPoint findBlobsOutput = new MatOfKeyPoint();
 
 	static {
@@ -70,6 +71,11 @@ public class GripPipeline implements VisionPipeline {
 		Mat maskInput = cvResizeOutput;
 		Mat maskMask = cvErodeOutput;
 		mask(maskInput, maskMask, maskOutput);
+
+		// Step Find_Contours0:
+		Mat findContoursInput = cvErodeOutput;
+		boolean findContoursExternalOnly = true;
+		findContours(findContoursInput, findContoursExternalOnly, findContoursOutput);
 
 		// Step Find_Blobs0:
 		Mat findBlobsInput = maskOutput;
@@ -110,6 +116,14 @@ public class GripPipeline implements VisionPipeline {
 	 */
 	public Mat maskOutput() {
 		return maskOutput;
+	}
+
+	/**
+	 * This method is a generated getter for the output of a Find_Contours.
+	 * @return ArrayList<MatOfPoint> output from Find_Contours.
+	 */
+	public ArrayList<MatOfPoint> findContoursOutput() {
+		return findContoursOutput;
 	}
 
 	/**
@@ -188,6 +202,28 @@ public class GripPipeline implements VisionPipeline {
 		mask.convertTo(mask, CvType.CV_8UC1);
 		Core.bitwise_xor(output, output, output);
 		input.copyTo(output, mask);
+	}
+
+	/**
+	 * Sets the values of pixels in a binary image to their distance to the nearest black pixel.
+	 * @param input The image on which to perform the Distance Transform.
+	 * @param type The Transform.
+	 * @param maskSize the size of the mask.
+	 * @param output The image in which to store the output.
+	 */
+	private void findContours(Mat input, boolean externalOnly,
+		List<MatOfPoint> contours) {
+		Mat hierarchy = new Mat();
+		contours.clear();
+		int mode;
+		if (externalOnly) {
+			mode = Imgproc.RETR_EXTERNAL;
+		}
+		else {
+			mode = Imgproc.RETR_LIST;
+		}
+		int method = Imgproc.CHAIN_APPROX_SIMPLE;
+		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
 	/**
