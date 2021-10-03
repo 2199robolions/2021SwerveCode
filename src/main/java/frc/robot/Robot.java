@@ -148,7 +148,7 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    /*UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
     driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
     visionThread = new VisionThread(driveCamera, new GripPipeline(), pipeline -> {
@@ -159,7 +159,7 @@ public class Robot extends TimedRobot {
             }
         }
     });
-    visionThread.start();
+    visionThread.start();*/
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);

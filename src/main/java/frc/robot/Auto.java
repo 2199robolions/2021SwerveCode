@@ -74,6 +74,7 @@ public class Auto {
     *
     *    rightAuto()
 	*    Runs the auto code for the position right of the target
+	*	 20 to 21 inches from the wall to the bumper
     * 
     ******************************************************************************************/
 	public int rightAuto(int delay) {
@@ -92,39 +93,42 @@ public class Auto {
 				System.out.println("Case 1");
 				break;
 			case 2:
-				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
+				status = drive.autoRotate(-25.0);
 				System.out.println("Case 2");
 				break;
 			case 3:
-				status = drive.autoRotate(180);
+				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				System.out.println("Case 3");
 				break;
 			case 4:
-				grabber.deployRetract();
+				status = drive.autoRotate(-180);
 				System.out.println("Case 4");
-				status = Robot.DONE;
 				break;
 			case 5:
-				//Rotates wheels before driving
-				status = drive.autoCrabDrive(0, 0, 0);
+				grabber.deploy();
 				System.out.println("Case 5");
+				status = Robot.DONE;
 				break;
 			case 6:
-				//Drives and turns on grabber
 				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
-				status = drive.autoCrabDrive(14.0, 0.00, 0.4);
+				status = drive.autoCrabDrive(9.0, 0, 0.4);
 				System.out.println("Case 6");
 				break;
 			case 7:
 				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
-				status = drive.autoCrabDrive(6.00, 180.0, 0.4);
-				status = Robot.DONE;
+				status = drive.autoCrabDrive(10, 0, 0.4);
+				System.out.println("Case 7");
 				break;
 			case 8:
-				//status = drive.autoCrabDrive(5.0, 0, 0.25);
+				//grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
+				//status = drive.autoCrabDrive(6.00, 180.0, 0.4);
 				status = Robot.DONE;
 				break;
 			case 9:
+				//status = drive.autoCrabDrive(5.0, 0, 0.25);
+				status = Robot.DONE;
+				break;
+			case 10:
 				//status = shootBall(Shooter.ShootLocation.TRENCH);
 				status = Robot.DONE;
 				break;
@@ -135,6 +139,9 @@ public class Auto {
 				//Resets the grabber
 				grabber.setGrabberMotor(Grabber.GrabberDirection.OFF);
 				grabber.retract();
+
+				//Resets the shooter
+				shooter.disableShooter();
 				
 				return Robot.DONE;
 		}
