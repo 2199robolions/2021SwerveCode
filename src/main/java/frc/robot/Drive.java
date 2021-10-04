@@ -3,9 +3,11 @@ package frc.robot;
 import edu.wpi.first.wpiutil.math.MathUtil;
 
 import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.networktables.*;
+
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.networktables.*;
 
 public class Drive {
     //Object creation

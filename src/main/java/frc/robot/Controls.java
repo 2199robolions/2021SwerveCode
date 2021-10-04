@@ -94,11 +94,11 @@ public class Controls {
         double power = joystick.getZ();
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
-            
+            //If within the deadzone, don't do anything
             return 0;
         }
         else {
-            //Cubing power because the rotate is SUPER sensitive
+            //Halves the power because the rotate is SUPER sensitive
             powerhalfed = power / 2; 
             
             return powerhalfed;
@@ -139,6 +139,8 @@ public class Controls {
             return 0;
         }
         else {
+            //Returns the x-axis power that the robot should drive at
+            //return power * powerMultiplier();
             return power;
         }
     }
@@ -155,6 +157,8 @@ public class Controls {
             return 0;
         }
         else {
+            //Returns the y-axis power that the robot should drive at
+            //return power * powerMultiplier();
             return power;
         }        
     }
@@ -189,15 +193,19 @@ public class Controls {
     *   
     ******************************************************************************************/
     public Shooter.ShootLocation getShooterLocation() {
+        //Variables
+        boolean enableShooter = enableShooter();
+        boolean buttonFour    = joystick.getRawButton(4);
+        boolean buttonTwo     = joystick.getRawButton(2);
 
         //Shooter on
-        if (joystick.getTrigger() == true) {
+        if (enableShooter == true) {
             //Button 4 = trench shot
-            if (joystick.getRawButton(4) == true) {
+            if (buttonFour == true) {
                 return Shooter.ShootLocation.TRENCH;
             }
             //Button 2 = hail mary
-            else if (joystick.getRawButton(2)) {
+            else if (buttonTwo == true) {
                 return Shooter.ShootLocation.LAY_UP;
             }
             //No buttons = ten foot
@@ -210,8 +218,6 @@ public class Controls {
         }
     }
 
-
-
     /**
      * Joystick trigger
      * @return Whether or not the shooter should fire
@@ -223,7 +229,16 @@ public class Controls {
         return isPressed;
     }
 
-    
+    /**
+     * Joystick Circle Pad
+     * @return The value of the circle pad on top
+     */
+    public int joystickCirclePadPosition() {
+        int circlePadPosition;
+        circlePadPosition = joystick.getPOV();
+
+        return circlePadPosition;
+    }
 
     /**
      * Returns the decimal value of the throttle, with all the way at the bottom being 0

@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
+import frc.robot.ObjectTracking;
+
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
@@ -355,17 +357,12 @@ public class Robot extends TimedRobot {
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
     shooter.enableShooter(tempPower);*/
 
-    //Vision Processing
-    //WARNING EXPERIMENTAL
-    double centerX;
-    double turn;
+    //To be implemented once cameras are mounted
+    //objectTracking();
 
-    synchronized (imgLock) {
-      centerX = this.centerX;
-    }
-    
-    turn = centerX - (IMG_WIDTH / 2);
-    drive.autoRotate(turn * 0.005);
+    //Allows to test for the circle pads position
+    int position = controls.joystickCirclePadPosition();
+    System.out.println("Position " + position);
   }
 
 
@@ -382,7 +379,7 @@ public class Robot extends TimedRobot {
     driveX                 = controls.getDriveX();
     driveY                 = controls.getDriveY();
     shootLocation          = controls.getShooterLocation();
-    boolean killTargetLock = false;
+    boolean killTargetLock = controls.autoKill();
   
     //Only turns on targetLock mode if autoKill isn't being pressed
     if (killTargetLock == true) {
@@ -651,6 +648,28 @@ public class Robot extends TimedRobot {
       
       return;
     }
+  }
+
+  /****************************************************************************************** 
+  *
+  *    objectTracking()
+  *    WARNING HIGHLY EXPERIMENTAL
+  *    Targets the yellow balls using contor values
+  *    Can be changed to blob detection if need be, although it less reliable
+  * 
+  ******************************************************************************************/
+  public void objectTracking() {
+    // Variables
+    double centerX;
+    double turn;
+
+    synchronized (imgLock) {
+      centerX = this.centerX;
+    }
+    
+    turn = centerX - (IMG_WIDTH / 2);
+    //So far it just rotates to look at the ball using a REALLY SLOW speed 
+    drive.autoRotate(turn * 0.005);
   }
 
   /****************************************************************************************** 

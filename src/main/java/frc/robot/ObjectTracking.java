@@ -2,9 +2,11 @@ package frc.robot;
 
 import java.io.File;
 import java.io.FileWriter;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.HashMap;
@@ -13,9 +15,12 @@ import edu.wpi.first.wpilibj.vision.VisionPipeline;
 
 import org.opencv.core.*;
 import org.opencv.core.Core.*;
+
 import org.opencv.features2d.FeatureDetector;
+
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
+
 import org.opencv.objdetect.*;
 
 /**
@@ -42,7 +47,8 @@ public class ObjectTracking implements VisionPipeline {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	@Override	public void process(Mat source0) {
+	@Override
+	public void process(Mat source0) {
 		// Step CV_resize0:
 		Mat cvResizeSrc = source0;
 		Size cvResizeDsize = new Size(0, 0);
@@ -83,7 +89,6 @@ public class ObjectTracking implements VisionPipeline {
 		double[] findBlobsCircularity = {0.04856115107913669, 1.0};
 		boolean findBlobsDarkBlobs = false;
 		findBlobs(findBlobsInput, findBlobsMinArea, findBlobsCircularity, findBlobsDarkBlobs, findBlobsOutput);
-
 	}
 
 	/**
@@ -146,7 +151,7 @@ public class ObjectTracking implements VisionPipeline {
 	 */
 	private void cvResize(Mat src, Size dSize, double fx, double fy, int interpolation,
 		Mat dst) {
-		if (dSize==null) {
+		if (dSize == null) {
 			dSize = new Size(0,0);
 		}
 		Imgproc.resize(src, dst, dSize, fx, fy, interpolation);
@@ -216,12 +221,14 @@ public class ObjectTracking implements VisionPipeline {
 		Mat hierarchy = new Mat();
 		contours.clear();
 		int mode;
+
 		if (externalOnly) {
 			mode = Imgproc.RETR_EXTERNAL;
 		}
 		else {
 			mode = Imgproc.RETR_LIST;
 		}
+		
 		int method = Imgproc.CHAIN_APPROX_SIMPLE;
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}

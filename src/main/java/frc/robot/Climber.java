@@ -9,6 +9,7 @@ package frc.robot;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
@@ -24,7 +25,7 @@ public class Climber {
     private DoubleSolenoid pistonTop;
 
     // Constants
-    private final int LIFTER_CURRENT_LIMIT        = 50;
+    private final int LIFTER_CURRENT_LIMIT      = 50;
     
     //Solenoid ID's
     private final int BOTTOM_MIDDLE_DEPLOY_ID   = 5;

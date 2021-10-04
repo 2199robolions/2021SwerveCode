@@ -1,14 +1,15 @@
 package frc.robot;
 
+import edu.wpi.first.wpiutil.math.MathUtil;
+
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 import edu.wpi.first.wpilibj.VictorSP;
+
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpiutil.math.MathUtil;
-
-
 
 public class Wheel {
 
