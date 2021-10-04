@@ -25,7 +25,7 @@ import org.opencv.objdetect.*;
 *
 * @author GRIP
 */
-public class GripPipeline implements VisionPipeline {
+public class ObjectTracking implements VisionPipeline {
 
 	//Outputs
 	private Mat cvResizeOutput = new Mat();
@@ -286,8 +286,6 @@ public class GripPipeline implements VisionPipeline {
 		blobDet.detect(input, blobList);
 	}
 
-
-
-
 }
 
+// End of the ObjectTracking class

@@ -163,7 +163,6 @@ public class Robot extends TimedRobot {
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
-
   }
 
 
@@ -229,8 +228,6 @@ public class Robot extends TimedRobot {
         drive.stopWheels();
       }
     }
-
-    
   }
 
 
