@@ -81,13 +81,13 @@ public class Grabber {
         //System.out.println("Forwarding State: " + grabberState);
     }
 
-    public void deploy(){
+    public void deploy() {
         //Sets piston to deploy position
         grabberPiston.set(Value.kForward);
         grabberState = GrabberState.DEPLOY;
     }
 
-    public void retract(){
+    public void retract() {
         //Sets piston to deploy position
         grabberPiston.set(Value.kReverse);
         grabberState = GrabberState.RETRACT;

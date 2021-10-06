@@ -89,48 +89,44 @@ public class Auto {
 		switch (step) {
 			// Starts Auto Program
 			case 1:
+				shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
 				status = delay(delayMsec);
-				System.out.println("Case 1");
 				break;
 			case 2:
+				shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
 				status = drive.autoRotate(-25.0);
-				System.out.println("Case 2");
 				break;
 			case 3:
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
-				System.out.println("Case 3");
 				break;
 			case 4:
 				status = drive.autoRotate(-180);
-				System.out.println("Case 4");
 				break;
 			case 5:
 				grabber.deploy();
-				System.out.println("Case 5");
 				status = Robot.DONE;
 				break;
 			case 6:
 				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
 				status = drive.autoCrabDrive(9.0, 0, 0.4);
-				System.out.println("Case 6");
 				break;
 			case 7:
 				grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
-				status = drive.autoCrabDrive(10, 0, 0.4);
-				System.out.println("Case 7");
+				status = drive.autoCrabDrive(5.5, 0, 0.4); //(10, 0, 0.4)
 				break;
 			case 8:
-				//grabber.setGrabberMotor(Grabber.GrabberDirection.REVERSE);
-				//status = drive.autoCrabDrive(6.00, 180.0, 0.4);
+				grabber.setGrabberMotor(Grabber.GrabberDirection.OFF);
+				grabber.retract();
 				status = Robot.DONE;
 				break;
 			case 9:
-				//status = drive.autoCrabDrive(5.0, 0, 0.25);
-				status = Robot.DONE;
+				status = drive.autoRotate(0);
 				break;
 			case 10:
-				//status = shootBall(Shooter.ShootLocation.TRENCH);
-				status = Robot.DONE;
+				status = drive.autoCrabDrive(1.5, -45, 0.4);
+				break;
+			case 11:
+				status = shootBall(Shooter.ShootLocation.TRENCH);
 				break;
 			default:
 				step = 1;
@@ -322,7 +318,7 @@ public class Auto {
 				break;
 			case 6:
 				moveBalls();
-				shootStatus = delay(5000);
+				shootStatus = delay(3500);
 				break;
 			default:
 				shootStep = 1;

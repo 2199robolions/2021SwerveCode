@@ -231,6 +231,7 @@ public class Controls {
 
     /**
      * Joystick Circle Pad
+     * 0 is the top, 90 is right, 180 is back, 270 is left, and -1 is nothing
      * @return The value of the circle pad on top
      */
     public int joystickCirclePadPosition() {
