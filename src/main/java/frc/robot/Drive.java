@@ -500,6 +500,46 @@ public class Drive {
 
     /****************************************************************************************** 
     *
+    *    autoAdjustWheels()
+    *    Rotates wheels to desired angle
+    * 
+    ******************************************************************************************/
+    public int autoAdjustWheels(double degrees) {
+        long currentMs = System.currentTimeMillis();
+
+        if (rotateFirstTime == true) {
+            rotateFirstTime = false;
+            count = 0;
+            timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
+        }
+
+        if (currentMs > timeOut) {
+			count = 0;
+            rotateFirstTime = true;
+            
+			System.out.println("Timed out");
+            stopWheels();
+            return Robot.FAIL;
+		}
+
+		// Rotate
+        int FR = frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, 0);
+        int FL = frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, 0);
+        int BR = rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, 0);
+        int BL = rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, 0);
+
+        //Checks if all wheels are at target angle
+        if (FR == Robot.DONE && FL == Robot.DONE && BR == Robot.DONE && BL == Robot.DONE) {
+            return Robot.DONE;
+        }
+        else {
+            return Robot.CONT;
+        }
+    }
+
+
+    /****************************************************************************************** 
+    *
     *    getAverageEncoder()
     *    Returns average value of all 4 wheels' encoders
     * 

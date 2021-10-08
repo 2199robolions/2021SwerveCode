@@ -66,7 +66,7 @@ public class Wheel {
     *    Indivudally rotates each wheel to a set target angle and powers the drive motor 
     * 
     ******************************************************************************************/
-    public void rotateAndDrive(double targetWheelAngle, double drivePower) {
+    public int rotateAndDrive(double targetWheelAngle, double drivePower) {
         double currWheelAngle;
         double rotatePower;
 
@@ -80,6 +80,15 @@ public class Wheel {
          */
         setRotateMotorPower(-1 * rotatePower);
         setDriveMotorPower(drivePower);
+
+        //Are we within 2 degrees of target wheel angle? 
+        //The return values do not need to be used 
+        if (rotatePower < 0.06) {
+            return Robot.DONE;
+        }
+        else {
+            return Robot.CONT;
+        }
     }
 
 
