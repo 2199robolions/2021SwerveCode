@@ -27,8 +27,7 @@ public class Grabber {
     //
 
     //CONSTANTS
-    private final double GRABBER_POWER = -1.0;  //-0.8
-    //private final double GRABBER_POWER = 1.0;
+    private final double GRABBER_POWER = 1.0;  //-1.0
 
     /**
      * Enumerater for Grabber State

@@ -525,12 +525,14 @@ public class Robot extends TimedRobot {
       //Leave shooter motor on, needs to maintain speed
 
       if (shooterStatus == Robot.DONE) {
+        System.out.println("Done moving hood, going to enable feeder state");
         shooterState = ShooterState.ENABLE_FEEDER_STATE;
       }
       else if (shooterStatus == Robot.CONT) {
         shooterState = ShooterState.MOVE_HOOD_STATE;
       }
       else if ((shooterStatus == Robot.FAIL) || (shootLocation == Shooter.ShootLocation.OFF)) {
+        System.out.println("Hood failed, going back to start");
         shooterState = ShooterState.SHOOTER_OFF_STATE;
       }
     }
