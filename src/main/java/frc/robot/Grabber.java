@@ -52,7 +52,7 @@ public class Grabber {
      */
     public Grabber()  {
         //Grabber Motor Init
-        grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushless);
+        grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushed);
         grabberMotor.setSmartCurrentLimit(GRABBER_CURRENT_LIMIT);
         grabberMotor.set(0.0);
 

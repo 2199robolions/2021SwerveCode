@@ -150,10 +150,10 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    /*UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
     driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-    visionThread = new VisionThread(driveCamera, new GripPipeline(), pipeline -> {
+    visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.findContoursOutput().isEmpty()) {
             Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
             synchronized (imgLock) {
@@ -161,7 +161,7 @@ public class Robot extends TimedRobot {
             }
         }
     });
-    visionThread.start();*/
+    visionThread.start();
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -450,11 +450,12 @@ public class Robot extends TimedRobot {
     
     //Grabber
 		grabberDeployRetract = controls.grabberDeployRetract();
-		grabberDirection     = controls.getGrabberDir();
+    grabberDirection     = controls.getGrabberDir();
     
     //Shooter
     prevShootLocation    = shootLocation;
     shootLocation        = controls.getShooterLocation();
+    Shooter.BallFeederDirection feedMotorDirection = controls.ballFeederControl();
     boolean changedShooterLocation = (prevShootLocation != shootLocation);
 
     
@@ -557,9 +558,13 @@ public class Robot extends TimedRobot {
       }        
     }
 
-    else { 
+    //Any other case
+    else {
       shooterState = ShooterState.SHOOTER_OFF_STATE;
+      shooter.manualBallFeederControl(feedMotorDirection);
     }
+
+    System.out.println("Hood Encoder: " + shooter.getHoodEncoder());
   }
 
 
