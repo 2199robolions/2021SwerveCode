@@ -87,6 +87,8 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
+  UsbCamera driveCamera;
+
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
 
@@ -108,6 +110,9 @@ public class Robot extends TimedRobot {
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
+
+    //Creates the camera
+    driveCamera = new UsbCamera("driveCamera", 0);
 
     //Set Variables
     ledCurrent = 0;
@@ -140,9 +145,9 @@ public class Robot extends TimedRobot {
 
     //Default Auto Delay
     m_delayChooser.addOption(kCustomDelayZero, kCustomDelayZero);
-		m_delayChooser.addOption(kCustomDelayTwo, kCustomDelayTwo);
+		m_delayChooser.addOption(kCustomDelayTwo , kCustomDelayTwo);
 		m_delayChooser.addOption(kCustomDelayFour, kCustomDelayFour);
-    m_delayChooser.addOption(kCustomDelaySix, kCustomDelaySix);
+    m_delayChooser.addOption(kCustomDelaySix , kCustomDelaySix);
     
     //Default Auto Position
 		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
@@ -150,7 +155,7 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    /*UsbCamera driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    driveCamera = CameraServer.getInstance().startAutomaticCapture();
     driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
     visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
@@ -161,7 +166,7 @@ public class Robot extends TimedRobot {
             }
         }
     });
-    visionThread.start();*/
+    visionThread.start();
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -192,8 +197,8 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void autonomousInit() {
+    //Set some variables
     autoStatus      = Robot.CONT;
-
     
     //Auto positions
     m_positionSelected = m_pathChooser.getSelected();
@@ -323,7 +328,6 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void testPeriodic() {
-
     if (controls.autoKill() == true) {
       autoStatus = Robot.FAIL;
     }
@@ -358,11 +362,7 @@ public class Robot extends TimedRobot {
     shooter.enableShooter(tempPower);*/
 
     //To be implemented once cameras are mounted
-    //objectTracking();
-
-    //Allows to test for the circle pads position
-    int position = controls.joystickCirclePadPosition();
-    System.out.println("Position " + position);
+    objectTracking();
   }
 
 
