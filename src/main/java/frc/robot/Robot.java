@@ -158,9 +158,9 @@ public class Robot extends TimedRobot {
     driveCamera = CameraServer.getInstance().startAutomaticCapture();
     driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-    visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
+    /*visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
         if(!pipeline.findContoursOutput().isEmpty()) {
-        /*if(!pipeline.findBlobsOutput().empty()) {*/
+        /*if(!pipeline.findBlobsOutput().empty()) {//
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
@@ -168,7 +168,7 @@ public class Robot extends TimedRobot {
         }
       }
     );
-    visionThread.start();
+    visionThread.start();*/
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
