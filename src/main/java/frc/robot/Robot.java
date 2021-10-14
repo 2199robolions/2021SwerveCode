@@ -44,6 +44,7 @@ public class Robot extends TimedRobot {
   private boolean fieldDriveState = false;
   private int     step           = 1;
   private boolean hoodCalibrated = false;
+  private boolean reverseFeeder  = false;
 
   private Shooter.ShootLocation shootLocation     = Shooter.ShootLocation.OFF;
   private Shooter.ShootLocation prevShootLocation = Shooter.ShootLocation.OFF;
@@ -457,6 +458,7 @@ public class Robot extends TimedRobot {
     shootLocation        = controls.getShooterLocation();
     Shooter.BallFeederDirection feedMotorDirection = controls.ballFeederControl();
     boolean changedShooterLocation = (prevShootLocation != shootLocation);
+    reverseFeeder = (controls.reverseFeederPower() > 0.1);
 
     
     /*****   Grabber Deploy Retract   *****/
@@ -474,13 +476,22 @@ public class Robot extends TimedRobot {
     if (shooterState == ShooterState.SHOOTER_OFF_STATE) {
       //Resetting values
       shooterStatus = Robot.CONT;
-      
-      shooter.disableShooter();
+
+      if (reverseFeeder == true) {
+        shooter.manualBallFeederControl(Shooter.BallFeederDirection.REVERSE);
+      }
+      else {
+        shooter.disableFeeder();
+      }
+
+      shooter.disableRightShooterMotor();
+      shooter.disableHoodMotor();
 
       //Checking if shooting should begin
       if (shootLocation != Shooter.ShootLocation.OFF) {
         shooterState = ShooterState.REVERSE_FEEDER_STATE;
-      }
+      } 
+      
     }
 
 

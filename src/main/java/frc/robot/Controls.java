@@ -353,6 +353,18 @@ public class Controls {
         }
     }
 
+    //Left trigger reverses feeder
+    public double reverseFeederPower() {
+        double power = xboxController.getTriggerAxis(Hand.kLeft);
+
+        if (power > 0.1) {
+            return power;
+        }
+        else {
+            return 0;
+        }
+    }
+
     
     /**
      * XBox Controller Right Stick

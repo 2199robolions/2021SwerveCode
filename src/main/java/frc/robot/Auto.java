@@ -103,6 +103,10 @@ public class Auto {
 				status = drive.autoRotate(-180);
 				break;
 			case 5:
+				status = drive.autoCrabDrive(3, 0, 0.4);
+				break;
+				/*
+			case 5:
 				grabber.deploy();
 				status = Robot.DONE;
 				break;
@@ -127,7 +131,7 @@ public class Auto {
 				break;
 			case 11:
 				status = shootBall(Shooter.ShootLocation.TRENCH);
-				break;
+				break;*/
 			default:
 				step = 1;
 				firstTime = true;
@@ -318,7 +322,7 @@ public class Auto {
 				break;
 			case 6:
 				moveBalls();
-				shootStatus = delay(3500);
+				shootStatus = delay(4500);
 				break;
 			default:
 				shootStep = 1;
