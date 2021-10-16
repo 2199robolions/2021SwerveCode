@@ -5,8 +5,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
-//import frc.robot.ObjectTracking;
-
+import frc.robot.ObjectTracking;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
@@ -42,10 +41,11 @@ public class Robot extends TimedRobot {
   private double  driveX;
   private double  driveY;
   private boolean fieldDriveState = false;
-  private int     step           = 1;
-  private boolean hoodCalibrated = false;
-  private boolean reverseFeeder  = false;
+  private int     step            = 1;
+  private boolean hoodCalibrated  = false;
+  private boolean reverseFeeder   = false;
 
+  //State Trackers
   private Shooter.ShootLocation shootLocation     = Shooter.ShootLocation.OFF;
   private Shooter.ShootLocation prevShootLocation = Shooter.ShootLocation.OFF;
   private Climber.ClimberState  climberState;
@@ -159,6 +159,7 @@ public class Robot extends TimedRobot {
     //driveCamera = CameraServer.getInstance().startAutomaticCapture();
     //driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
+<<<<<<< .mine
     /*
     visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.findContoursOutput().isEmpty()) {
@@ -166,9 +167,25 @@ public class Robot extends TimedRobot {
             synchronized (imgLock) {
               centerX = cameraFOV.x + (cameraFOV.width / 2);
             }
+=======
+    /*visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
+        if(!pipeline.findContoursOutput().isEmpty()) {
+        /*if(!pipeline.findBlobsOutput().empty()) {//
+          Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
+          synchronized (imgLock) {
+            centerX = cameraFOV.x + (cameraFOV.width / 2);
+          }
+>>>>>>> .theirs
         }
+<<<<<<< .mine
     });
     visionThread.start();*/
+
+=======
+      }
+    );
+    visionThread.start();*/
+>>>>>>> .theirs
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -181,7 +198,7 @@ public class Robot extends TimedRobot {
   /****************************************************************************************** 
   *
   *    robotPeriodic()
-  *    Always runs while the robot is on?????
+  *    Always runs while the robot is on
   * 
   ******************************************************************************************/
   public void robotPeriodic() {
