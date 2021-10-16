@@ -167,6 +167,7 @@ public class Wheel {
     public double getRotateMotorPosition() {
         double rawAngle = rotateMotorSensor.get();
         double adjustedValue = normalizeAngle(rawAngle);
+
         return adjustedValue;
     }
 

@@ -179,7 +179,7 @@ public class Auto {
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = drive.autoCrabDrive(3, 0);
+				status = drive.autoCrabDrive(5, 0);
 				break;
 			default:
 				step = 1;
@@ -220,7 +220,7 @@ public class Auto {
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = drive.autoCrabDrive(3, 0);
+				status = drive.autoCrabDrive(5, 0);
 				break;
 			default:
 				step = 1;
@@ -260,7 +260,7 @@ public class Auto {
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
 			case 3:
-				status = drive.autoCrabDrive(3, 0);
+				status = drive.autoCrabDrive(5, 0);
 				break;
 			default:
 				step = 1;

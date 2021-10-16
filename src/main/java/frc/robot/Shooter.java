@@ -50,8 +50,8 @@ public class Shooter {
 	public final double OFF_TARGET_RPM     = 0;
 
 	// HOOD MOTOR CONSTANTS
-	public static final double   TEN_FOOT_HOOD_ENCODER    = -5;
-	public static final double   TRENCH_SHOT_HOOD_ENCODER = -2.4; //3.15
+	public static final double   TEN_FOOT_HOOD_ENCODER    = -4.5; //-5
+	public static final double   TRENCH_SHOT_HOOD_ENCODER = -2.1; //-2.4
 	public static final double   LAY_UP_HOOD_ENCODER      = -14;
 	public static final double   LOW_SHOT_HOOD_ENCODER    = 0;
 	public static final double   HIGH_SHOT_HOOD_ENCODER   = -15;
@@ -258,7 +258,7 @@ public class Shooter {
 			feedMotor.set(FEED_POWER);
 		}
 		else if (dir == BallFeederDirection.REVERSE) {
-			feedMotor.set(FEED_POWER * -1);
+			feedMotor.set(1);
 		}
 		else {
 			feedMotor.set(OFF_POWER);
