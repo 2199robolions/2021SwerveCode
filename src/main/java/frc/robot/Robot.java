@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
 import frc.robot.ObjectTracking;
+
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
@@ -88,12 +89,12 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
- // UsbCamera driveCamera;
+  UsbCamera driveCamera;
 
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
 
-  //private VisionThread visionThread;
+  private VisionThread visionThread;
   private double centerX = 0.0;
 
   private final Object imgLock = new Object();
@@ -113,7 +114,7 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    //driveCamera = new UsbCamera("driveCamera", 0);
+    driveCamera = new UsbCamera("driveCamera", 0);
 
     //Set Variables
     ledCurrent = 0;
@@ -156,36 +157,20 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    //driveCamera = CameraServer.getInstance().startAutomaticCapture();
-    //driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-<<<<<<< .mine
-    /*
     visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.findContoursOutput().isEmpty()) {
-            Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
-            synchronized (imgLock) {
-              centerX = cameraFOV.x + (cameraFOV.width / 2);
-            }
-=======
-    /*visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
-        if(!pipeline.findContoursOutput().isEmpty()) {
-        /*if(!pipeline.findBlobsOutput().empty()) {//
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
           }
->>>>>>> .theirs
         }
-<<<<<<< .mine
-    });
-    visionThread.start();*/
-
-=======
       }
     );
-    visionThread.start();*/
->>>>>>> .theirs
+    visionThread.start();
+
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
