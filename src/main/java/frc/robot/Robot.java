@@ -165,8 +165,10 @@ public class Robot extends TimedRobot {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
+            System.out.println("center x: " + centerX);
           }
         }
+        System.out.println("test");
       }
     );
     visionThread.start();
