@@ -14,6 +14,8 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.vision.*;
 
+import edu.wpi.cscore.MjpegServer;
+
 public class Robot extends TimedRobot {
   // ERROR CODES
   public static final int FAIL = -1;
@@ -90,6 +92,7 @@ public class Robot extends TimedRobot {
   //Vision processing stuff
   //WARNING EXPERIMENTAL
   UsbCamera driveCamera;
+  MjpegServer imageServer;
 
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
@@ -114,7 +117,9 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    driveCamera = new UsbCamera("driveCamera", 0);
+    //driveCamera = new UsbCamera("USB Camera 0", 0);
+    imageServer = new MjpegServer("JPeg Server", "http://frcvision.local:1181/?action=stream", 1181);
+    //driveCamera = new UsbCamera("Camera Server", 0);
 
     //Set Variables
     ledCurrent = 0;
@@ -692,7 +697,7 @@ public class Robot extends TimedRobot {
     
     turn = centerX - (IMG_WIDTH / 2);
     //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    drive.autoRotate(turn * 0.005);
+    drive.autoRotate(turn * -0.00005);
   }
 
   /****************************************************************************************** 
