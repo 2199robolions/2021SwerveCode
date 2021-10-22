@@ -66,12 +66,6 @@
       </grip:Input>
       <grip:Output step="4" socket="0" previewed="true"/>
     </grip:Step>
-    <grip:Step name="Publish Video">
-      <grip:Input step="5" socket="0"/>
-      <grip:Input step="5" socket="1">
-        <value>80</value>
-      </grip:Input>
-    </grip:Step>
   </steps>
   <connections>
     <grip:Connection>
@@ -89,10 +83,6 @@
     <grip:Connection>
       <grip:Output step="2" socket="0" previewed="false"/>
       <grip:Input step="4" socket="0"/>
-    </grip:Connection>
-    <grip:Connection>
-      <grip:Output source="0" socket="0" previewed="false"/>
-      <grip:Input step="5" socket="0"/>
     </grip:Connection>
     <grip:Connection>
       <grip:Output step="0" socket="0" previewed="true"/>
