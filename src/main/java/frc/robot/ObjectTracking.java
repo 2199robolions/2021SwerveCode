@@ -1,18 +1,15 @@
+/**
+ * FRC Team 2199 Object Tracking Pipeline
+ */
 package frc.robot;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+import java.io.*;
+
+import java.util.*;
 
 import edu.wpi.first.wpilibj.vision.VisionPipeline;
 
 import org.opencv.core.*;
-import org.opencv.core.Core.*;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
@@ -41,7 +38,8 @@ public class ObjectTracking implements VisionPipeline {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	@Override	public void process(Mat source0) {
+	@Override
+	public void process(Mat source0) {
 		// Step CV_resize0:
 		Mat cvResizeSrc = source0;
 		Size cvResizeDsize = new Size(0, 0);
@@ -210,8 +208,6 @@ public class ObjectTracking implements VisionPipeline {
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
-
-
-
 }
 
+// End of ObjectTracking Test

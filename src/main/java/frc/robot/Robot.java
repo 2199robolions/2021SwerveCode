@@ -5,15 +5,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
-import frc.robot.ObjectTracking;
-
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.vision.*;
-
+import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.MjpegServer;
 
 public class Robot extends TimedRobot {
@@ -35,16 +33,15 @@ public class Robot extends TimedRobot {
   //CONSTANTS
   private final int    LED_DELAY           = 15;
   private final double REVERSE_FEEDER_TIME = 0.25;
+  private final String RPI_CAMERA_ADDRESS  = "http://frcvision.local:1181/?action=stream";
 
   //VARIABLES
-  private int     ledCurrent;
   private int     autoStatus      = Robot.CONT;
   private int     shooterStatus   = Robot.CONT;
   private double  rotatePower;
   private double  driveX;
   private double  driveY;
   private boolean fieldDriveState = false;
-  private int     step            = 1;
   private boolean hoodCalibrated  = false;
   private boolean reverseFeeder   = false;
 
@@ -91,7 +88,8 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
-  UsbCamera driveCamera;
+  UsbCamera   usbCamera;
+  AxisCamera  axisCamera;
   MjpegServer imageServer;
 
   private static final int IMG_WIDTH = 640;
@@ -117,12 +115,12 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    //driveCamera = new UsbCamera("USB Camera 0", 0);
-    imageServer = new MjpegServer("JPeg Server", "http://frcvision.local:1181/?action=stream", 1181);
-    //driveCamera = new UsbCamera("Camera Server", 0);
+    //usbCamera   = new UsbCamera("USB Camera 0", 0);
+    usbCamera   = CameraServer.getInstance().startAutomaticCapture(0);
+    axisCamera  = new AxisCamera("Axis Camera" , RPI_CAMERA_ADDRESS);
+    imageServer = new MjpegServer("JPeg Server", RPI_CAMERA_ADDRESS, 1181);
 
     //Set Variables
-    ledCurrent = 0;
 
     //Set Different Status Cues
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
@@ -162,10 +160,11 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    driveCamera = CameraServer.getInstance().startAutomaticCapture();
-    driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-
-    visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
+    //usbCamera = CameraServer.getInstance().startAutomaticCapture(0);
+    usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    axisCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    
+    visionThread = new VisionThread(axisCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.findContoursOutput().isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
@@ -326,7 +325,6 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   public void testInit() {
     autoStatus = Robot.CONT;
-    step = 1;
   }
 
 
