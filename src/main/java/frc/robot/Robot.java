@@ -695,7 +695,7 @@ public class Robot extends TimedRobot {
     
     turn = centerX - (IMG_WIDTH / 2);
     //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    drive.autoRotate(turn * -0.00005);
+    drive.autoRotate(turn * 0.005);
   }
 
   /****************************************************************************************** 
