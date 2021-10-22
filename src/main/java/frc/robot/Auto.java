@@ -43,6 +43,38 @@ public class Auto {
 		shootStep = 1;
 	}
 
+	public int testAuto() {
+		int status = Robot.CONT;
+
+		if (firstTime == true) {
+			firstTime = false;
+			step = 1;
+		}
+
+		switch (step) {
+			// Starts Auto Program
+			case 1:
+				status = drive.autoRotate(180);
+				break;
+			case 2:
+				status = drive.autoAdjustWheels(0);
+				break;
+			case 3:
+				status = drive.autoCrabDrive(5, 0, 0.5);
+				break;
+			
+			default:
+				step = 1;
+				firstTime = true;			
+				return Robot.DONE;
+		}
+
+		if (status == Robot.DONE) {
+			step++;
+		}
+
+		return Robot.CONT;
+	}
 
 	/****************************************************************************************** 
     *

@@ -191,10 +191,10 @@ public class Drive {
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
  
     // These numbers were selected to make the angles between -180 and +180
-    private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg;
-    private static final double rotateLeftFrontMotorAngle = rotateRightFrontMotorAngle - 90;
-    private static final double rotateRightRearMotorAngle = rotateRightFrontMotorAngle + 90;
-    private static final double rotateLeftRearMotorAngle =  rotateRightFrontMotorAngle + 180;
+    private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg; //-1 * rotateMotorAngleDeg;
+    private static final double rotateLeftFrontMotorAngle = -180 + rotateMotorAngleDeg; //rotateRightFrontMotorAngle - 90;
+    private static final double rotateRightRearMotorAngle = rotateMotorAngleDeg; //rotateRightFrontMotorAngle + 90;
+    private static final double rotateLeftRearMotorAngle =  180 -rotateMotorAngleDeg;       //rotateRightFrontMotorAngle + 180;
 
 
     /****************************************************************************************** 
@@ -510,7 +510,7 @@ public class Drive {
         if (rotateFirstTime == true) {
             rotateFirstTime = false;
             count = 0;
-            timeOut = currentMs + 2500; //Makes the time out 2.5 seconds
+            timeOut = currentMs + 500; //Makes the time out 2.5 seconds
         }
 
         if (currentMs > timeOut) {
@@ -523,10 +523,10 @@ public class Drive {
 		}
 
 		// Rotate
-        int FR = frontRightWheel.rotateAndDrive(rotateRightFrontMotorAngle, 0);
-        int FL = frontLeftWheel.rotateAndDrive(rotateLeftFrontMotorAngle, 0);
-        int BR = rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, 0);
-        int BL = rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, 0);
+        int FR = frontRightWheel.rotateAndDrive(degrees, 0);
+        int FL = frontLeftWheel.rotateAndDrive(degrees, 0);
+        int BR = rearRightWheel.rotateAndDrive(degrees, 0);
+        int BL = rearLeftWheel.rotateAndDrive(degrees, 0);
 
         //Checks if all wheels are at target angle
         if (FR == Robot.DONE && FL == Robot.DONE && BR == Robot.DONE && BL == Robot.DONE) {
