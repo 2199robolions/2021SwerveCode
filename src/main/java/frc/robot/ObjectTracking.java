@@ -1,7 +1,6 @@
 /**
  * FRC 2199 Object Tranking Pipeline
  */
-
 package frc.robot;
 
 import java.io.File;
@@ -95,7 +94,6 @@ public class ObjectTracking implements VisionPipeline {
 		double filterContoursMinRatio = 0;
 		double filterContoursMaxRatio = 1000;
 		filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter, filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio, filterContoursOutput);
-
 	}
 
 	/**
@@ -238,7 +236,6 @@ public class ObjectTracking implements VisionPipeline {
 		Imgproc.findContours(input, contours, hierarchy, mode, method);
 	}
 
-
 	/**
 	 * Filters out contours that do not meet certain criteria.
 	 * @param inputContours is the input list of contours
@@ -286,9 +283,6 @@ public class ObjectTracking implements VisionPipeline {
 			output.add(contour);
 		}
 	}
-
-
-
-
 }
 
+// End of th ObjectTracking class
