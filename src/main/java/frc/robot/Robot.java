@@ -10,8 +10,8 @@ import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.cscore.*;
 import edu.wpi.first.wpilibj.vision.*;
-import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.MjpegServer;
 
 public class Robot extends TimedRobot {
@@ -89,7 +89,6 @@ public class Robot extends TimedRobot {
   //Vision processing stuff
   //WARNING EXPERIMENTAL
   UsbCamera   usbCamera;
-  AxisCamera  axisCamera;
   MjpegServer imageServer;
 
   private static final int IMG_WIDTH = 640;
@@ -115,10 +114,9 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    //usbCamera   = new UsbCamera("USB Camera 0", 0);
-    usbCamera   = CameraServer.getInstance().startAutomaticCapture(0);
-    axisCamera  = new AxisCamera("Axis Camera" , RPI_CAMERA_ADDRESS);
-    imageServer = new MjpegServer("JPeg Server", RPI_CAMERA_ADDRESS, 1181);
+    usbCamera = CameraServer.getInstance().startAutomaticCapture();
+    //imageServer.setSource(usbCamera);
+    //imageServer = new MjpegServer("JPeg Server", RPI_CAMERA_ADDRESS, 1181);
 
     //Set Variables
 
@@ -160,19 +158,18 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    //usbCamera = CameraServer.getInstance().startAutomaticCapture(0);
     usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-    axisCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
-    visionThread = new VisionThread(axisCamera, new ObjectTracking(), pipeline -> {
-        if (!pipeline.findContoursOutput().isEmpty()) {
+    visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
+        ArrayList<MatOfPoint> list = pipeline.findContoursOutput()
+        if (!list.isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
-            System.out.println("center x: " + centerX);
+            //System.out.println("center x: " + centerX);
           }
         }
-        System.out.println("test");
+        //System.out.println("test");
       }
     );
     visionThread.start();
@@ -695,7 +692,7 @@ public class Robot extends TimedRobot {
     
     turn = centerX - (IMG_WIDTH / 2);
     //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    drive.autoRotate(turn * -0.00005);
+    drive.autoRotate(turn * -0.005);
   }
 
   /****************************************************************************************** 
