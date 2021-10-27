@@ -3,16 +3,19 @@
     <grip:Camera>
       <property name="address" value="http://frcvision.local:1181/?action=stream"/>
     </grip:Camera>
+    <grip:Camera>
+      <property name="deviceNumber" value="1"/>
+    </grip:Camera>
   </sources>
   <steps>
     <grip:Step name="CV resize">
       <grip:Input step="0" socket="0"/>
       <grip:Input step="0" socket="1"/>
       <grip:Input step="0" socket="2">
-        <value>3.0</value>
+        <value>1.0</value>
       </grip:Input>
       <grip:Input step="0" socket="3">
-        <value>3.0</value>
+        <value>1.0</value>
       </grip:Input>
       <grip:Input step="0" socket="4">
         <value>INTER_LINEAR</value>
@@ -39,14 +42,14 @@
           <double>255.0</double>
         </value>
       </grip:Input>
-      <grip:Output step="1" socket="0" previewed="true"/>
+      <grip:Output step="1" socket="0" previewed="false"/>
     </grip:Step>
     <grip:Step name="CV erode">
       <grip:Input step="2" socket="0"/>
       <grip:Input step="2" socket="1"/>
       <grip:Input step="2" socket="2"/>
       <grip:Input step="2" socket="3">
-        <value>1</value>
+        <value>1.0</value>
       </grip:Input>
       <grip:Input step="2" socket="4">
         <value>BORDER_CONSTANT</value>
@@ -64,33 +67,77 @@
       <grip:Input step="4" socket="1">
         <value>false</value>
       </grip:Input>
-      <grip:Output step="4" socket="0" previewed="true"/>
+      <grip:Output step="4" socket="0" previewed="false"/>
+    </grip:Step>
+    <grip:Step name="Filter Contours">
+      <grip:Input step="5" socket="0"/>
+      <grip:Input step="5" socket="1">
+        <value>1000.0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="2">
+        <value>0.0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="3">
+        <value>250.0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="4">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Input step="5" socket="5">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="6">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Input step="5" socket="7">
+        <value>
+          <double>50.35971223021583</double>
+          <int>100</int>
+        </value>
+      </grip:Input>
+      <grip:Input step="5" socket="8">
+        <value>1000000</value>
+      </grip:Input>
+      <grip:Input step="5" socket="9">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="10">
+        <value>0</value>
+      </grip:Input>
+      <grip:Input step="5" socket="11">
+        <value>1000</value>
+      </grip:Input>
+      <grip:Output step="5" socket="0" previewed="true"/>
     </grip:Step>
   </steps>
   <connections>
     <grip:Connection>
-      <grip:Output step="1" socket="0" previewed="true"/>
-      <grip:Input step="2" socket="0"/>
-    </grip:Connection>
-    <grip:Connection>
-      <grip:Output source="0" socket="0" previewed="false"/>
-      <grip:Input step="0" socket="0"/>
+      <grip:Output step="0" socket="0" previewed="true"/>
+      <grip:Input step="3" socket="0"/>
     </grip:Connection>
     <grip:Connection>
       <grip:Output step="2" socket="0" previewed="false"/>
       <grip:Input step="3" socket="1"/>
     </grip:Connection>
     <grip:Connection>
-      <grip:Output step="2" socket="0" previewed="false"/>
-      <grip:Input step="4" socket="0"/>
+      <grip:Output step="1" socket="0" previewed="false"/>
+      <grip:Input step="2" socket="0"/>
+    </grip:Connection>
+    <grip:Connection>
+      <grip:Output source="1" socket="0" previewed="false"/>
+      <grip:Input step="0" socket="0"/>
+    </grip:Connection>
+    <grip:Connection>
+      <grip:Output step="4" socket="0" previewed="false"/>
+      <grip:Input step="5" socket="0"/>
     </grip:Connection>
     <grip:Connection>
       <grip:Output step="0" socket="0" previewed="true"/>
       <grip:Input step="1" socket="0"/>
     </grip:Connection>
     <grip:Connection>
-      <grip:Output step="0" socket="0" previewed="true"/>
-      <grip:Input step="3" socket="0"/>
+      <grip:Output step="2" socket="0" previewed="false"/>
+      <grip:Input step="4" socket="0"/>
     </grip:Connection>
   </connections>
   <settings>
@@ -105,7 +152,7 @@
   <codeGenerationSettings>
     <language>Java</language>
     <className>ObjectTracking</className>
-    <implementWpilibPipeline>true</implementWpilibPipeline>
+    <implementWpilibPipeline>false</implementWpilibPipeline>
     <saveDir>C:\Users\robol\Desktop\2021RobotCode\2021SwerveCode\src\main\java\frc\robot</saveDir>
     <packageName>frc.robot</packageName>
     <moduleName>grip</moduleName>
