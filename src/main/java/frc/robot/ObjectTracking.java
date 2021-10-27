@@ -1,3 +1,7 @@
+/**
+ * FRC 2199 Object Tranking Pipeline
+ */
+
 package frc.robot;
 
 import java.io.File;
@@ -16,6 +20,8 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.*;
 import org.opencv.objdetect.*;
 
+import edu.wpi.first.wpilibj.vision.VisionPipeline;
+
 /**
 * ObjectTracking class.
 *
@@ -23,7 +29,7 @@ import org.opencv.objdetect.*;
 *
 * @author GRIP
 */
-public class ObjectTracking {
+public class ObjectTracking implements VisionPipeline {
 
 	//Outputs
 	private Mat cvResizeOutput = new Mat();

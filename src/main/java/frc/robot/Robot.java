@@ -10,7 +10,6 @@ import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.cscore.*;
 import edu.wpi.first.wpilibj.vision.*;
 import edu.wpi.cscore.MjpegServer;
 
@@ -161,19 +160,15 @@ public class Robot extends TimedRobot {
     usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
     visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
-        ArrayList<MatOfPoint> list = pipeline.findContoursOutput()
-        if (!list.isEmpty()) {
-          Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
+        if (!pipeline.filterContoursOutput().isEmpty()) {
+          Rect cameraFOV = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
-            //System.out.println("center x: " + centerX);
           }
         }
-        //System.out.println("test");
       }
     );
     visionThread.start();
-
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -692,7 +687,7 @@ public class Robot extends TimedRobot {
     
     turn = centerX - (IMG_WIDTH / 2);
     //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    drive.autoRotate(turn * -0.005);
+    drive.teleopRotate(turn * -0.01);
   }
 
   /****************************************************************************************** 
