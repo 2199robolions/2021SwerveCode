@@ -27,7 +27,7 @@ public class Drive {
     private static final double kLimeLightToleranceDegrees = 1.0f;
     
     // Turn Controller
-	private static final double kP = 0.02;
+	private static final double kP = 0.01; //0.02
 	private static final double kI = 0.00;
     private static final double kD = 0.00;
     
@@ -37,7 +37,7 @@ public class Drive {
     private static final double acdD = 0;
 
 	//Target Controller
-	private static final double tP = 0.033; //0.03
+	private static final double tP = 0.01; //0.033
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
 
@@ -51,7 +51,7 @@ public class Drive {
     
     //CONSTANTS
     private final int    FAIL_DELAY   = 5;
-    private final double ticksPerFoot = 5.75;
+    private final double ticksPerFoot = 6; //5.75
 
 
 	//Limelight Variables
@@ -399,17 +399,8 @@ public class Drive {
     * 
     ******************************************************************************************/
     public int autoCrabDrive(double distance, double targetHeading, double power) {
-        double orientationError;
-
-        double x = power * Math.sin(Math.toRadians(targetHeading));
-        double y = power * Math.cos(Math.toRadians(targetHeading));
 
         double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
-
-        if (distance < 0){
-            System.out.println("Error from autoCrabDrive(), negative distance not allowed");
-            return Robot.DONE;
-        }
 
         //First time through initializes target values
         if (firstTime == true) {
@@ -418,6 +409,24 @@ public class Drive {
             encoderTarget = encoderCurrent + (ticksPerFoot * distance);
         }
 
+        //Halfs speed within 3 feet of target, if total distance is at least 5 feet
+        if ((encoderCurrent + (3 * ticksPerFoot) > encoderTarget) && distance > 5) {
+            power *= 0.5;
+        }
+
+        double orientationError;
+
+        double x = power * Math.sin(Math.toRadians(targetHeading));
+        double y = power * Math.cos(Math.toRadians(targetHeading));
+
+
+        if (distance < 0){
+            System.out.println("Error from autoCrabDrive(), negative distance not allowed");
+            return Robot.DONE;
+        }
+
+        
+
         //Adjusts wheel angles
         orientationError = autoCrabDriveController.calculate(ahrs.getYaw(), targetOrientation); 
         teleopSwerve(x, y, orientationError);
@@ -425,7 +434,7 @@ public class Drive {
         //Checks if target distance has been reached, then ends function if so
         if (encoderCurrent >= encoderTarget) {
             firstTime = true;
-            stopWheels();
+            //stopWheels();
             rotateController.reset();
             return Robot.DONE;
         } 
@@ -479,8 +488,9 @@ public class Drive {
 		}
 
 		// Rotate
-		rotateError = rotateController.calculate(ahrs.getYaw(), degrees);
-        rotateError = MathUtil.clamp(rotateError, -0.75, 0.75);
+        rotateError = rotateController.calculate(ahrs.getYaw(), degrees);
+        rotateError = MathUtil.clamp(rotateError, -0.5, 0.5);
+        System.out.println(rotateError + " " + ahrs.getYaw());
 		teleopRotate(rotateError);
 
 		// CHECK: Routine Complete

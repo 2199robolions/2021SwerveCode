@@ -235,8 +235,7 @@ public class Robot extends TimedRobot {
     }
     else {
       if (autoStatus == Robot.CONT) {
-        //autoStatus = auto.competitionAuto(m_positionSelected, m_delaySelected);
-        autoStatus = auto.testAuto();
+        autoStatus = auto.competitionAuto(m_positionSelected, m_delaySelected);
       }
       else {
         drive.stopWheels();

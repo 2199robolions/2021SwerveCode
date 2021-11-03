@@ -121,20 +121,29 @@ public class Auto {
 		switch (step) {
 			// Starts Auto Program
 			case 1:
+				status = drive.autoRotate(0);
+				break;
+				/*
+			case 2:
+				status = drive.autoAdjustWheels(0);
+				break;
+			case 3:
+				status = drive.autoCrabDrive(10, 0, 0.6);
+				break;
+			/*case 1:
 				shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
 				status = delay(delayMsec);
 				break;
-			case 2:
-				shooter.manualHoodMotorControl(Shooter.ShootLocation.TEN_FOOT);
-				status = drive.autoRotate(-25.0);
-				break;
-			case 3:
+			/*case 2:
 				status = shootBall(Shooter.ShootLocation.TEN_FOOT);
 				break;
-			case 4:
+			case 2:
 				status = drive.autoRotate(-180);
 				break;
-			case 5:
+			case 3:
+				status = drive.autoAdjustWheels(0);
+				break;
+			case 4:
 				status = drive.autoCrabDrive(3, 0, 0.4);
 				break;
 				/*
