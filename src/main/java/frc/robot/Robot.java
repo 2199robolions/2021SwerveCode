@@ -8,10 +8,14 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableEntry;
+
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.vision.*;
-import edu.wpi.cscore.MjpegServer;
+import edu.wpi.first.vision.VisionThread;
+import edu.wpi.first.vision.VisionPipeline;
 
 public class Robot extends TimedRobot {
   // ERROR CODES
@@ -32,7 +36,6 @@ public class Robot extends TimedRobot {
   //CONSTANTS
   private final int    LED_DELAY           = 15;
   private final double REVERSE_FEEDER_TIME = 0.25;
-  private final String RPI_CAMERA_ADDRESS  = "http://frcvision.local:1181/?action=stream";
 
   //VARIABLES
   private int     autoStatus      = Robot.CONT;
@@ -58,10 +61,9 @@ public class Robot extends TimedRobot {
   }
   private ShooterState shooterState = ShooterState.SHOOTER_OFF_STATE;
 
-
   //Setting Up WheelMode for limelight
 	private Drive.WheelMode wheelMode;
-	private int targetingStatus;
+  private int targetingStatus;
 
 
   /**
@@ -87,16 +89,16 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
-  UsbCamera   usbCamera;
-  MjpegServer imageServer;
+  NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
+  //UsbCamera   usbCamera;
 
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
 
   private VisionThread visionThread;
-  private double centerX = 0.0;
+  //private double centerX = 0.0;
 
-  private final Object imgLock = new Object();
+  //private final Object imgLock = new Object();
 
 
   /**
@@ -113,7 +115,7 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    usbCamera = CameraServer.getInstance().startAutomaticCapture();
+    //usbCamera = CameraServer.getInstance().startAutomaticCapture();
     //imageServer.setSource(usbCamera);
     //imageServer = new MjpegServer("JPeg Server", RPI_CAMERA_ADDRESS, 1181);
 
@@ -157,9 +159,9 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    //usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
-    visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
+    /*VisionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.filterContoursOutput().isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
           synchronized (imgLock) {
@@ -168,7 +170,7 @@ public class Robot extends TimedRobot {
         }
       }
     );
-    visionThread.start();
+    visionThread.start();*/
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -681,9 +683,9 @@ public class Robot extends TimedRobot {
     double centerX;
     double turn;
 
-    synchronized (imgLock) {
-      centerX = this.centerX;
-    }
+    //Network Tables
+    NetworkTableEntry target = PipelineValues.getEntry("CenterX");
+    centerX = target.getDouble(0.0);
     
     turn = centerX - (IMG_WIDTH / 2);
     
