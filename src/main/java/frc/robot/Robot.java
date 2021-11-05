@@ -695,19 +695,5 @@ public class Robot extends TimedRobot {
     drive.autoRotate(turn * 0.005);
   }
 
-  /****************************************************************************************** 
-   *
-   *    fieldDrive()
-   *    returns if we are in field drive mode   
-   * 
-   ******************************************************************************************/
-   private boolean fieldDrive() {
-
-    if (controls.toggleFieldDrive() == true) {
-      fieldDriveState = !fieldDriveState; //Toggles fieldDriveState
-    }
-    
-    return fieldDriveState;
-  }
 
 } // End of the Robot Class

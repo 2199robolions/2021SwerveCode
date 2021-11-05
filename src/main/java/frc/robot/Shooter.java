@@ -230,7 +230,7 @@ public class Shooter {
 		if ( rpm > targetVelocity )  {
 			targetCount ++;
 			
-			if(targetCount >= 5) { 
+			if (targetCount >= 5) { 
 				return true;
 			}
 			else {
