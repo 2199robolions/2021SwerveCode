@@ -89,7 +89,7 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
-  UsbCamera driveCamera;
+  //UsbCamera driveCamera;
 
   private static final int IMG_WIDTH = 640;
   private static final int IMG_HEIGHT = 480;
@@ -114,7 +114,7 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    driveCamera = new UsbCamera("driveCamera", 0);
+    //driveCamera = new UsbCamera("driveCamera", 0);
 
     //Set Variables
     ledCurrent = 0;
@@ -157,10 +157,10 @@ public class Robot extends TimedRobot {
     
     //Vision Processing
     //WARNING EXPERIMENTAL
-    driveCamera = CameraServer.getInstance().startAutomaticCapture();
-    driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
+    //driveCamera = CameraServer.getInstance().startAutomaticCapture();
+    //driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
 
-    visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
+    /*visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.findContoursOutput().isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
           synchronized (imgLock) {
@@ -171,7 +171,7 @@ public class Robot extends TimedRobot {
         System.out.println("test");
       }
     );
-    visionThread.start();
+    visionThread.start();*/
 
 
     //Set limelight modes
