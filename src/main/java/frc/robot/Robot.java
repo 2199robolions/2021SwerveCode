@@ -4,16 +4,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-//Object Tracking related imports
-import frc.robot.ObjectTracking;
-
-import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
-
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.vision.*;
-
 public class Robot extends TimedRobot {
   // ERROR CODES
   public static final int FAIL = -1;
@@ -87,19 +77,6 @@ public class Robot extends TimedRobot {
 	private int m_delaySelected;
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
-  //Vision processing stuff
-  //WARNING EXPERIMENTAL
-  //UsbCamera driveCamera;
-
-  private static final int IMG_WIDTH = 640;
-  private static final int IMG_HEIGHT = 480;
-
-  private VisionThread visionThread;
-  private double centerX = 0.0;
-
-  private final Object imgLock = new Object();
-
-
   /**
    * Constructor
    */
@@ -112,10 +89,7 @@ public class Robot extends TimedRobot {
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
-
-    //Creates the camera
-    //driveCamera = new UsbCamera("driveCamera", 0);
-
+    
     //Set Variables
     ledCurrent = 0;
 
@@ -154,25 +128,6 @@ public class Robot extends TimedRobot {
     //Default Auto Position
 		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
 		SmartDashboard.putData("Auto Delay", m_delayChooser);
-    
-    //Vision Processing
-    //WARNING EXPERIMENTAL
-    //driveCamera = CameraServer.getInstance().startAutomaticCapture();
-    //driveCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-
-    /*visionThread = new VisionThread(driveCamera, new ObjectTracking(), pipeline -> {
-        if (!pipeline.findContoursOutput().isEmpty()) {
-          Rect cameraFOV = Imgproc.boundingRect(pipeline.findContoursOutput().get(0));
-          synchronized (imgLock) {
-            centerX = cameraFOV.x + (cameraFOV.width / 2);
-            System.out.println("center x: " + centerX);
-          }
-        }
-        System.out.println("test");
-      }
-    );
-    visionThread.start();*/
-
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -366,9 +321,6 @@ public class Robot extends TimedRobot {
     /*double tempPower;
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
     shooter.enableShooter(tempPower);*/
-
-    //To be implemented once cameras are mounted
-    objectTracking();
   }
 
 
@@ -672,28 +624,5 @@ public class Robot extends TimedRobot {
       return;
     }
   }
-
-  /****************************************************************************************** 
-  *
-  *    objectTracking()
-  *    WARNING HIGHLY EXPERIMENTAL
-  *    Targets the yellow balls using contor values
-  *    Can be changed to blob detection if need be, although it less reliable
-  * 
-  ******************************************************************************************/
-  public void objectTracking() {
-    // Variables
-    double centerX;
-    double turn;
-
-    synchronized (imgLock) {
-      centerX = this.centerX;
-    }
-    
-    turn = centerX - (IMG_WIDTH / 2);
-    //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    drive.autoRotate(turn * 0.005);
-  }
-
 
 } // End of the Robot Class
