@@ -293,6 +293,8 @@ public class Robot extends TimedRobot {
       autoStatus = Robot.FAIL;
     }
   
+    drive.circle(3);
+
     /*switch (step) {
       case 1:
         shooter.testHoodMotor(-0.03);

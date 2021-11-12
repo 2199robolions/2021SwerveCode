@@ -517,6 +517,36 @@ public class Drive {
 
     /****************************************************************************************** 
     *
+    *    circle()
+    *    Moves robot around circle with given radius (radius is from center of circle to center of robot)
+    * 
+    ******************************************************************************************/
+    public void circle(double radiusFeet) {
+
+        double radius = radiusFeet*12;
+
+        //Finds angle of the radius to each wheel, used to find the angle the wheels need to go to
+        double innerAngle = Math.toDegrees(Math.atan2(robotWidth/2, radius - (robotLength/2)));
+        double outerAngle = Math.toDegrees(Math.atan2(robotWidth/2, radius + (robotLength/2)));
+
+        //The distance that each wheel is from the center of the circle is found with the pythagorean theorem
+        double innerDist = Math.pow(   Math.pow((robotWidth/2), 2) + Math.pow(radius - robotLength/2, 2),    0.5);
+        double outerDist = Math.pow(   Math.pow((robotWidth/2), 2) + Math.pow(radius + robotLength/2, 2),    0.5);
+
+        //The ratio between the inner and outer speeds is equal to the ratio of their distances
+        double outerSpeed = 0.25; //Sets basis for speed of turning
+        double innerSpeed = outerSpeed * (innerDist/outerDist);
+
+        frontLeftWheel.rotateAndDrive(innerAngle + 90, innerSpeed);
+        frontRightWheel.rotateAndDrive(-90 - innerAngle, -1*innerSpeed);
+
+        rearLeftWheel.rotateAndDrive(outerAngle + 90, outerSpeed);
+        rearRightWheel.rotateAndDrive(-90 - outerAngle, -1*outerSpeed);
+    }
+
+
+    /****************************************************************************************** 
+    *
     *    autoAdjustWheels()
     *    Rotates wheels to desired angle
     * 
