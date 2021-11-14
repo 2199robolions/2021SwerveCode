@@ -49,6 +49,8 @@ public class Controls {
     private XboxController xboxController;
     private XboxController driveController;
 
+    private boolean fieldDrive = false;
+
     private Controls() {
         //Instance Creation
         if (useJoystick) {
@@ -401,6 +403,18 @@ public class Controls {
         else {
             return Shooter.BallFeederDirection.OFF;
         }
+    }
+   
+    public boolean fieldDrive() {
+        if (xboxController.getAButton()) {
+            fieldDrive = false;
+            System.out.println("Field drive disabled");
+        }
+        if (xboxController.getBButton()) {
+            fieldDrive = true;
+            System.out.println("Field drive enabled");
+        }
+        return fieldDrive;
     }
 
 } // End of the Controls class

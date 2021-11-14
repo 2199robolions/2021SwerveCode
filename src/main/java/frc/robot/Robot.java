@@ -31,7 +31,6 @@ public class Robot extends TimedRobot {
   private double  rotatePower;
   private double  driveX;
   private double  driveY;
-  private boolean fieldDriveState = false;
   private int     step            = 1;
   private boolean hoodCalibrated  = false;
   private boolean reverseFeeder   = false;

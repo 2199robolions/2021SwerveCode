@@ -302,6 +302,15 @@ public class Drive {
         double rotateX;
         double rotateY;
 
+        //If field drive is active then the crab drive values are shifted based on gyro reading
+        if (controls.fieldDrive() == true) {
+            double crabPower = Math.sqrt((crabX * crabX) + (crabY * crabY));
+            double crabAngle = Math.toDegrees(Math.atan2(crabX, crabY));
+            crabAngle -= ahrs.getYaw();
+
+            crabX = Math.cos(Math.toRadians(crabAngle)) * crabPower;
+            crabY = Math.sin(Math.toRadians(crabAngle)) * crabPower;
+        }
        
         /**
          * The incomming rotate angle will cause the robot to rotate counter-clockwise
