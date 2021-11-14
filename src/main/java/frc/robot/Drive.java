@@ -1,10 +1,13 @@
 package frc.robot;
 
 import edu.wpi.first.wpiutil.math.MathUtil;
+
 import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.networktables.*;
+
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.networktables.*;
 
 public class Drive {
     //Object creation
@@ -24,17 +27,17 @@ public class Drive {
     private static final double kLimeLightToleranceDegrees = 1.0f;
     
     // Turn Controller
-	private static final double kP = 0.02;
+	private static final double kP = 0.01; //0.02
 	private static final double kI = 0.00;
     private static final double kD = 0.00;
     
     //Auto crab drive controller
-    private static final double acdP = 0.03; //1.0 was used for the original autoCrabDrive, which adjusted the angles of the wheels instead of turning the robot
+    private static final double acdP = 0.02; //0.03
     private static final double acdI = 0;
     private static final double acdD = 0;
 
 	//Target Controller
-	private static final double tP = 0.02; //0.2
+	private static final double tP = 0.01; //0.033
 	private static final double tI = 0.00;
     private static final double tD = 0.00;
 
@@ -48,28 +51,28 @@ public class Drive {
     
     //CONSTANTS
     private final int    FAIL_DELAY   = 5;
-    private final double ticksPerFoot = 5.75;
+    private final double ticksPerFoot = 6; //5.75
 
 
 	//Limelight Variables
     private int     noTargetCount      = 0;
-    private int     limeCount          = 0;
+    private int     targetLockedCount  = 0;
     private long    timeOut;
     private boolean limeLightFirstTime = true;
-	private static final int ON_TARGET_COUNT = 20;
+	private static final int ON_TARGET_COUNT = 5;
     private static final int ON_ANGLE_COUNT  = 10;
 
     //Limelight
-	public              boolean limeControl                   = false;
-	public              int     limeStatus                    = 0;
-	public static final int     LIMELIGHT_ON                  = 3;
-	public static final int     LIMELIGHT_OFF                 = 1;
+	public              boolean limeControl   = false;
+	public              int     limeStatus    = 0;
+	public static final int     LIMELIGHT_ON  = 3;
+    public static final int     LIMELIGHT_OFF = 1;
 
     //Limelight distance calc
-    private static final double CameraMountingAngle = 22.0;	                     // 25.6 degrees, 22.0
-	private static final double CameraHeightFeet 	= 26.5 / 12;	             // 16.5 inches
-	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	     // 8ft 2.25 inches
-	private static double mountingRadians = Math.toRadians(CameraMountingAngle); // a1, converted to radians
+    private static final double CameraMountingAngle = 22.0;	                               // 25.6 degrees, 22.0
+	private static final double CameraHeightFeet 	= 26.5 / 12;	                       // 16.5 inches
+	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	               // 8ft 2.25 inches
+	private static       double mountingRadians     = Math.toRadians(CameraMountingAngle); // a1, converted to radians
 
 	// find result of h2 - h1, or Δh
 	private static double DifferenceInHeight = TargetHeightFt - CameraHeightFeet;
@@ -83,7 +86,8 @@ public class Drive {
      */
     public static enum WheelMode {
 		MANUAL,
-		TARGET_LOCK;
+        TRACKING,
+        LOCKED;
     }
     
     /**
@@ -187,10 +191,10 @@ public class Drive {
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
  
     // These numbers were selected to make the angles between -180 and +180
-    private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg;
-    private static final double rotateLeftFrontMotorAngle = rotateRightFrontMotorAngle - 90;
-    private static final double rotateRightRearMotorAngle = rotateRightFrontMotorAngle + 90;
-    private static final double rotateLeftRearMotorAngle =  rotateRightFrontMotorAngle + 180;
+    private static final double rotateRightFrontMotorAngle = -1 * rotateMotorAngleDeg; //-1 * rotateMotorAngleDeg;
+    private static final double rotateLeftFrontMotorAngle = -180 + rotateMotorAngleDeg; //rotateRightFrontMotorAngle - 90;
+    private static final double rotateRightRearMotorAngle = rotateMotorAngleDeg; //rotateRightFrontMotorAngle + 90;
+    private static final double rotateLeftRearMotorAngle =  180 -rotateMotorAngleDeg;       //rotateRightFrontMotorAngle + 180;
 
 
     /****************************************************************************************** 
@@ -284,7 +288,6 @@ public class Drive {
 
 
 
-
     /****************************************************************************************** 
     *
     *    calcSwerve()
@@ -315,13 +318,17 @@ public class Drive {
         swervePower = Math.sqrt((swerveX * swerveX) + (swerveY * swerveY));
         swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
 
+        //If we are rotating CCW, and we are not crab driving, then the robot will flip the wheel angles and powers
+        //This keeps the wheels in the same position when turning both ways, making small rotations easier
+        if ((rotatePower < 0) && (crabX == 0 && crabY == 0)) {
+            swervePower *= -1;
+            swerveAngle += 180;
+        }
+
         PowerAndAngle swerveNums = new PowerAndAngle(swervePower, swerveAngle);
 
         return swerveNums;
     }
-
-
-
 
 
 
@@ -362,7 +369,6 @@ public class Drive {
         rearRightWheel.rotateAndDrive(wheelAngle, drivePower);
     }
 
-    
 
    
     /****************************************************************************************** 
@@ -370,10 +376,13 @@ public class Drive {
     *    autoCrabDrive()
     *    Drives robot for certain distance at a given heading and speed
     *    Generic function for autoCrabDrive with default power of 0.6
+    *    @param distanceInFeet
+    *    @param targetHeading
+    *    @return Robot Status
     * 
     ******************************************************************************************/
-    public int autoCrabDrive(double distance, double targetDegrees) { 
-        return autoCrabDrive(distance, targetDegrees, 0.6);
+    public int autoCrabDrive(double distance, double targetHeading) { 
+        return autoCrabDrive(distance, targetHeading, 0.6);
     }
 
 
@@ -383,36 +392,49 @@ public class Drive {
     *    Drives robot for certain distance at a given heading and speed
     *    Distance has to be positive
     *    Initial orientation of robot is maintained throughout function
+    *    @param distanceInFeet
+    *    @param targetHeading
+    *    @param power
+    *    @return Robot Status
     * 
     ******************************************************************************************/
     public int autoCrabDrive(double distance, double targetHeading, double power) {
+
+        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
+
+        //First time through initializes target values
+        if (firstTime == true) {
+            firstTime = false;
+            targetOrientation = ahrs.getYaw();
+            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
+        }
+
+        //Halfs speed within 3 feet of target, if total distance is at least 5 feet
+        if ((encoderCurrent + (3 * ticksPerFoot) > encoderTarget) && distance > 5) {
+            power *= 0.5;
+        }
+
         double orientationError;
 
         double x = power * Math.sin(Math.toRadians(targetHeading));
         double y = power * Math.cos(Math.toRadians(targetHeading));
 
-        double encoderCurrent = getAverageEncoder(); //Average of 4 wheels
 
         if (distance < 0){
             System.out.println("Error from autoCrabDrive(), negative distance not allowed");
             return Robot.DONE;
         }
 
-        //First time through initializes target values
-        if(firstTime == true){
-            firstTime = false;
-            targetOrientation = ahrs.getYaw();
-            encoderTarget = encoderCurrent + (ticksPerFoot * distance);
-        }
+        
 
         //Adjusts wheel angles
         orientationError = autoCrabDriveController.calculate(ahrs.getYaw(), targetOrientation); 
         teleopSwerve(x, y, orientationError);
 
         //Checks if target distance has been reached, then ends function if so
-        if(encoderCurrent >= encoderTarget){
+        if (encoderCurrent >= encoderTarget) {
             firstTime = true;
-            stopWheels();
+            //stopWheels();
             rotateController.reset();
             return Robot.DONE;
         } 
@@ -421,7 +443,6 @@ public class Drive {
         }
 
     }
-
 
 
 
@@ -438,7 +459,6 @@ public class Drive {
         rearRightWheel.rotateAndDrive(rotateRightRearMotorAngle, rotatePower * -1);
         rearLeftWheel.rotateAndDrive(rotateLeftRearMotorAngle, rotatePower * -1);
     }
-
 
 
 
@@ -468,8 +488,9 @@ public class Drive {
 		}
 
 		// Rotate
-		rotateError = rotateController.calculate(ahrs.getYaw(), degrees);
-        rotateError = MathUtil.clamp(rotateError, -0.75, 0.75);
+        rotateError = rotateController.calculate(ahrs.getYaw(), degrees);
+        rotateError = MathUtil.clamp(rotateError, -0.5, 0.5);
+        System.out.println(rotateError + " " + ahrs.getYaw());
 		teleopRotate(rotateError);
 
 		// CHECK: Routine Complete
@@ -491,6 +512,76 @@ public class Drive {
 			count = 0;
             return Robot.CONT;
 		}
+    }
+
+
+    /****************************************************************************************** 
+    *
+    *    circle()
+    *    Moves robot around circle with given radius (radius is from center of circle to center of robot)
+    * 
+    ******************************************************************************************/
+    public void circle(double radiusFeet) {
+
+        double radius = radiusFeet*12;
+
+        //Finds angle of the radius to each wheel, used to find the angle the wheels need to go to
+        double innerAngle = Math.toDegrees(Math.atan2(robotWidth/2, radius - (robotLength/2)));
+        double outerAngle = Math.toDegrees(Math.atan2(robotWidth/2, radius + (robotLength/2)));
+
+        //The distance that each wheel is from the center of the circle is found with the pythagorean theorem
+        double innerDist = Math.pow(   Math.pow((robotWidth/2), 2) + Math.pow(radius - robotLength/2, 2),    0.5);
+        double outerDist = Math.pow(   Math.pow((robotWidth/2), 2) + Math.pow(radius + robotLength/2, 2),    0.5);
+
+        //The ratio between the inner and outer speeds is equal to the ratio of their distances
+        double outerSpeed = 0.25; //Sets basis for speed of turning
+        double innerSpeed = outerSpeed * (innerDist/outerDist);
+
+        frontLeftWheel.rotateAndDrive(innerAngle + 90, innerSpeed);
+        frontRightWheel.rotateAndDrive(-90 - innerAngle, -1*innerSpeed);
+
+        rearLeftWheel.rotateAndDrive(outerAngle + 90, outerSpeed);
+        rearRightWheel.rotateAndDrive(-90 - outerAngle, -1*outerSpeed);
+    }
+
+
+    /****************************************************************************************** 
+    *
+    *    autoAdjustWheels()
+    *    Rotates wheels to desired angle
+    * 
+    ******************************************************************************************/
+    public int autoAdjustWheels(double degrees) {
+        long currentMs = System.currentTimeMillis();
+
+        if (rotateFirstTime == true) {
+            rotateFirstTime = false;
+            count = 0;
+            timeOut = currentMs + 500; //Makes the time out 2.5 seconds
+        }
+
+        if (currentMs > timeOut) {
+			count = 0;
+            rotateFirstTime = true;
+            
+			System.out.println("Timed out");
+            stopWheels();
+            return Robot.FAIL;
+		}
+
+		// Rotate
+        int FR = frontRightWheel.rotateAndDrive(degrees, 0);
+        int FL = frontLeftWheel.rotateAndDrive(degrees, 0);
+        int BR = rearRightWheel.rotateAndDrive(degrees, 0);
+        int BL = rearLeftWheel.rotateAndDrive(degrees, 0);
+
+        //Checks if all wheels are at target angle
+        if (FR == Robot.DONE && FL == Robot.DONE && BR == Robot.DONE && BL == Robot.DONE) {
+            return Robot.DONE;
+        }
+        else {
+            return Robot.CONT;
+        }
     }
 
 
@@ -530,10 +621,11 @@ public class Drive {
 
 
 
-
-    /**
-	 * LIMELIGHT METHODS
-	 */
+    /****************************************************************************************** 
+    *
+    *    LIMELIGHT METHODS
+    * 
+    ******************************************************************************************/
     /**
      * Limelight targeting using PID
      * @param pipeline
@@ -549,43 +641,35 @@ public class Drive {
             limeLightFirstTime = false;
 
             //Resets the variables for tracking targets
-			noTargetCount = 0;
-            limeCount = 0;
-            
-            //Resets the targeting PID's zero
-			targetController.setSetpoint(0.0);
+			noTargetCount    = 0;
+            targetLockedCount = 0;
             
             //Sets and displays the forced time out
 			timeOut = currentMs + TIME_OUT;
-            System.out.println("TimeOut " + timeOut / 1000 + " seconds");
+            System.out.println("Limelight timeOut " + timeOut / 1000 + " seconds");
             
             //Turns the limelight on
             changeLimelightLED(LIMELIGHT_ON);
-
-            //Makes the LED's go to targeting mode 
-			led.limelightAdjusting();
 		}
 
 		// Whether the limelight has any valid targets (0 or 1)
         double tv = limelightEntries.getEntry("tv").getDouble(0);
-        System.out.println("tv: " + tv);
+        //System.out.println("tv: " + tv);
 		// Horizontal Offset From Crosshair To Target (-27 degrees to 27 degrees) [54 degree tolerance]
 		double tx = limelightEntries.getEntry("tx").getDouble(0);
-		System.out.println("tx: " + tx);
+        //System.out.println("tx: " + tx);
 
 		/*// Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
         double ty = limelightEntries.getEntry("ty").getDouble(0);
         System.out.println("ty: " + ty);*/
-		/*// Target Area (0% of image to 100% of image) [Basic way to determine distance]
+		// Target Area (0% of image to 100% of image) [Basic way to determine distance]
 		// Use lidar for more acurate readings in future
-        double ta = limelightEntries.getEntry("ta").getDouble(0);
-        System.out.println("ta: " + ta);*/
+        //double ta = limelightEntries.getEntry("ta").getDouble(0);
+        //System.out.println("ta: " + ta);
+        //ta of 1.6% for the 10ft shot
 
 		if (tv < 1.0) {
-            //Has the LED's display that there is no valid target
-            led.limelightNoValidTarget();
-            
-			teleopRotate(0.00);
+            stopWheels();
 
             //Adds one to the noTargetCount (will exit this program if that count exceedes 5) 
 			noTargetCount++;
@@ -596,16 +680,13 @@ public class Drive {
 			}
 			else {
                 //Reset variables
-				noTargetCount = 0;
-                limeCount = 0;
+				noTargetCount      = 0;
+                targetLockedCount  = 0;
                 limeLightFirstTime = true;
                 targetController.reset();
 
                 stopWheels();
-                
-                //Displays a failed attempt on the LED's
-                led.limelightNoValidTarget();
-                
+                                
                 //Returns the error code for failure
 				return Robot.FAIL;
 			}
@@ -613,36 +694,32 @@ public class Drive {
         else {
             //Keeps the no target count at 0
             noTargetCount = 0;
-
-            //Keeps the LED's displaying that the robot is targeting
-			led.limelightAdjusting();
 		}
 
-		// Rotate
-		m_LimelightCalculatedPower = targetController.calculate(tx, 0.0);
-		m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
-		teleopRotate(m_LimelightCalculatedPower);
-		System.out.println("Pid out: " + m_LimelightCalculatedPower);
+        // Rotate
+        // Need a -1 angle because limelight is slightly offset
+		m_LimelightCalculatedPower = targetController.calculate(tx, -1.0);
+        m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
+		teleopRotate(m_LimelightCalculatedPower * -1);
+		//System.out.println("Pid out: " + m_LimelightCalculatedPower);
 
 		// CHECK: Routine Complete
 		if (targetController.atSetpoint() == true) {
-            limeCount++;
+            targetLockedCount++;
             
-			System.out.println("On target");
+			//System.out.println("On target");
 		}
 
-		if (limeCount >= ON_TARGET_COUNT) {
+		if (targetLockedCount >= ON_TARGET_COUNT) {
             //Reset variables
-			limeCount = 0;
+            targetLockedCount = 0;
+            noTargetCount     = 0;
             limeLightFirstTime = true;
             targetController.reset();
             
 			stopWheels();
-            
-            //Makes the LED's show that the robot is done targeting 
-            led.limelightFinished();
 
-            System.out.println("On target or not moving");
+            //System.out.println("On target or not moving");
 
             //Returns the error code for success
 			return Robot.DONE;
@@ -650,28 +727,69 @@ public class Drive {
         
 		// limelight time out readjust
 		if (currentMs > timeOut) {
-			limeCount = 0;
+            targetLockedCount = 0;
+            noTargetCount     = 0;
             limeLightFirstTime = true;
-            
             targetController.reset();
             
             stopWheels();
-            
-            led.limelightNoValidTarget();
-            
+                        
             System.out.println("timeout " + tx + " Target Acquired " + tv);
 
             //Returns the error code for failure
 			return Robot.FAIL;
         }
         
-        //DO WE DO AUTOKILL HERE OR IN ROBOT WHEELS CONTROL?
-        if (controls.autoKill() == true) {
-            //Returns the error code for failure
-            return Robot.FAIL;
+		return Robot.CONT;   
+    }
+
+    /**
+     * This is a test method for moving the robot under the control of the limelight
+     * Do not use it yet as it isn't finished or checked
+     * @return limelight motion finished
+     */
+    public int limelightMotion() {
+        // Status Variables
+        int status = 0;
+
+        // Variables
+        Shooter.ShootLocation attemptedShot = controls.getShooterLocation();
+        Shooter.ShootLocation LAY_UP = Shooter.ShootLocation.LAY_UP;
+        Shooter.ShootLocation TEN_FOOT = Shooter.ShootLocation.TEN_FOOT;
+        Shooter.ShootLocation TRENCH = Shooter.ShootLocation.TRENCH;
+
+        // Limelight variables
+        final double LAY_UP_TARGET   = 0.00; //definitely not this
+        final double TEN_FOOT_TARGET = 1.83;
+        final double TRENCH_TARGET   = 0.00; //definitely not this
+        double ta = limelightEntries.getEntry("ta").getDouble(0);
+
+        if (attemptedShot == LAY_UP) {
+            if (ta - LAY_UP_TARGET > 0.01) { //ta is greater than 0.00, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - LAY_UP_TARGET < 0.01) { //ta is less than 0.00, a.k.a you're too far
+                //status = forward()
+            }
+        }
+        else if (attemptedShot == TEN_FOOT) {
+            if (ta - TEN_FOOT_TARGET > 0.01) { //ta is greater than 1.84, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - TEN_FOOT_TARGET < 0.01) { //ta is less than 1.82, a.k.a you're too far
+                //status = forward()
+            }
+        }
+        else if (attemptedShot == TRENCH) {
+            if (ta - TRENCH_TARGET > 0.01) { //ta is greater than 0.00, a.k.a you're too close
+                //status = forward()
+            }
+            else if (ta - TRENCH_TARGET < 0.01) { //ta is less than 0.00, a.k.a you're too far
+                //status = forward()
+            }
         }
 
-		return Robot.CONT;   
+        return status;
     }
 
     /** 

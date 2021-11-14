@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
  * Add your docs here.
  */
 public class Grabber {
-
     //SPARK MAX ID's
     private static final int SPARK_ID  = 18;
 
@@ -28,8 +27,7 @@ public class Grabber {
     //
 
     //CONSTANTS
-    private final double GRABBER_POWER = -0.8;  //0.7
-    //private final double GRABBER_POWER = 1.0;
+    private final double GRABBER_POWER = 1.0;  //-1.0
 
     /**
      * Enumerater for Grabber State
@@ -54,7 +52,7 @@ public class Grabber {
      */
     public Grabber()  {
         //Grabber Motor Init
-        grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushless);
+        grabberMotor = new CANSparkMax(SPARK_ID, MotorType.kBrushed);
         grabberMotor.setSmartCurrentLimit(GRABBER_CURRENT_LIMIT);
         grabberMotor.set(0.0);
 
@@ -81,12 +79,14 @@ public class Grabber {
 
         //System.out.println("Forwarding State: " + grabberState);
     }
-    public void deploy(){
+
+    public void deploy() {
         //Sets piston to deploy position
         grabberPiston.set(Value.kForward);
         grabberState = GrabberState.DEPLOY;
     }
-    public void retract(){
+
+    public void retract() {
         //Sets piston to deploy position
         grabberPiston.set(Value.kReverse);
         grabberState = GrabberState.RETRACT;
@@ -94,7 +94,7 @@ public class Grabber {
 
 
     public void setGrabberMotor(GrabberDirection dir) {
-        //Don't allow grabber to turn if it's retracted
+        //Don't allow grabber to turn manually if it's retracted
         if (grabberState == GrabberState.RETRACT)  {
             grabberMotor.set(0.0);
             return;
@@ -111,6 +111,17 @@ public class Grabber {
         else {
             grabberMotor.set(0.0);
         }    
+    }
+
+    /**
+     * A method to allow the Grabber to move and let balls pass through it
+     * EXPERIMENTAL
+     */
+    public void autoGrabberControl() {
+        if (grabberState == GrabberState.RETRACT) {
+            // Gives it a very slow intake
+            grabberMotor.set(GRABBER_POWER * -0.6);
+        }
     }
 
 } // End of the Grabber Class

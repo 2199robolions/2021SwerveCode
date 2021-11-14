@@ -21,21 +21,34 @@ public class Robot extends TimedRobot {
   private Climber   climber;
 
   //CONSTANTS
-  private final int LED_DELAY = 15;
+  private final int    LED_DELAY           = 15;
+  private final double REVERSE_FEEDER_TIME = 0.25;
 
   //VARIABLES
-  private int     climberStatus;
   private int     ledCurrent;
-  private int     delaySeconds;
   private int     autoStatus      = Robot.CONT;
+  private int     shooterStatus   = Robot.CONT;
   private double  rotatePower;
   private double  driveX;
   private double  driveY;
   private boolean fieldDriveState = false;
-  private Climber.ClimberState climberState;
-  private double  testHoodPower;
-  private int     step = 1;
+  private int     step            = 1;
+  private boolean hoodCalibrated  = false;
+  private boolean reverseFeeder   = false;
 
+  //State Trackers
+  private Shooter.ShootLocation shootLocation     = Shooter.ShootLocation.OFF;
+  private Shooter.ShootLocation prevShootLocation = Shooter.ShootLocation.OFF;
+  private Climber.ClimberState  climberState;
+
+  private static enum ShooterState {
+    SHOOTER_OFF_STATE,
+    REVERSE_FEEDER_STATE,
+    POWER_SHOOTER_STATE,
+    MOVE_HOOD_STATE, 
+    ENABLE_FEEDER_STATE; 
+  }
+  private ShooterState shooterState = ShooterState.SHOOTER_OFF_STATE;
 
 
   //Setting Up WheelMode for limelight
@@ -47,25 +60,22 @@ public class Robot extends TimedRobot {
    * SMART DASHBOARD CHOICES
    */
   //Position
-	private static final String kDefaultAuto      = "Default";
 	private static final String kCustomAutoRight  = "Right";
 	private static final String kCustomAutoCenter = "Center";
 	private static final String kCustomAutoLeft   = "Left";
 	private static final String kCustomAutoLRC    = "L/R/C Simple";
 
 	private String m_positionSelected;
-	private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
+  private final SendableChooser<String> m_pathChooser = new SendableChooser<>();
+  
+  //Auto Delay
+  private static final String kCustomDelayZero  = "0";
+	private static final String kCustomDelayTwo   = "2";
+	private static final String kCustomDelayFour  = "4";
+	private static final String kCustomDelaySix   = "6";
 
-  //Delay
-	private static final String kDefaultTime    = "0";
-	private static final String kCustomChooser2 = "2";
-	private static final String kCustomChooser4 = "4";
-	private static final String kCustomChooser6 = "6";
-
-	private String m_delaySelected;
-	private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
-
-
+	private int m_delaySelected;
+  private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
   /**
    * Constructor
@@ -79,12 +89,11 @@ public class Robot extends TimedRobot {
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
-
+    
     //Set Variables
     ledCurrent = 0;
 
     //Set Different Status Cues
-    climberStatus = Robot.DONE;
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
     wheelMode     = Drive.WheelMode.MANUAL;
   }
@@ -101,33 +110,27 @@ public class Robot extends TimedRobot {
      * SMART DASHBOARD CHOICES
      */
     //Auto Positions
-		m_pathChooser.addOption(kDefaultAuto , kDefaultAuto);
 		m_pathChooser.addOption(kCustomAutoRight, kCustomAutoRight);
 		m_pathChooser.addOption(kCustomAutoCenter, kCustomAutoCenter);
 		m_pathChooser.addOption(kCustomAutoLeft, kCustomAutoLeft);
 		m_pathChooser.addOption(kCustomAutoLRC, kCustomAutoLRC);
 
 		//Default Auto Position
-		m_pathChooser.setDefaultOption(kDefaultAuto, kDefaultAuto);
+		m_pathChooser.setDefaultOption(kCustomAutoLRC, kCustomAutoLRC);
 		SmartDashboard.putData("Auto Positions", m_pathChooser);
 
-    //Auto Delay
-		m_delayChooser.addOption(kDefaultTime,    "0");
-		m_delayChooser.addOption(kCustomChooser2, "2");
-		m_delayChooser.addOption(kCustomChooser4, "4");
-		m_delayChooser.addOption(kCustomChooser6, "6");
-		
-		//Default Auto Delay
-		m_delayChooser.setDefaultOption(kDefaultTime, kDefaultTime);
-		SmartDashboard.putData("Auto delay", m_delayChooser);
+    //Default Auto Delay
+    m_delayChooser.addOption(kCustomDelayZero, kCustomDelayZero);
+		m_delayChooser.addOption(kCustomDelayTwo , kCustomDelayTwo);
+		m_delayChooser.addOption(kCustomDelayFour, kCustomDelayFour);
+    m_delayChooser.addOption(kCustomDelaySix , kCustomDelaySix);
+    
+    //Default Auto Position
+		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
+		SmartDashboard.putData("Auto Delay", m_delayChooser);
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
-
-    //Smartdashboard test values
-    //SmartDashboard.putNumber("Hood power", 0.05);
-    SmartDashboard.putNumber("Hood target", -2);
-
   }
 
 
@@ -137,7 +140,7 @@ public class Robot extends TimedRobot {
   /****************************************************************************************** 
   *
   *    robotPeriodic()
-  *    Always runs while the robot is on?????
+  *    Always runs while the robot is on
   * 
   ******************************************************************************************/
   public void robotPeriodic() {
@@ -155,22 +158,18 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void autonomousInit() {
+    //Set some variables
     autoStatus      = Robot.CONT;
-
     
     //Auto positions
     m_positionSelected = m_pathChooser.getSelected();
 
     //Auto Delay
-    m_delaySelected = m_delayChooser.getSelected();
-    delaySeconds = Integer.parseInt(m_delaySelected);
+    m_delaySelected = Integer.parseInt(m_delayChooser.getSelected());
 
     //Telemetry
-    System.out.println("Delay: "    + delaySeconds);
+    System.out.println("Delay: "    + m_delaySelected);
 		System.out.println("Position: " + m_positionSelected);
-    
-    //LED Color Set
-    led.autoMode();
   }
 
 
@@ -184,11 +183,18 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void autonomousPeriodic() {
-    if (autoStatus == Robot.CONT) {
-      autoStatus = drive.autoCrabDrive(5, 45, 0.4);
+
+    //Calibrates robot when necessary
+    if (hoodCalibrated == false) {
+      calibrateRobot();
     }
     else {
-      drive.stopWheels();
+      if (autoStatus == Robot.CONT) {
+        autoStatus = auto.competitionAuto(m_positionSelected, m_delaySelected);
+      }
+      else {
+        drive.stopWheels();
+      }
     }
   }
 
@@ -223,7 +229,12 @@ public class Robot extends TimedRobot {
     wheelControl();
 
     //Controls the grabber and shooter
-    ballControl();
+    if (hoodCalibrated == true) {
+      ballControl();
+    }
+    else {
+      calibrateRobot();
+    }
 
     //Controls the climber arm and motor
     climberControl();
@@ -278,21 +289,25 @@ public class Robot extends TimedRobot {
   * 
   ******************************************************************************************/
   public void testPeriodic() {
-
     if (controls.autoKill() == true) {
       autoStatus = Robot.FAIL;
     }
+  
+    drive.circle(3);
 
-    switch (step) {
+    /*switch (step) {
       case 1:
-        autoStatus = shooter.moveHoodFullForward();
+        shooter.testHoodMotor(-0.03);
+        if (shooter.getHoodEncoder() < -13) {
+          shooter.disableHoodMotor();
+          autoStatus = DONE;
+        }
+        else {
+          autoStatus = CONT;
+        }
         break;
       case 2:
-        autoStatus = shooter.testHoodMotorEncoder(SmartDashboard.getNumber("Hood target", -2));
-        break;
-      case 3:
-        shooter.testShootMotors(1.0);
-        shooter.testFeedMotor(Shooter.FEED_POWER);
+        shooter.enableShooterFullPower();
         break;
       default:
         step = 1;
@@ -300,16 +315,11 @@ public class Robot extends TimedRobot {
 
     if ( (autoStatus == Robot.DONE) || (autoStatus == Robot.FAIL) ) {
       step++;
-    }
+    }*/
   
-      //autoStatus = shooter.moveHoodFullForward();
-      //System.out.println(shooter.hoodMotorPosition());
-      //shooter.testHoodMotor(0.075);
-      //shooter.testFeedMotor(-0.25);
-      //shooter.testShootMotors(1);
+    //autoStatus = shooter.moveHoodFullForward();
+    //shooter.testHoodMotorEncoder();
     
-
- 
     /*double tempPower;
     tempPower = SmartDashboard.getNumber("Input Power", 0.5);
     shooter.enableShooter(tempPower);*/
@@ -325,58 +335,64 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   private void wheelControl() {
     //Drive inputs
-    rotatePower = controls.getRotatePower();
-    driveX      = controls.getDriveX();
-    driveY      = controls.getDriveY();
-
-
+    rotatePower            = controls.getRotatePower();
+    driveX                 = controls.getDriveX();
+    driveY                 = controls.getDriveY();
+    shootLocation          = controls.getShooterLocation();
+    boolean killTargetLock = controls.autoKill();
+  
     //Only turns on targetLock mode if autoKill isn't being pressed
-    if ( controls.autoKill() == true ) {
+    if (killTargetLock == true) {
 			wheelMode = Drive.WheelMode.MANUAL;
     } 
-    else if ( controls.enableTargetLock() == true ) {
-			wheelMode = Drive.WheelMode.TARGET_LOCK;
-    } 
-    else {
-      wheelMode = Drive.WheelMode.MANUAL; 
-    }
 
 
     //Manual Drive
     if (wheelMode == Drive.WheelMode.MANUAL) {
 
       //If robot is out of deadzone, drive normally
-      if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (rotatePower > 0.01)) {
+      if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (Math.abs(rotatePower) > 0.01)) {
         drive.teleopSwerve(driveX, driveY, rotatePower);
-      } 
+      }
       else {
         //Robot is in dead zone
         drive.stopWheels();
       }
 
-      //Ensures that the drivers can actually see the limelight signals
-      ledCurrent ++;
-
-      if (ledCurrent >= LED_DELAY) {
-        ledCurrent = 0;
-
-        led.defaultMode("Team");
+      if ( (shootLocation == Shooter.ShootLocation.TEN_FOOT) || (shootLocation == Shooter.ShootLocation.TRENCH) ) {
+        wheelMode = Drive.WheelMode.TRACKING;
+      }
+      else if (shootLocation == Shooter.ShootLocation.LAY_UP) {
+        wheelMode = Drive.WheelMode.LOCKED;
       }
     }
     //Limelight targetting
-    else if (wheelMode == Drive.WheelMode.TARGET_LOCK) {
+    else if (wheelMode == Drive.WheelMode.TRACKING) {
 
       //PID Targeting when in Target Lock Mode
       targetingStatus = drive.limelightPIDTargeting(Drive.TargetPipeline.TEN_FOOT);
 
       if (targetingStatus == Robot.DONE) {
-        wheelMode = Drive.WheelMode.MANUAL;
+        wheelMode = Drive.WheelMode.LOCKED;
       }
       else if (targetingStatus == Robot.FAIL) {
+        wheelMode = Drive.WheelMode.LOCKED;
+      }
+      else if (targetingStatus == Robot.CONT) {
+        wheelMode = Drive.WheelMode.TRACKING;
+      }
+      else if (shootLocation == Shooter.ShootLocation.OFF) {
         wheelMode = Drive.WheelMode.MANUAL;
       }
-
-      ledCurrent = 0;
+      else if (shootLocation == Shooter.ShootLocation.LAY_UP) {
+        wheelMode = Drive.WheelMode.LOCKED;
+      }
+    }
+    // If a target has been aquired, or it times out
+    else if (wheelMode == Drive.WheelMode.LOCKED) {
+      if (shootLocation == Shooter.ShootLocation.OFF) {
+        wheelMode = Drive.WheelMode.MANUAL;
+      }
     }
   }
 
@@ -392,97 +408,148 @@ public class Robot extends TimedRobot {
     boolean grabberDeployRetract;
     Grabber.GrabberDirection grabberDirection;
     
-    //Shooter Variables
-    Shooter.BallFeederDirection feederDirection;
-    Shooter.HoodMotorPosition   hoodPosition;
-    boolean hailMary;
-    boolean trenchShot;
-    boolean shooterEnable;
-    boolean shooterReady = shooter.shooterReadyAuto();
-
-    /**
-     * Get inputs from the Xbox controller & Joystick
-     */
     //Grabber
 		grabberDeployRetract = controls.grabberDeployRetract();
-		grabberDirection     = controls.getGrabberDir();
+    grabberDirection     = controls.getGrabberDir();
     
     //Shooter
-    feederDirection      = controls.ballFeederControl();
-    hoodPosition         = controls.hoodMotorControl();
-    hailMary             = controls.hailMary();
-    trenchShot           = controls.enableTrenchShot();
-		shooterEnable        = controls.enableShooter();
-    
+    prevShootLocation    = shootLocation;
+    shootLocation        = controls.getShooterLocation();
+    Shooter.BallFeederDirection feedMotorDirection = controls.ballFeederControl();
+    boolean changedShooterLocation = (prevShootLocation != shootLocation);
+    reverseFeeder = (controls.reverseFeederPower() > 0.1);
 
+    
     /*****   Grabber Deploy Retract   *****/
 		if (grabberDeployRetract == true) {
 			grabber.deployRetract();
 		}
 		
 		/******   Grabber motor Forward, Reverse or OFF   *****/
-		/******   Allows the grabber to be on when shooter on   *****/
     grabber.setGrabberMotor(grabberDirection);
 
-		/*****   Shooter Control   *****/
-		if (shooterEnable == true) {
-			if (hailMary == true) {
-        //Prepares the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.HAIL_MARY );
-			}
-			else if (trenchShot == true) {
-        //Prepares the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.TRENCH );
-			}
-			else {
-        //Prepaers the robot to shoot
-				shooter.autoShooterControl( Shooter.ShootLocation.TEN_FOOT );
+
+
+    /******   SHOOTER STATE MACHINE   *****/
+    //Shooter is off, reset values and check if we should begin to shoot
+    if (shooterState == ShooterState.SHOOTER_OFF_STATE) {
+      //Resetting values
+      shooterStatus = Robot.CONT;
+
+      if (reverseFeeder == true) {
+        shooter.manualBallFeederControl(Shooter.BallFeederDirection.REVERSE);
       }
-		}
-		else {
-      //Turns the shooter off
-			shooter.manualShooterControl( Shooter.ShootLocation.OFF );
+      else {
+        shooter.disableFeeder();
+      }
+
+      shooter.disableRightShooterMotor();
+      shooter.disableHoodMotor();
+
+      //Checking if shooting should begin
+      if (shootLocation != Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.REVERSE_FEEDER_STATE;
+      } 
+      
     }
 
-    /*****   Hood Motor Control   *****/
-    //Hood motor stuff
-    if (shooterEnable == true) {
-      shooter.autoHoodControl();
+
+    //Feed motor reverses to clear jams then moves on
+    else if (shooterState == ShooterState.REVERSE_FEEDER_STATE) {
+      //Method to reverse the feeder for a certain ammount of time
+      shooterStatus = shooter.reverseFeeder(REVERSE_FEEDER_TIME);
+      shooter.disableHoodMotor();
+      shooter.disableRightShooterMotor();
+
+      if (shooterStatus == Robot.DONE) {
+        shooterState = ShooterState.POWER_SHOOTER_STATE;
+      }
+      else if ((shooterStatus == Robot.FAIL) || (shootLocation == Shooter.ShootLocation.OFF)) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }
+      else if (shooterStatus == Robot.CONT) {
+        shooterState = ShooterState.REVERSE_FEEDER_STATE;
+      }                                           
+      
+    } 
+
+
+    //Turns on shooter motor and goes to next step
+    else if (shooterState == ShooterState.POWER_SHOOTER_STATE) {
+      shooter.manualShooterControl(shootLocation);
+      shooter.disableHoodMotor();
+      shooter.disableFeeder();
+      
+      if (shootLocation == Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }
+      else {
+        shooterState = ShooterState.MOVE_HOOD_STATE;
+      }
     }
+
+
+    //Moves hood to proper location. Goes back to previous step if user changed shoot location
+    else if (shooterState == ShooterState.MOVE_HOOD_STATE) {
+      shooterStatus = shooter.manualHoodMotorControl(shootLocation);
+      shooter.disableFeeder();
+      //Leave shooter motor on, needs to maintain speed
+
+      if (shooterStatus == Robot.DONE) {
+        System.out.println("Done moving hood, going to enable feeder state");
+        shooterState = ShooterState.ENABLE_FEEDER_STATE;
+      }
+      else if (shooterStatus == Robot.CONT) {
+        shooterState = ShooterState.MOVE_HOOD_STATE;
+      }
+      else if ((shooterStatus == Robot.FAIL) || (shootLocation == Shooter.ShootLocation.OFF)) {
+        System.out.println("Hood failed, going back to start");
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }
+    }
+
+
+    //Turns on feed motor if shooter is up to speed
+    else if (shooterState == ShooterState.ENABLE_FEEDER_STATE) {
+      if (wheelMode == Drive.WheelMode.LOCKED) {
+        auto.moveBalls();
+      }
+      shooter.disableHoodMotor();
+      //Leave shooter motor on, needs to maintain speed
+
+      if (shootLocation == Shooter.ShootLocation.OFF) {
+        shooterState = ShooterState.SHOOTER_OFF_STATE;
+      }    
+      else if (changedShooterLocation == true) {
+        shooterState = ShooterState.MOVE_HOOD_STATE;
+      } 
+      else {
+        shooterState = ShooterState.ENABLE_FEEDER_STATE;
+      }        
+    }
+
+    //Any other case
     else {
-      shooter.manualHoodMotorControl(hoodPosition);
+      shooterState = ShooterState.SHOOTER_OFF_STATE;
+      shooter.manualBallFeederControl(feedMotorDirection);
     }
 
-    /*****   Ball Feeder Control   *****/
-    // Can't have grabber & shooter on at same time
-    if ((grabberDirection == Grabber.GrabberDirection.OFF) && (shooterEnable == true)) {
-      //Waits for the shooter to get up to speed
-      if (shooterReady == true) {
-        System.out.println("Shooter ready. Fire away!");
-
-        //Shooter at required RPM, turn Feed Motor On
-        shooter.autoBallFeederControl();
-      }
-      else { //AKA shooterReady == false
-        System.out.println("Shooter NOT ready!");
-
-        //Shooter below required RPM, turn Feed Motor Off
-        shooter.autoBallFeederControl();
-      }
-    }
-    else {
-      shooter.manualBallFeederControl(feederDirection);
-      shooter.manualHoodMotorControl (hoodPosition);
-    }
+    //System.out.println("Hood Encoder: " + shooter.getHoodEncoder());
   }
 
-  /*****   Climber Control   *****/
-  //Climber stuff
+
+  /****************************************************************************************** 
+  *
+  *    climberControl()
+  *    Controls the climber mechanism during teleop
+  * 
+  ******************************************************************************************/
   private void climberControl() {
     //Variables
     boolean enableAllArms;
 		boolean DisableTopArm;
     double  climberMotorPower;
+    int     climberStatus;
     
     //Get inputs from controllers
     enableAllArms     = controls.climberAllArmsUp();
@@ -491,23 +558,22 @@ public class Robot extends TimedRobot {
 
     //All Arms Down
     if (climberState == Climber.ClimberState.ALL_ARMS_DOWN) {
+      climber.climberDown();
       if (enableAllArms == true) {
-        climberStatus = auto.climberDeploy(climber);
 				climberState = Climber.ClimberState.START_ARMS_UP;
       }
     }
 		else if (climberState == Climber.ClimberState.START_ARMS_UP) {
       // Ready to deploy climber arms
 			climberStatus = auto.climberDeploy(climber);
-			if ( climberStatus == Robot.DONE ) {
+      
+      if ( climberStatus == Robot.DONE ) {
 				climberState = Climber.ClimberState.ALL_ARMS_UP;
 			}
 		}
 		else if (climberState == Climber.ClimberState.ALL_ARMS_UP) {
       // All arms are Up
-			if (DisableTopArm == true) {
-        climber.topArmDown();
-        
+			if (DisableTopArm == true) {        
 				climberState = Climber.ClimberState.TOP_ARM_DOWN;
 			}
 			// Attempting to redeploy arms
@@ -517,10 +583,9 @@ public class Robot extends TimedRobot {
 		}
 		else if (climberState == Climber.ClimberState.TOP_ARM_DOWN) {
       // Top arm Down and ready to climb, unless you need to redeploy the climber arms
-			if (climberMotorPower > 0) {
-				climber.pullRobotUp(climberMotorPower);
-        climber.climberDown();
-        
+      climber.topArmDown();
+
+			if (climberMotorPower > 0) {        
 				climberState = Climber.ClimberState.CLIMB;
 			}
 			else if (enableAllArms == true) {
@@ -529,23 +594,37 @@ public class Robot extends TimedRobot {
 		}
 		else if (climberState == Climber.ClimberState.CLIMB) {
       // You have climbed
-			climber.pullRobotUp(climberMotorPower);
+      if (climberMotorPower > 0) {
+        climber.climberDown();
+      }
+      climber.pullRobotUp(climberMotorPower);
+      if (enableAllArms == true) {
+        climberState = Climber.ClimberState.START_ARMS_UP;
+      }
 		}
   }
 
-
   /****************************************************************************************** 
-   *
-   *    fieldDrive()
-   *    returns if we are in field drive mode   
-   * 
-   ******************************************************************************************/
-   private boolean fieldDrive() {
+  *
+  *    calibrateRobot()
+  *    Calibrates hoodMotor and anything else the robot may need to calibrate, called in auto or teleop once
+  * 
+  ******************************************************************************************/
+  private void calibrateRobot() {
+    //Calibrates hood motor    
+    if (hoodCalibrated == false) {
+      int hoodStatus;
 
-    if (controls.toggleFieldDrive() == true) {
-      fieldDriveState = !fieldDriveState; //Toggles fieldDriveState
+      hoodStatus = shooter.moveHoodFullForward();
+      
+      if ( (hoodStatus == Robot.DONE) || (hoodStatus == Robot.FAIL) ) {
+        hoodCalibrated = true;
+      }
+      
+      System.out.println("Calibrating hood motor");
+      
+      return;
     }
-    return fieldDriveState;
   }
 
 } // End of the Robot Class

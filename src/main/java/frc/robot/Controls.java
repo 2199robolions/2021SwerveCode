@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class Controls {
+
+    private final boolean useJoystick = true;
     
     //Singleton Method to insure that there is ever only one instance of Controls
     private static Controls instance = null;
@@ -25,7 +27,8 @@ public class Controls {
      */
     private enum ControllerIDs {
         JOYSTICK(1),
-        XBOXCONTROLLER(0);
+        XBOX_MANIP_CONTROLLER(0),
+        LOGITECH_DRIVE_CONTROLLER(1);
         
         private int id;
 
@@ -44,16 +47,63 @@ public class Controls {
     
     // XboxController Object Declaration
     private XboxController xboxController;
+    private XboxController driveController;
 
     private Controls() {
         //Instance Creation
-        joystick        = new Joystick(ControllerIDs.JOYSTICK.getId());
-        xboxController  = new XboxController(ControllerIDs.XBOXCONTROLLER.getId());
+        if (useJoystick) {
+            joystick = new Joystick(ControllerIDs.JOYSTICK.getId());
+
+        } else {
+            driveController = new XboxController(ControllerIDs.LOGITECH_DRIVE_CONTROLLER.getId());
+
+        }
+        xboxController = new XboxController(ControllerIDs.XBOX_MANIP_CONTROLLER.getId());
     }
 
     /**
      * JOYSTICK METHODS
      */
+
+
+    /************************************************ */
+    public double getX() {
+        if (useJoystick) {
+            return joystick.getX();
+        }
+        else {
+            return driveController.getX(Hand.kLeft);
+        }
+    }
+
+    public double getY() {
+        if (useJoystick) {
+            return joystick.getY();
+        }
+        else {
+            return driveController.getY(Hand.kLeft);
+        }
+    }
+
+    public double getZ() {
+        if (useJoystick) {
+            return joystick.getZ();
+        }
+        else {
+            return driveController.getX(Hand.kRight);
+        }
+    }
+
+
+    private boolean getShooterEnable() {
+        if (useJoystick) {
+            return joystick.getTrigger();
+        }
+        else {
+            return (driveController.getTriggerAxis(Hand.kRight) > 0.1);
+        }
+    }
+
     
      /**
      * 0 degrees is forward on the Joystick
@@ -63,8 +113,8 @@ public class Controls {
     public double getDriveAngle() {
         double deadZone = 0.1;
 
-        double x = joystick.getX();
-        double y = joystick.getY() * -1;
+        double x = getX();
+        double y = getY();
         
         double rad = Math.atan2(x, y);
         double deg = Math.toDegrees(rad);
@@ -89,19 +139,19 @@ public class Controls {
      * @return rotatePower
      */
     public double getRotatePower() {
-        double deadZone = 0.2;
-
-        double powerCubed;
-        double power = joystick.getZ();
+        double deadZone = 0.3;
+        double power = getZ();
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
+            //If within the deadzone, don't do anything
             return 0;
         }
         else {
-            //Cubing power because the rotate is SUPER sensitive
-            powerCubed = Math.pow(power, 3); 
+            //Halves the power because the rotate is SUPER sensitive
+            power = Math.pow(power, 3.0); 
+            power = MathUtil.clamp(power, -.5, .5);
             
-            return powerCubed;
+            return power;
         }        
     }
 
@@ -110,19 +160,19 @@ public class Controls {
      * @return drivePower
      */
     public double getDrivePower() {
-        double x = joystick.getX();
-        double y = joystick.getY() * -1;
-        double powerMultiplier = powerMultiplier();
+        double x = getX();
+        double y = getY() * -1;
+        //double powerMultiplier = powerMultiplier();
         double drivePower;
-        
         double hyp = Math.sqrt(x*x + y*y);
         double hypClamp;
+
         //This will make it reach power 1 faster at a 45 degrees
         hypClamp = MathUtil.clamp(hyp, -1, 1);
         //hypClamp = hyp / Math.sqrt(2);
 
         //This makes the throttle actually work, with all the way at the botom being zero throttle
-        drivePower = hypClamp * powerMultiplier;
+        drivePower = hypClamp; //* powerMultiplier;
         
         return drivePower;
     }
@@ -132,13 +182,15 @@ public class Controls {
      * @return driveX
      */
     public double getDriveX() {
-        double power = joystick.getX();
+        double power = getX();
         double deadZone = 0.1;
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
             return 0;
         }
         else {
+            //Returns the x-axis power that the robot should drive at
+            //return power * powerMultiplier();
             return power;
         }
     }
@@ -148,70 +200,68 @@ public class Controls {
      * @return driveY
      */
     public double getDriveY() {
-        double power = joystick.getY() * -1;
+        double power = getY() * -1;
         double deadZone = 0.1;
 
         if ((power < deadZone) && (power > (deadZone * -1))) {
             return 0;
         }
         else {
+            //Returns the y-axis power that the robot should drive at
+            //return power * powerMultiplier();
             return power;
         }        
     }
 
-    /**
-     * Joystick button 5
-     * @return Whether or not field oriented drive should be activated
-     */
-    public boolean toggleFieldDrive() {
-        boolean fieldDrive;
-        fieldDrive = joystick.getRawButtonPressed(5);
+    
 
-        return fieldDrive;
+    /****************************************************************************************** 
+    *
+    *    getShooterLocation()
+	*    Finds what location shooter should shoot at
+    *   
+    ******************************************************************************************/
+    public Shooter.ShootLocation getShooterLocation() {
+        //Variables
+        boolean enableShooter = getShooterEnable();
+        boolean buttonTrench;
+        boolean buttonLayup;
+
+        if (useJoystick) {
+            buttonTrench = joystick.getRawButton(4);
+            buttonLayup  = joystick.getRawButton(2);    
+        }
+        else {
+            buttonTrench = driveController.getYButton();
+            buttonLayup  = driveController.getAButton();
+        }
+       
+        //Shooter on
+        if (enableShooter == true) {
+            //Button 4 = trench shot
+            if (buttonTrench == true) {
+                return Shooter.ShootLocation.TRENCH;
+            }
+            //Button 2 = hail mary
+            else if (buttonLayup == true) {
+                return Shooter.ShootLocation.LAY_UP;
+            }
+            //No buttons = ten foot
+            else {
+                return Shooter.ShootLocation.TEN_FOOT;
+            }
+        }
+        else {
+            return Shooter.ShootLocation.OFF;
+        }
     }
 
-    /**
-     * Joystick button ???
-     * @return Whether or not the limelight should target
-     */
-    public boolean enableTargetLock() {
-        boolean isPressed;
-        isPressed = joystick.getRawButtonPressed(11); // This needs to become an actual button sonner or later
-        
-        return isPressed;
-    }
-
-    /**
-     * Joystick trigger
-     * @return Whether or not the shooter should fire
-     */
-    public boolean enableShooter() {
-        boolean isPressed;
-        isPressed = joystick.getTrigger();
-        
-        return isPressed;
-    }
-
-    /**
-     * Joystick button 4
-     * @return
-     */
-    public boolean enableTrenchShot() {
-        return joystick.getRawButton(4);
-    }
-
-    /**
-     * Joystick button 2
-     * @return 
-     */
-    public boolean hailMary() {
-        return joystick.getRawButton(2);
-    }
 
     /**
      * Returns the decimal value of the throttle, with all the way at the bottom being 0
      * @return throttleDecimal 0 to 2
      */
+    /*
     private double powerMultiplier() {
         //Variables
         double throttle = joystick.getThrottle() * -1; //Forward on the throttle is -1, but we want it to be +1
@@ -224,7 +274,7 @@ public class Controls {
         throttleDecimal = posThrottle / 2;
 
         return throttleDecimal;
-    }
+    }*/
 
 
     /**
@@ -320,15 +370,23 @@ public class Controls {
         }
     }
 
-    /**
-     * Left Trigger
-     */
-    //May become color wheel
+    //Left trigger reverses feeder
+    public double reverseFeederPower() {
+        double power = xboxController.getTriggerAxis(Hand.kLeft);
 
+        if (power > 0.1) {
+            return power;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    
     /**
      * XBox Controller Right Stick
      * @return Direction of the Ball Feeder Motor
-     */
+     **/
     public Shooter.BallFeederDirection ballFeederControl() {
         double xboxY;
         xboxY = xboxController.getY(Hand.kRight) * -1;
@@ -344,35 +402,5 @@ public class Controls {
             return Shooter.BallFeederDirection.OFF;
         }
     }
-
-    /**
-     * XBox Controller Left Stick
-     * NEEDS IMEDIATE FIXING
-     */
-    public Shooter.HoodMotorPosition hoodMotorControl() {
-        double xboxY;
-        xboxY = xboxController.getY(Hand.kLeft) * -1;
-
-        if (xboxY >= 0.2) {
-            return Shooter.HoodMotorPosition.LOW_SHOT;
-        }
-        else if (xboxY <= -0.2) {
-            return Shooter.HoodMotorPosition.HIGH_SHOT;
-        }
-        else {
-            return null; //TEMPORARY
-            //return Shooter.HoodMotorPosition.AVERAGE_POSITION;
-        }
-    }
-
-    /**
-     * XBox Controller Right Stick Pressed
-     */
-    // Nothing so far
-
-    /**
-     * XBox Controller Left Stick Pressed
-     */
-    // Nothing so far
 
 } // End of the Controls class

@@ -1,14 +1,15 @@
 package frc.robot;
 
+import edu.wpi.first.wpiutil.math.MathUtil;
+
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 import edu.wpi.first.wpilibj.VictorSP;
+
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpiutil.math.MathUtil;
-
-
 
 public class Wheel {
 
@@ -28,6 +29,9 @@ public class Wheel {
     private static final double kI = 0.00;
     private static final double kD = 0.00;
 
+    // CONSTANTS
+    private static final int WHEEL_CURRENT_LIMIT = 120;
+
 
 
     /****************************************************************************************** 
@@ -41,6 +45,10 @@ public class Wheel {
         this.driveEncoder = driveMotor.getEncoder();
         this.rotateMotor  = new VictorSP(rotateMotorID);
         this.name         = motorName;
+
+        // Adds a current limit and sets the motor mode
+        this.driveMotor.setSmartCurrentLimit(WHEEL_CURRENT_LIMIT);
+        this.driveMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
 
         // Rotate Sensor Instantiation
         rotateMotorSensor = new AnalogPotentiometer(rotateMotorSensorID, -360, offsetDegrees);
@@ -58,7 +66,7 @@ public class Wheel {
     *    Indivudally rotates each wheel to a set target angle and powers the drive motor 
     * 
     ******************************************************************************************/
-    public void rotateAndDrive(double targetWheelAngle, double drivePower) {
+    public int rotateAndDrive(double targetWheelAngle, double drivePower) {
         double currWheelAngle;
         double rotatePower;
 
@@ -72,6 +80,15 @@ public class Wheel {
          */
         setRotateMotorPower(-1 * rotatePower);
         setDriveMotorPower(drivePower);
+
+        //Are we within 2 degrees of target wheel angle? 
+        //The return values do not need to be used 
+        if (rotatePower < 0.06) {
+            return Robot.DONE;
+        }
+        else {
+            return Robot.CONT;
+        }
     }
 
 
@@ -150,6 +167,7 @@ public class Wheel {
     public double getRotateMotorPosition() {
         double rawAngle = rotateMotorSensor.get();
         double adjustedValue = normalizeAngle(rawAngle);
+
         return adjustedValue;
     }
 

@@ -7,47 +7,32 @@
 
 package frc.robot;
 
-import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value; 
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 
 
 public class Climber {
 
-    /*// SPARK MAX
+    // SPARK MAX
     private CANSparkMax liftMotor;
-
-    // SPARK ID's
-    private final int LIFT_MOTOR_ID = 9;
-
-    // ENCODERS
-    private CANEncoder lift_Motor_Encoder;
+    private final int LIFT_MOTOR_ID = 20;
 
     // SOLENOID
-    private DoubleSolenoid pistonBottom;
-    private DoubleSolenoid pistonMiddle;
+    private DoubleSolenoid pistonBottomMiddle;
     private DoubleSolenoid pistonTop;
 
     // Constants
-    private int LIFTER_CURRENT_LIMIT = 50;
+    private final int LIFTER_CURRENT_LIMIT      = 50;
     
-    // PCM CAN ID's
-    private final int PCM_CAN_ID_BOTTOM         = 0;
-    private final int PCM_CAN_ID_MIDDLE         = 0;
-    private final int PCM_CAN_ID_TOP            = 0;
-
     //Solenoid ID's
-    private final int SOLENOID_RETRACT_BOTTOM   = 1;
-    private final int SOLENOID_DEPLOY_BOTTOM    = 2;
+    private final int BOTTOM_MIDDLE_DEPLOY_ID   = 5;
+    private final int BOTTOM_MIDDLE_RETRACT_ID  = 6;
+    private final int TOP_DEPLOY_ID             = 7;
+    private final int TOP_RETRACT_ID            = 0;
 
-    private final int SOLENOID_RETRACT_MIDDLE   = 3;
-    private final int SOLENOID_DEPLOY_MIDDLE    = 4;
-
-    private final int SOLENOID_RETRACT_TOP      = 5;
-    private final int SOLENOID_DEPLOY_TOP       = 6;*/
 
     /**
      * Climber State Enumeration
@@ -61,108 +46,90 @@ public class Climber {
     }
 
 
-    /**
-     * CONSTRUCTOR
-     */
+    /****************************************************************************************** 
+    *
+    *    Constructor
+    *  
+    ******************************************************************************************/
     public Climber() {
-        /*// SPARKS
-        liftMotor  = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
-
-        // ENCODERS
-        lift_Motor_Encoder  = liftMotor.getEncoder();
-
-        // Spark Current Limit
+        //Initializing lift motor
+        liftMotor    = new CANSparkMax(LIFT_MOTOR_ID, MotorType.kBrushless);
         liftMotor.setSmartCurrentLimit(LIFTER_CURRENT_LIMIT);
-
-        // Set Motors to 0
         liftMotor.set( 0.0 );
 
-        //Configure Bottom Piston
-        pistonBottom = new DoubleSolenoid(PCM_CAN_ID_BOTTOM, SOLENOID_DEPLOY_BOTTOM, SOLENOID_RETRACT_BOTTOM);
-
-        //Configure Middle Piston
-        pistonMiddle = new DoubleSolenoid(PCM_CAN_ID_MIDDLE, SOLENOID_DEPLOY_MIDDLE, SOLENOID_RETRACT_MIDDLE);
-
-        //Configure Top Piston
-        pistonTop    = new DoubleSolenoid  (PCM_CAN_ID_TOP, SOLENOID_DEPLOY_TOP, SOLENOID_RETRACT_TOP);
+        //Configure pistons
+        pistonBottomMiddle = new DoubleSolenoid(BOTTOM_MIDDLE_DEPLOY_ID, BOTTOM_MIDDLE_RETRACT_ID);
+        pistonTop          = new DoubleSolenoid(TOP_DEPLOY_ID, TOP_RETRACT_ID);
 
         //Retract all pistons
-        pistonBottom.set(Value.kReverse);
-        pistonMiddle.set(Value.kReverse);
-        pistonTop.   set(Value.kReverse);*/
+        climberDown();
     }
 
-    /**
-     * Methods to raise the arms, either individually or as a whole 
-     */
+
+    /****************************************************************************************** 
+    *
+    *    climberUp()
+    *    Deploys all 3 climber arms
+    *    Not used at this time.  Done in auto.climberDeploy() with 1 sec delay
+    *    between bottom/middle and top arm deploy
+    * 
+    ******************************************************************************************/
     public void climberUp() {
-        bottomArmUp();
-        middleArmUp();
+        bottomAndMiddleArmUp();
         topArmUp();
     }
 
-    public void bottomArmUp() {
-        //pistonBottom.set(Value.kForward);
+    /****************************************************************************************** 
+    *
+    *    bottomAndMiddleArmUp()
+    *    Deploys bottom 2 parts of climber arm
+    * 
+    ******************************************************************************************/
+    public void bottomAndMiddleArmUp() {
+        pistonBottomMiddle.set(Value.kForward);
     }
 
-    public void middleArmUp() {
-        //pistonMiddle.set(Value.kForward);
-    }
-
+    /****************************************************************************************** 
+    *
+    *    topArmUp()
+    *    Lifts top part of the climber arm
+    * 
+    ******************************************************************************************/
     public void topArmUp() {
-        //pistonTop.set   (Value.kForward);
+        pistonTop.set(Value.kForward);
     }
 
-    /**
-     * Methods to lower the arms, either individually or as a whole
-     */
+
+    /****************************************************************************************** 
+    *
+    *    climberDown()
+    *    Retracts all of the climber
+    *   
+    ******************************************************************************************/
     public void climberDown() {
-        bottomArmDown();
-        middleArmDown();
+        pistonBottomMiddle.set(Value.kReverse);
         topArmDown();
     }
 
-    private void bottomArmDown() {
-        //pistonBottom.set(Value.kReverse);
-    }
-
-    private void middleArmDown() {
-        //pistonMiddle.set(Value.kReverse);
-    }
-
+    /****************************************************************************************** 
+    *
+    *    topArmDown()
+    *    Retracts the top part of the climber
+    *   
+    ******************************************************************************************/
     public void topArmDown() {
-        //pistonTop.set   (Value.kReverse);
+        pistonTop.set(Value.kReverse);
     }
 
-    /**
-     * Uses the lift motor to pull the robot up 
-     * @param power
-     */
+
+    /****************************************************************************************** 
+    *
+    *    pullRobotUp()
+    *    Turns on lift motor to pull robot up
+    * 
+    ******************************************************************************************/
     public void pullRobotUp(double power) {
-        double absRPM;
-        absRPM = liftMotorabsRPM();
-
-        //Set motor power
-        //liftMotor.set(power);
-
-        //Print motor RPM
-        System.out.println("Lift Motor RPM: " + absRPM);
-    }
-
-    /**
-     * Gets the abs(RPM) of the lift motor
-     * @return abs(rpm)
-     */
-    private double liftMotorabsRPM() {
-        double rpm;
-        double absRPM;
-
-        //rpm = lift_Motor_Encoder.getVelocity();
-        rpm = 0;
-
-        absRPM = Math.abs(rpm);
-
-        return absRPM;
+        liftMotor.set(power);
     }
 
 } // End of Climber Class
