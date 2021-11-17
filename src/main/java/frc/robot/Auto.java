@@ -111,7 +111,7 @@ public class Auto {
     ******************************************************************************************/
 	public int rightAuto(int delay) {
 		int status = Robot.CONT;
-		long delayMsec = delay * 1000;
+		//long delayMsec = delay * 1000;
 
 		if (firstTime == true) {
 			firstTime = false;

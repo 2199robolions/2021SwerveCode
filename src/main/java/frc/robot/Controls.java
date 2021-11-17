@@ -405,12 +405,12 @@ public class Controls {
         }
     }
    
-    public boolean fieldDrive() {
-        if (xboxController.getAButton()) {
+    public boolean getFieldDrive() {
+        if (joystick.getRawButtonPressed(7)) {
             fieldDrive = false;
             System.out.println("Field drive disabled");
         }
-        if (xboxController.getBButton()) {
+        if (joystick.getRawButtonPressed(8)) {
             fieldDrive = true;
             System.out.println("Field drive enabled");
         }

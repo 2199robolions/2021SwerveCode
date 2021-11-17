@@ -21,17 +21,14 @@ public class Robot extends TimedRobot {
   private Climber   climber;
 
   //CONSTANTS
-  private final int    LED_DELAY           = 15;
   private final double REVERSE_FEEDER_TIME = 0.25;
 
   //VARIABLES
-  private int     ledCurrent;
   private int     autoStatus      = Robot.CONT;
   private int     shooterStatus   = Robot.CONT;
   private double  rotatePower;
   private double  driveX;
   private double  driveY;
-  private int     step            = 1;
   private boolean hoodCalibrated  = false;
   private boolean reverseFeeder   = false;
 
@@ -89,9 +86,6 @@ public class Robot extends TimedRobot {
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
     
-    //Set Variables
-    ledCurrent = 0;
-
     //Set Different Status Cues
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
     wheelMode     = Drive.WheelMode.MANUAL;
@@ -275,7 +269,6 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   public void testInit() {
     autoStatus = Robot.CONT;
-    step = 1;
   }
 
 
@@ -339,6 +332,7 @@ public class Robot extends TimedRobot {
     driveY                 = controls.getDriveY();
     shootLocation          = controls.getShooterLocation();
     boolean killTargetLock = controls.autoKill();
+    boolean fieldDrive     = controls.getFieldDrive();
   
     //Only turns on targetLock mode if autoKill isn't being pressed
     if (killTargetLock == true) {
@@ -351,7 +345,7 @@ public class Robot extends TimedRobot {
 
       //If robot is out of deadzone, drive normally
       if ((Math.sqrt(driveX*driveX + driveY*driveY) > 0.01) || (Math.abs(rotatePower) > 0.01)) {
-        drive.teleopSwerve(driveX, driveY, rotatePower);
+        drive.teleopSwerve(driveX, driveY, rotatePower, fieldDrive);
       }
       else {
         //Robot is in dead zone

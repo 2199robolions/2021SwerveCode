@@ -11,8 +11,6 @@ import edu.wpi.first.wpilibj.SPI;
 
 public class Drive {
     //Object creation
-    Controls controls;
-    LedLights led;
     NetworkTable limelightEntries = NetworkTableInstance.getDefault().getTable("limelight");
 
     //NAVX
@@ -68,15 +66,6 @@ public class Drive {
 	public static final int     LIMELIGHT_ON  = 3;
     public static final int     LIMELIGHT_OFF = 1;
 
-    //Limelight distance calc
-    private static final double CameraMountingAngle = 22.0;	                               // 25.6 degrees, 22.0
-	private static final double CameraHeightFeet 	= 26.5 / 12;	                       // 16.5 inches
-	private static final double TargetHeightFt 	    = 7 + (7.5 / 12.0) ;	               // 8ft 2.25 inches
-	private static       double mountingRadians     = Math.toRadians(CameraMountingAngle); // a1, converted to radians
-
-	// find result of h2 - h1, or Δh
-	private static double DifferenceInHeight = TargetHeightFt - CameraHeightFeet;
-    
         
     /**
      * Enumerators
@@ -101,8 +90,6 @@ public class Drive {
 
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
-        // TODO: All of the below 0's should be replaced with real ID numbers
-        //Need offset var
         FRONT_RIGHT_WHEEL(15, // DRIVE MOTOR ID
                           1, // ROTATE MOTOR ID
                           1, // ROTATE SENSOR ID
@@ -156,7 +143,6 @@ public class Drive {
         }
     }
 
-    // TODO: Should the wheel objects be injected using the constructor when instantiating a drive object in Robot.java? Answer: I don't think so. The goal is to encapsulate, not to make everything accessible.
     private Wheel frontRightWheel = new Wheel(WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorId(),
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateSensorId(),
@@ -185,8 +171,6 @@ public class Drive {
      */
     private static final double robotLength = 30.0;
     private static final double robotWidth  = 18.0;
-    // TODO: Question for any one of the mentors, are these declarations and instantiations in memory done only once at the start when the robot is started and the code loads? I would assume so, which is why I'm not putting these in the constructor, to save unnecessary compute power if we would ever instantiate more than one of the Drive objects
-    // Note: this field is static because it must be. It is referenced in the enum, which is in and of itself, static.
     private static final double rotateMotorAngleRad = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);
  
@@ -234,10 +218,6 @@ public class Drive {
     ******************************************************************************************/
     public Drive() {
 
-        //Instance creation
-        led = LedLights.getInstance();
-        
-
         //NavX
         try {
             ahrs = new AHRS(SPI.Port.kMXP);
@@ -258,8 +238,6 @@ public class Drive {
         System.out.println("navx Ready");
     
         ahrs.zeroYaw();
-
-
 
         //PID Controllers
         rotateController = new PIDController(kP, kI, kD);
@@ -294,7 +272,7 @@ public class Drive {
     *    For each wheel, the inputted X, Y, Z, and individual angle for rotation are used to calculate the angle and power 
     * 
     ******************************************************************************************/
-    public PowerAndAngle calcSwerve(double crabX, double crabY, double rotatePower, double rotateAngle){
+    private PowerAndAngle calcSwerve(double crabX, double crabY, double rotatePower, double rotateAngle, boolean fieldDriveEnabled){
         double swerveX;
         double swerveY;
         double swervePower;
@@ -303,13 +281,13 @@ public class Drive {
         double rotateY;
 
         //If field drive is active then the crab drive values are shifted based on gyro reading
-        if (controls.fieldDrive() == true) {
+        if (fieldDriveEnabled) {
             double crabPower = Math.sqrt((crabX * crabX) + (crabY * crabY));
             double crabAngle = Math.toDegrees(Math.atan2(crabX, crabY));
             crabAngle -= ahrs.getYaw();
 
-            crabX = Math.cos(Math.toRadians(crabAngle)) * crabPower;
-            crabY = Math.sin(Math.toRadians(crabAngle)) * crabPower;
+            crabX = Math.sin(Math.toRadians(crabAngle)) * crabPower;
+            crabY = Math.cos(Math.toRadians(crabAngle)) * crabPower;
         }
        
         /**
@@ -347,19 +325,19 @@ public class Drive {
     *    Takes X, Y, and Z and rotates each wheel to proper angle and sets correct power
     * 
     ******************************************************************************************/
-    public void teleopSwerve(double driveX, double driveY, double rotatePower) {
+    public void teleopSwerve(double driveX, double driveY, double rotatePower, boolean fieldDriveEnabled) {
         PowerAndAngle coor;
 
-        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle);
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle, fieldDriveEnabled);
         frontRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
 
-        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftFrontMotorAngle);
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftFrontMotorAngle, fieldDriveEnabled);
         frontLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
 
-        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightRearMotorAngle);
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateRightRearMotorAngle, fieldDriveEnabled);
         rearRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
 
-        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftRearMotorAngle);
+        coor = calcSwerve(driveX, driveY, rotatePower, rotateLeftRearMotorAngle, fieldDriveEnabled);
         rearLeftWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
     }
 
@@ -438,7 +416,7 @@ public class Drive {
 
         //Adjusts wheel angles
         orientationError = autoCrabDriveController.calculate(ahrs.getYaw(), targetOrientation); 
-        teleopSwerve(x, y, orientationError);
+        teleopSwerve(x, y, orientationError, false);
 
         //Checks if target distance has been reached, then ends function if so
         if (encoderCurrent >= encoderTarget) {
@@ -551,6 +529,17 @@ public class Drive {
 
         rearLeftWheel.rotateAndDrive(outerAngle + 90, outerSpeed);
         rearRightWheel.rotateAndDrive(-90 - outerAngle, -1*outerSpeed);
+    }
+
+
+    /****************************************************************************************** 
+    *
+    *    spiral()
+    *    Robot moves forward while spinning around
+    * 
+    ******************************************************************************************/
+    public void spiral() {
+        teleopSwerve(0, 0.3, 0.3, true);
     }
 
 
@@ -762,7 +751,7 @@ public class Drive {
         int status = 0;
 
         // Variables
-        Shooter.ShootLocation attemptedShot = controls.getShooterLocation();
+        Shooter.ShootLocation attemptedShot = Shooter.ShootLocation.TEN_FOOT; //.getShooterLocation(); can't use controls in drive
         Shooter.ShootLocation LAY_UP = Shooter.ShootLocation.LAY_UP;
         Shooter.ShootLocation TEN_FOOT = Shooter.ShootLocation.TEN_FOOT;
         Shooter.ShootLocation TRENCH = Shooter.ShootLocation.TRENCH;
@@ -801,59 +790,6 @@ public class Drive {
         return status;
     }
 
-    /** 
-     * tan(a1+a2) = (h2-h1) / d
-	 * D = (h2 - h1) / tan(a1 + a2).
-     * These equations, along with known numbers, helps find the distance from a target.
-	 */
-	public double getDistance() {
-	  // Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
-	  double ty = limelightEntries.getEntry("ty").getDouble(0);
-		
-	  // a2, converted to radians
-	  double radiansToTarget = Math.toRadians(ty); 
-
-	  // find result of a1 + a2
-	  double angleInRadians = mountingRadians + radiansToTarget;
-
-	  // find the tangent of a1 + a2
-	  double tangentOfAngle = Math.tan(angleInRadians); 
-
-	  // Divide the two results ((h2 - h1) / tan(a1 + a2)) for the distance to target
-	  double distance = DifferenceInHeight / tangentOfAngle;
-
-	  // outputs the distance calculated
-	  return distance; 
-	}
-
-	/** 
-	 * a1 = arctan((h2 - h1) / d - tan(a2)). This equation, with a known distance input, helps find the 
-	 * mounted camera angle.
-	 */
-	public double getCameraMountingAngle(double measuredDistance) {
-	  // Vertical Offset From Crosshair To Target (-20.5 degrees to 20.5 degrees) [41 degree tolerance]
-	  double ty = limelightEntries.getEntry("ty").getDouble(0);
-
-	  // convert a2 to radians
-	  double radiansToTarget = Math.toRadians(ty);
-
-	  // find result of (h2 - h1) / d
-	  double heightOverDistance = DifferenceInHeight / measuredDistance;
-
-	  // find result of tan(a2)
-	  double tangentOfAngle = Math.tan(radiansToTarget);
-
-	  // (h2-h1)/d - tan(a2) subtract two results for the tangent of the two sides
-	  double TangentOfSides = heightOverDistance - tangentOfAngle; 
-
-	  // invert tangent operation to get the camera mounting angle in radians
-	  double newMountingRadians = Math.atan(TangentOfSides);
-
-	  // change result into degrees
-	  double cameraMountingAngle = Math.toDegrees(newMountingRadians);
-	  
-	  return cameraMountingAngle; // output result
-	}
 
 	/**
 	 * Change Limelight Modes
