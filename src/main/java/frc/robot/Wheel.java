@@ -30,7 +30,7 @@ public class Wheel {
     private static final double kD = 0.00;
 
     // CONSTANTS
-    private static final int WHEEL_CURRENT_LIMIT = 120;
+    private static final int WHEEL_CURRENT_LIMIT = 70;
 
 
 
