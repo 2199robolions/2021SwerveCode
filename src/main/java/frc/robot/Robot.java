@@ -5,17 +5,17 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
-import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTableEntry;
 
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.vision.VisionThread;
-import edu.wpi.first.vision.VisionPipeline;
+//import org.opencv.core.Rect;
+//import org.opencv.imgproc.Imgproc;
+
+//import edu.wpi.cscore.UsbCamera;
+//import edu.wpi.first.cameraserver.CameraServer;
+//import edu.wpi.first.vision.VisionThread;
+//import edu.wpi.first.vision.VisionPipeline;
 
 public class Robot extends TimedRobot {
   // ERROR CODES
@@ -95,8 +95,13 @@ public class Robot extends TimedRobot {
   private static final int IMG_WIDTH = 160;
   private static final int IMG_HEIGHT = 120;
 
+<<<<<<< HEAD
   private VisionThread visionThread;
   private double centerX = 0.0;
+=======
+  //private VisionThread visionThread;
+  //private double centerX = 0.0;
+>>>>>>> 09cebd983ecd9dfcc46bb20d5c3e515f6da744f5
 
   private final Object imgLock = new Object();
 
