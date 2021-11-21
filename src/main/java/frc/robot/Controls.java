@@ -57,7 +57,7 @@ public class Controls {
     
      /**
      * 0 degrees is forward on the Joystick
-     * this method returns values from -180 to +180
+     * <p>This method returns values from -180 to +180
      * @return driveAngle
      */
     public double getDriveAngle() {
@@ -231,7 +231,7 @@ public class Controls {
 
     /**
      * Joystick Circle Pad
-     * 0 is the top, 90 is right, 180 is back, 270 is left, and -1 is nothing
+     * <p>0 is the top, 90 is right, 180 is back, 270 is left, and -1 is nothing
      * @return The value of the circle pad on top
      */
     public int joystickCirclePadPosition() {
@@ -265,7 +265,7 @@ public class Controls {
      */
     /**
      * Start Button Pressed
-     * WHETER TO KILL ALL ACTIVE AUTO PROGRAMS!
+     * <p>WHETHER TO KILL ALL ACTIVE AUTO PROGRAMS!
      * @return startButtonPressed
      */
     public boolean autoKill() {
@@ -292,7 +292,7 @@ public class Controls {
 
     /**
      * Button Y
-     * Deploys / Retracts the Grabber
+     * <p>Deploys / Retracts the Grabber
      * @return buttonYPressed
      */
     public boolean grabberDeployRetract() {
@@ -301,8 +301,8 @@ public class Controls {
 
     /**
      * DPad Inputs
-     * Upper left, Up, and Upper right on the DPad returns forward
-     * Lower left, Down, and Lower right on the DPad returns reverse
+     * <p>Upper left, Up, and Upper right on the DPad returns forward
+     * <p>Lower left, Down, and Lower right on the DPad returns reverse
      * @return The direction the grabber should move
      */
     public Grabber.GrabberDirection getGrabberDir() {
@@ -353,7 +353,10 @@ public class Controls {
         }
     }
 
-    //Left trigger reverses feeder
+    /**
+     * Left trigger
+     * @return power
+     */
     public double reverseFeederPower() {
         double power = xboxController.getTriggerAxis(Hand.kLeft);
 
