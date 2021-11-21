@@ -89,16 +89,16 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
-  NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
-  //UsbCamera   usbCamera;
+  //NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
+  UsbCamera   usbCamera;
 
-  private static final int IMG_WIDTH = 640;
-  private static final int IMG_HEIGHT = 480;
+  private static final int IMG_WIDTH = 160;
+  private static final int IMG_HEIGHT = 120;
 
   private VisionThread visionThread;
-  //private double centerX = 0.0;
+  private double centerX = 0.0;
 
-  //private final Object imgLock = new Object();
+  private final Object imgLock = new Object();
 
 
   /**
@@ -115,9 +115,8 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    //usbCamera = CameraServer.getInstance().startAutomaticCapture();
+    usbCamera = CameraServer.getInstance().startAutomaticCapture();
     //imageServer.setSource(usbCamera);
-    //imageServer = new MjpegServer("JPeg Server", RPI_CAMERA_ADDRESS, 1181);
 
     //Set Variables
 
@@ -161,16 +160,19 @@ public class Robot extends TimedRobot {
     //WARNING EXPERIMENTAL
     //usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
-    /*VisionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
+    visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.filterContoursOutput().isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
           synchronized (imgLock) {
             centerX = cameraFOV.x + (cameraFOV.width / 2);
           }
         }
+        else {
+          centerX = -1;
+        }
       }
     );
-    visionThread.start();*/
+    visionThread.start();
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -680,20 +682,21 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   public void objectTracking() {
     // Variables
-    double centerX;
+    //double centerX;
     double turn;
 
     //Network Tables
-    NetworkTableEntry target = PipelineValues.getEntry("CenterX");
-    centerX = target.getDouble(0.0);
+    //NetworkTableEntry target = PipelineValues.getEntry("CenterX");
+    //centerX = target.getDouble(0.0);
+    if (centerX != -1) {
+      turn = centerX - (IMG_WIDTH / 2);
     
-    turn = centerX - (IMG_WIDTH / 2);
-    
-    //So far it just rotates to look at the ball using a REALLY SLOW speed 
-    //drive.teleopRotate(turn * -0.01);
+      //So far it just rotates to look at the ball using a REALLY SLOW speed 
+      //drive.teleopRotate(turn * 0.001);
 
-    System.out.println("Turn " + turn);
-    System.out.println("Center x " + centerX);
+      System.out.println("Turn " + turn);
+    }
+    //System.out.println("Center x " + centerX);
   }
 
   /****************************************************************************************** 
