@@ -19,6 +19,7 @@ public class Robot extends TimedRobot {
   private Grabber   grabber;
   private Shooter   shooter;
   private Climber   climber;
+  private Lidar     lidar;
 
   //CONSTANTS
   private final double REVERSE_FEEDER_TIME = 0.25;
@@ -85,6 +86,7 @@ public class Robot extends TimedRobot {
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
+    lidar    = new Lidar();
     
     //Set Different Status Cues
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
@@ -217,6 +219,9 @@ public class Robot extends TimedRobot {
 
     //Sets the color of the LED's (when we get them)
     led.defaultMode("Blue");
+
+    //Controls lidar sensor
+    lidar.lidarPeriodic();
 
     //Controls the wheels
     wheelControl();
