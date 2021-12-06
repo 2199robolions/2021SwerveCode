@@ -78,7 +78,7 @@ public class Shooter {
 	private double                startSec           = 0;     
 	Shooter.ShootLocation         startPosition      = Shooter.ShootLocation.OFF;
 
-
+	// Enumerators for state machines 
 	public static enum ShootLocation {
 		LAY_UP,
 		TRENCH,
@@ -91,7 +91,6 @@ public class Shooter {
 		REVERSE,
 		OFF;
 	}
-
 
 	// Shooter PID Controller
 	private PIDController shooterController;
@@ -133,8 +132,8 @@ public class Shooter {
 		// Set Shooter related motors to off to Start the Match
 		leftShooter .set(0.0);
 		rightShooter.set(0.0);
-		hoodMotor.set (0.0);
-		feedMotor.set (0.0);
+		hoodMotor.set   (0.0);
+		feedMotor.set   (0.0);
 
 		// Encoders
 		leftShooterEncoder  = leftShooter.getEncoder();
@@ -423,6 +422,53 @@ public class Shooter {
 		}
 	}
 
+	/******************************************************************************************
+	 * 
+	 * autoHoodControl()
+	 * <p>Moves the hood to the appropriate distance for any shot based on the ta from the Limelight
+	 * <p>Does not yet work as I need to puzzle through the logic 
+	 * 
+	 *****************************************************************************************/
+	public int autoHoodControl(Shooter.ShootLocation motorPosition, double ta) {
+		//Variables
+		boolean atFrontSwitch      = getFrontSwitchValue();
+		boolean atRearSwitch       = getRearSwitchValue ();
+		double  hoodCurrentEncoder = hoodMotorEncoder.getPosition();
+
+		//First time through, setting initial values
+		if (hoodFirstTime == true) {
+			hoodStartEncoder = hoodCurrentEncoder;
+			startPosition = motorPosition;
+
+			//Sets target encoder value
+			if (motorPosition == ShootLocation.TEN_FOOT) {
+				hoodTargetEncoder = TEN_FOOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == ShootLocation.TRENCH) {
+				hoodTargetEncoder = TRENCH_SHOT_HOOD_ENCODER;
+			}
+			else if (motorPosition == ShootLocation.LAY_UP) {
+				hoodTargetEncoder = LAY_UP_HOOD_ENCODER;
+			}
+			else {
+				hoodFirstTime = true;
+				disableHoodMotor();
+				return Robot.FAIL;
+			}
+
+			hoodFirstTime = false;
+		}
+		
+		if (atFrontSwitch) {
+			return Robot.FAIL;
+		}
+		else if (atRearSwitch) {
+			return Robot.FAIL;
+		}
+		else {
+			return Robot.CONT;
+		}
+	}
 
 	/****************************************************************************************** 
      *

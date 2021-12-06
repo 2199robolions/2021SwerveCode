@@ -32,8 +32,6 @@ public class Wheel {
     // CONSTANTS
     private static final int WHEEL_CURRENT_LIMIT = 120;
 
-
-
     /****************************************************************************************** 
     *
     *    Wheels constructor

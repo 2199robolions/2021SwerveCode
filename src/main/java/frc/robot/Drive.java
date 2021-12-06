@@ -101,28 +101,27 @@ public class Drive {
 
     // An enum containing each wheel's properties including: drive and rotate motor IDs, drive motor types, and rotate sensor IDs 
     public enum WheelProperties {
-        // TODO: All of the below 0's should be replaced with real ID numbers
         //Need offset var
-        FRONT_RIGHT_WHEEL(15, // DRIVE MOTOR ID
-                          1, // ROTATE MOTOR ID
-                          1, // ROTATE SENSOR ID
+        FRONT_RIGHT_WHEEL(15,      // DRIVE MOTOR ID
+                          1,       // ROTATE MOTOR ID
+                          1,       // ROTATE SENSOR ID
                           (-1 * rotateMotorAngleRad), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
                           249.65), //Offset
-        FRONT_LEFT_WHEEL(12, // DRIVE MOTOR ID
-                         2, // ROTATE MOTOR ID
-                         2, // ROTATE SENSOR ID
+        FRONT_LEFT_WHEEL(12,       // DRIVE MOTOR ID
+                         2,        // ROTATE MOTOR ID
+                         2,        // ROTATE SENSOR ID
                          (-1 * rotateMotorAngleRad - (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         306.75), //Offset
-        REAR_RIGHT_WHEEL(14, // DRIVE MOTOR ID
-                         4, // ROTATE MOTOR ID
-                         0, // ROTATE SENSOR ID
+                         306.75),  //Offset
+        REAR_RIGHT_WHEEL(14,       // DRIVE MOTOR ID
+                         4,        // ROTATE MOTOR ID
+                         0,        // ROTATE SENSOR ID
                          (-1 * rotateMotorAngleRad + (Math.PI/2)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                         114.6), //Offset
-        REAR_LEFT_WHEEL(13, // DRIVE MOTOR ID
-                        3, // ROTATE MOTOR ID
-                        3, // ROTATE SENSOR ID
+                         114.6),   //Offset
+        REAR_LEFT_WHEEL(13,        // DRIVE MOTOR ID
+                        3,         // ROTATE MOTOR ID
+                        3,         // ROTATE SENSOR ID
                         (-1 * rotateMotorAngleRad + (Math.PI)), // ROTATE MOTOR TARGET ANGLE (IN RADIANS)
-                        257.9); //Offset
+                        257.9);    //Offset
 
         private int driveMotorId;
         private int rotateMotorId;
@@ -156,7 +155,7 @@ public class Drive {
         }
     }
 
-    // TODO: Should the wheel objects be injected using the constructor when instantiating a drive object in Robot.java? Answer: I don't think so. The goal is to encapsulate, not to make everything accessible.
+    // Creates an instance of the Wheel using one of the most unnecessarily complicated constructors that I have ever seen 
     private Wheel frontRightWheel = new Wheel(WheelProperties.FRONT_RIGHT_WHEEL.getDriveMotorId(),
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateMotorId(), 
                                               WheelProperties.FRONT_RIGHT_WHEEL.getRotateSensorId(),
@@ -185,7 +184,7 @@ public class Drive {
      */
     private static final double robotLength = 30.0;
     private static final double robotWidth  = 18.0;
-    // TODO: Question for any one of the mentors, are these declarations and instantiations in memory done only once at the start when the robot is started and the code loads? I would assume so, which is why I'm not putting these in the constructor, to save unnecessary compute power if we would ever instantiate more than one of the Drive objects
+
     // Note: this field is static because it must be. It is referenced in the enum, which is in and of itself, static.
     private static final double rotateMotorAngleRad = Math.atan2(robotLength, robotWidth);
     private static final double rotateMotorAngleDeg = Math.toDegrees(rotateMotorAngleRad);

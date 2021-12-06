@@ -5,16 +5,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 //Object Tracking related imports
-//import edu.wpi.first.networktables.NetworkTable;
-//import edu.wpi.first.networktables.NetworkTableInstance;
-//import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableEntry;
 
-import org.opencv.core.Rect;
+/*import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.vision.VisionThread;
+import edu.wpi.first.vision.VisionThread;*/
 
 public class Robot extends TimedRobot {
   // ERROR CODES
@@ -88,16 +88,16 @@ public class Robot extends TimedRobot {
 
   //Vision processing stuff
   //WARNING EXPERIMENTAL
-  //NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
-  UsbCamera   usbCamera;
+  NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
+  //UsbCamera   usbCamera;
 
   private static final int IMG_WIDTH = 160;
-  private static final int IMG_HEIGHT = 120;
+  //private static final int IMG_HEIGHT = 120;
 
-  private VisionThread visionThread;
+  //private VisionThread visionThread;
   private double centerX = 0.0;
 
-  private final Object imgLock = new Object();
+  //private final Object imgLock = new Object();
 
 
   /**
@@ -114,10 +114,10 @@ public class Robot extends TimedRobot {
     auto     = new Auto(drive, grabber, shooter);
 
     //Creates the camera
-    usbCamera = CameraServer.getInstance().startAutomaticCapture();
-    //imageServer.setSource(usbCamera);
+    //usbCamera = CameraServer.getInstance().startAutomaticCapture();
 
     //Set Variables
+    //
 
     //Set Different Status Cues
     climberState  = Climber.ClimberState.ALL_ARMS_DOWN;
@@ -159,7 +159,7 @@ public class Robot extends TimedRobot {
     //WARNING EXPERIMENTAL
     //usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
     
-    visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
+    /*visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
         if (!pipeline.filterContoursOutput().isEmpty()) {
           Rect cameraFOV = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
           synchronized (imgLock) {
@@ -171,7 +171,7 @@ public class Robot extends TimedRobot {
         }
       }
     );
-    visionThread.start();
+    visionThread.start();*/
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -685,8 +685,9 @@ public class Robot extends TimedRobot {
     double turn;
 
     //Network Tables
-    //NetworkTableEntry target = PipelineValues.getEntry("CenterX");
-    //centerX = target.getDouble(0.0);
+    NetworkTableEntry target = PipelineValues.getEntry("CenterX");
+    centerX = target.getDouble(0.0);
+
     if (centerX != -1) {
       turn = centerX - (IMG_WIDTH / 2);
     
