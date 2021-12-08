@@ -149,7 +149,7 @@ public class Controls {
             return 0;
         }
         else {
-            //Halves the power because the rotate is SUPER sensitive
+            //Cubes the power because the rotate is SUPER sensitive
             power = Math.pow(power, 3.0); 
             power = MathUtil.clamp(power, -.5, .5);
             
