@@ -89,15 +89,12 @@ public class Robot extends TimedRobot {
   //Vision processing stuff
   //WARNING EXPERIMENTAL
   NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
-  //UsbCamera   usbCamera;
 
-  private static final int IMG_WIDTH = 160;
-  //private static final int IMG_HEIGHT = 120;
+  private static final int IMG_WIDTH = 640;
+  //private static final int IMG_HEIGHT = 480;
 
   //private VisionThread visionThread;
   private double centerX = 0.0;
-
-  //private final Object imgLock = new Object();
 
 
   /**
@@ -112,9 +109,6 @@ public class Robot extends TimedRobot {
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
-
-    //Creates the camera
-    //usbCamera = CameraServer.getInstance().startAutomaticCapture();
 
     //Set Variables
     //
@@ -154,24 +148,6 @@ public class Robot extends TimedRobot {
     //Default Auto Position
 		m_delayChooser.setDefaultOption(kCustomDelayZero, kCustomDelayZero);
 		SmartDashboard.putData("Auto Delay", m_delayChooser);
-    
-    //Vision Processing
-    //WARNING EXPERIMENTAL
-    //usbCamera.setResolution(IMG_WIDTH, IMG_HEIGHT);
-    
-    /*visionThread = new VisionThread(usbCamera, new ObjectTracking(), pipeline -> {
-        if (!pipeline.filterContoursOutput().isEmpty()) {
-          Rect cameraFOV = Imgproc.boundingRect(pipeline.filterContoursOutput().get(0));
-          synchronized (imgLock) {
-            centerX = cameraFOV.x + (cameraFOV.width / 2);
-          }
-        }
-        else {
-          centerX = -1;
-        }
-      }
-    );
-    visionThread.start();*/
 
     //Set limelight modes
     drive.changeLimelightLED(Drive.LIMELIGHT_ON);
@@ -335,37 +311,8 @@ public class Robot extends TimedRobot {
     if (controls.autoKill() == true) {
       autoStatus = Robot.FAIL;
     }
-  
-    /*switch (step) {
-      case 1:
-        shooter.testHoodMotor(-0.03);
-        if (shooter.getHoodEncoder() < -13) {
-          shooter.disableHoodMotor();
-          autoStatus = DONE;
-        }
-        else {
-          autoStatus = CONT;
-        }
-        break;
-      case 2:
-        shooter.enableShooterFullPower();
-        break;
-      default:
-        step = 1;
-    }
-
-    if ( (autoStatus == Robot.DONE) || (autoStatus == Robot.FAIL) ) {
-      step++;
-    }*/
-  
-    //autoStatus = shooter.moveHoodFullForward();
-    //shooter.testHoodMotorEncoder();
     
-    /*double tempPower;
-    tempPower = SmartDashboard.getNumber("Input Power", 0.5);
-    shooter.enableShooter(tempPower);*/
-
-    //To be implemented once cameras are mounted
+    //Uses NetworkTables to get the ball value
     objectTracking();
   }
 
