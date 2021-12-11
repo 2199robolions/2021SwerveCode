@@ -33,7 +33,7 @@ public class Robot extends TimedRobot {
   private Climber   climber;
 
   //CONSTANTS
-  private final int    LED_DELAY           = 15;
+  //private final int    LED_DELAY           = 15;
   private final double REVERSE_FEEDER_TIME = 0.25;
 
   //VARIABLES
