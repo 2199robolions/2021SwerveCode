@@ -86,9 +86,8 @@ public class Robot extends TimedRobot {
 	private int m_delaySelected;
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
-  //Vision processing stuff
-  //WARNING EXPERIMENTAL
-  NetworkTable PipelineValues = NetworkTableInstance.getDefault().getTable("PipelineValues");
+  //Vision processing
+  NetworkTable TrackingValues = NetworkTableInstance.getDefault().getTable("TrackingValues");
 
   private static final int IMG_WIDTH = 640;
   //private static final int IMG_HEIGHT = 480;
@@ -621,20 +620,32 @@ public class Robot extends TimedRobot {
   /****************************************************************************************** 
   *
   *    objectTracking()
-  *    WARNING HIGHLY EXPERIMENTAL
   *    Targets the yellow balls using contor values
   *    Can be changed to blob detection if need be, although it less reliable
   * 
   ******************************************************************************************/
   public void objectTracking() {
     // Variables
-    //double centerX;
+    double emptyCount;
     double turn;
 
     //Network Tables
-    NetworkTableEntry target = PipelineValues.getEntry("CenterX");
-    centerX = target.getDouble(0.0);
+    NetworkTableEntry target = TrackingValues.getEntry("CenterX");
+    NetworkTableEntry empty  = TrackingValues.getEntry("Empty");
 
+    //Sets the double variables
+    centerX    = target.getDouble(0.00);
+    emptyCount = empty .getDouble(0.00);
+
+    //Sets centerX to -1 (should not happen naturally)
+    if (emptyCount != 0) {
+      centerX = -1;
+
+      //Prints the emptyCount
+      System.out.println("Empty Count: " + emptyCount);
+    }
+
+    //Does the math for tracking the balls
     if (centerX != -1) {
       turn = centerX - (IMG_WIDTH / 2);
     
@@ -643,7 +654,6 @@ public class Robot extends TimedRobot {
 
       System.out.println("Turn " + turn);
     }
-    //System.out.println("Center x " + centerX);
   }
 
   /****************************************************************************************** 
