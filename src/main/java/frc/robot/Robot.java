@@ -4,18 +4,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-//Object Tracking related imports
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTableEntry;
-
-/*import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
-
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.vision.VisionThread;*/
-
 public class Robot extends TimedRobot {
   // ERROR CODES
   public static final int FAIL = -1;
@@ -24,13 +12,14 @@ public class Robot extends TimedRobot {
   public static final int CONT =  3;
 
   //OBJECT CREATION
-  private LedLights led;
-  private Auto      auto;
-  private Drive     drive;
-  private Controls  controls;
-  private Grabber   grabber;
-  private Shooter   shooter;
-  private Climber   climber;
+  private LedLights      led;
+  private Auto           auto;
+  private Drive          drive;
+  private Controls       controls;
+  private Grabber        grabber;
+  private Shooter        shooter;
+  private Climber        climber;
+  private ObjectTracking objTrack;
 
   //CONSTANTS
   //private final int    LED_DELAY           = 15;
@@ -86,16 +75,6 @@ public class Robot extends TimedRobot {
 	private int m_delaySelected;
   private final SendableChooser<String> m_delayChooser = new SendableChooser<>();
 
-  //Vision processing
-  NetworkTable TrackingValues = NetworkTableInstance.getDefault().getTable("TrackingValues");
-
-  private static final int IMG_WIDTH = 640;
-  //private static final int IMG_HEIGHT = 480;
-
-  //private VisionThread visionThread;
-  private double deadZoneCount = 0.00;
-  private double centerX    = 0.00;
-
 
   /**
    * Constructor
@@ -104,11 +83,12 @@ public class Robot extends TimedRobot {
     //Instance Creation
     led      = LedLights.getInstance();
     controls = Controls.getInstance();
-    drive    = new Drive();
+    drive    = Drive.getInstance();
     grabber  = new Grabber();
     shooter  = new Shooter();
     climber  = new Climber();
     auto     = new Auto(drive, grabber, shooter);
+    objTrack = new ObjectTracking();
 
     //Set Variables
     //
@@ -313,7 +293,7 @@ public class Robot extends TimedRobot {
     }
     
     //Uses NetworkTables to get the ball value
-    objectTracking();
+    rotateToObject();
   }
 
 
@@ -620,81 +600,14 @@ public class Robot extends TimedRobot {
 
   /****************************************************************************************** 
   *
-  *    objectTracking()
+  *    rotateToObject()
   *    Targets the yellow balls using contor values
   *    Can be changed to blob detection if need be, although it less reliable
   * 
   ******************************************************************************************/
-  public void objectTracking() {
-    // Variables
-    final int DEAD_ZONE = 25;
-    boolean pipelineEmpty;
-    double  emptyCount;
-    double  drivePower;
-    double  turn;
-
-    //Network Tables
-    NetworkTableEntry isEmpty = TrackingValues.getEntry("IsEmpty");
-    NetworkTableEntry target = TrackingValues.getEntry("CenterX");
-    NetworkTableEntry empty  = TrackingValues.getEntry("Empty");
-
-    //Sets the double variables
-    pipelineEmpty = isEmpty.getBoolean(false);
-    centerX       = target.getDouble(0.00);
-    emptyCount    = empty.getDouble(0.00);
-
-    //Ignores the 50 pixels around the edge
-    if ( (centerX < DEAD_ZONE) || (centerX > IMG_WIDTH - DEAD_ZONE) ) {
-      pipelineEmpty = true;
-      deadZoneCount++;
-    }
-
-    if (pipelineEmpty == true) {
-      //Prints the emptyCount
-      System.out.println("Empty Count: " + emptyCount + " Dead Zone " + deadZoneCount);
-    }
-    else if (pipelineEmpty == false) {
-      //Does the math for tracking the balls
-      turn = centerX - (IMG_WIDTH / 2);
-
-      //Drive Power
-      drivePower = turn * 0.001;
-    
-      
-      //So far it just rotates to look at the ball using a REALLY SLOW speed 
-      drive.teleopRotate(drivePower);
-
-      System.out.println("Turn: " + turn + " CenterX: " + centerX + " drive: " + drivePower);
-
-      //Resets empty counts
-      emptyCount    = 0;
-      deadZoneCount = 0;
-    }
-    else {
-      //Sets the values to 0 if otherwise
-      emptyCount = 0.00;
-      turn       = 0.00;
-      centerX    = 0.00;
-      drivePower = 0.00;
-    }
-
-    /*//Does the math for tracking the balls
-    if (centerX != -1) {
-      turn = centerX - (IMG_WIDTH / 2);
-    
-      //So far it just rotates to look at the ball using a REALLY SLOW speed 
-      //drive.teleopRotate(turn * 0.001);
-
-      System.out.println("Turn: " + turn + " CenterX: " + centerX);
-    }
-
-    //Sets centerX to -1 (should not happen naturally)
-    if (emptyCount != 0) {
-      centerX = -1;
-
-      //Prints the emptyCount
-      System.out.println("Empty Count: " + emptyCount + "\n");
-    }*/
+  public void rotateToObject() {
+    //In order to not cluter drive or robot, the math and movement for this method is handled in ObjectTracking.java
+    objTrack.faceBall();
   }
 
   /****************************************************************************************** 

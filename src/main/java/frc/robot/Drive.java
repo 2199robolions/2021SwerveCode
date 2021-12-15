@@ -10,6 +10,17 @@ import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.SPI;
 
 public class Drive {
+    //Singleton Method to insure that there is ever only one instance of Controls
+    private static Drive instance = null;
+
+    public static synchronized Drive getInstance() {
+        if (instance == null) {
+            instance = new Drive();
+        }
+
+        return instance;
+    }
+
     //Object creation
     Controls controls;
     LedLights led;
@@ -231,7 +242,7 @@ public class Drive {
     *    Drive constructor
     * 
     ******************************************************************************************/
-    public Drive() {
+    private Drive() {
 
         //Instance creation
         led = LedLights.getInstance();
@@ -649,7 +660,7 @@ public class Drive {
 		}
 
         // Rotate
-        // Need a -1 angle because limelight is slightly offset
+        // Needs a -1 angle because limelight is slightly offset
 		m_LimelightCalculatedPower = targetController.calculate(tx, -1.0);
         m_LimelightCalculatedPower = MathUtil.clamp(m_LimelightCalculatedPower, -0.50, 0.50);
 		teleopRotate(m_LimelightCalculatedPower * -1);
