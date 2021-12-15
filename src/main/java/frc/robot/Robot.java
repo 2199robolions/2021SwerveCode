@@ -93,7 +93,8 @@ public class Robot extends TimedRobot {
   //private static final int IMG_HEIGHT = 480;
 
   //private VisionThread visionThread;
-  private double centerX = 0.0;
+  private double deadZoneCount = 0.00;
+  private double centerX    = 0.00;
 
 
   /**
@@ -626,34 +627,74 @@ public class Robot extends TimedRobot {
   ******************************************************************************************/
   public void objectTracking() {
     // Variables
-    double emptyCount;
-    double turn;
+    final int DEAD_ZONE = 25;
+    boolean pipelineEmpty;
+    double  emptyCount;
+    double  drivePower;
+    double  turn;
 
     //Network Tables
+    NetworkTableEntry isEmpty = TrackingValues.getEntry("IsEmpty");
     NetworkTableEntry target = TrackingValues.getEntry("CenterX");
     NetworkTableEntry empty  = TrackingValues.getEntry("Empty");
 
     //Sets the double variables
-    centerX    = target.getDouble(0.00);
-    emptyCount = empty .getDouble(0.00);
+    pipelineEmpty = isEmpty.getBoolean(false);
+    centerX       = target.getDouble(0.00);
+    emptyCount    = empty.getDouble(0.00);
 
-    //Sets centerX to -1 (should not happen naturally)
-    if (emptyCount != 0) {
-      centerX = -1;
-
-      //Prints the emptyCount
-      System.out.println("Empty Count: " + emptyCount);
+    //Ignores the 50 pixels around the edge
+    if ( (centerX < DEAD_ZONE) || (centerX > IMG_WIDTH - DEAD_ZONE) ) {
+      pipelineEmpty = true;
+      deadZoneCount++;
     }
 
-    //Does the math for tracking the balls
+    if (pipelineEmpty == true) {
+      //Prints the emptyCount
+      System.out.println("Empty Count: " + emptyCount + " Dead Zone " + deadZoneCount);
+    }
+    else if (pipelineEmpty == false) {
+      //Does the math for tracking the balls
+      turn = centerX - (IMG_WIDTH / 2);
+
+      //Drive Power
+      drivePower = turn * 0.001;
+    
+      
+      //So far it just rotates to look at the ball using a REALLY SLOW speed 
+      drive.teleopRotate(drivePower);
+
+      System.out.println("Turn: " + turn + " CenterX: " + centerX + " drive: " + drivePower);
+
+      //Resets empty counts
+      emptyCount    = 0;
+      deadZoneCount = 0;
+    }
+    else {
+      //Sets the values to 0 if otherwise
+      emptyCount = 0.00;
+      turn       = 0.00;
+      centerX    = 0.00;
+      drivePower = 0.00;
+    }
+
+    /*//Does the math for tracking the balls
     if (centerX != -1) {
       turn = centerX - (IMG_WIDTH / 2);
     
       //So far it just rotates to look at the ball using a REALLY SLOW speed 
       //drive.teleopRotate(turn * 0.001);
 
-      System.out.println("Turn " + turn);
+      System.out.println("Turn: " + turn + " CenterX: " + centerX);
     }
+
+    //Sets centerX to -1 (should not happen naturally)
+    if (emptyCount != 0) {
+      centerX = -1;
+
+      //Prints the emptyCount
+      System.out.println("Empty Count: " + emptyCount + "\n");
+    }*/
   }
 
   /****************************************************************************************** 
