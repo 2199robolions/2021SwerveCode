@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 public class Controls {
-    
     //Singleton Method to insure that there is ever only one instance of Controls
     private static Controls instance = null;
 

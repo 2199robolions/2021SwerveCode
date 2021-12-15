@@ -1,6 +1,9 @@
 package frc.robot;
 
-//import java.io.IOException;
+/**
+ * Raspberry Pi Code for FRC Team 2199.
+ * @author Alex and Allwyn Pereira
+ */
 import java.util.ArrayList;
 import java.util.List;
 //import java.util.Map;
@@ -10,6 +13,7 @@ import java.util.List;
 import edu.wpi.first.vision.VisionPipeline;
 
 import org.opencv.core.*;
+//import org.opencv.core.Core.*;
 import org.opencv.imgproc.*;
 //import org.opencv.objdetect.*;
 
@@ -37,7 +41,8 @@ public class ObjectTracking implements VisionPipeline {
 	/**
 	 * This is the primary method that runs the entire pipeline and updates the outputs.
 	 */
-	@Override	public void process(Mat source0) {
+	@Override
+	public void process(Mat source0) {
 		// Step CV_resize0:
 		Mat cvResizeSrc = source0;
 		Size cvResizeDsize = new Size(0, 0);
@@ -78,7 +83,7 @@ public class ObjectTracking implements VisionPipeline {
 		double filterContoursMinPerimeter = 0;
 		double filterContoursMinWidth = 10.0;
 		double filterContoursMaxWidth = 1000;
-		double filterContoursMinHeight = 0;
+		double filterContoursMinHeight = 100;
 		double filterContoursMaxHeight = 1000;
 		double[] filterContoursSolidity = {0, 100};
 		double filterContoursMaxVertices = 1000000;
@@ -277,8 +282,6 @@ public class ObjectTracking implements VisionPipeline {
 			output.add(contour);
 		}
 	}
-
-
-//hello
-
 }
+
+//End of the ObjectTracking class
