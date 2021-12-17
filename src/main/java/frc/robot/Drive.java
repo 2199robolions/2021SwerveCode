@@ -325,6 +325,9 @@ public class Drive {
     public void teleopSwerve(double driveX, double driveY, double rotatePower, boolean fieldDriveEnabled) {
         PowerAndAngle coor;
 
+        System.out.println("Yaw: " + ahrs.getYaw());
+
+
         coor = calcSwerve(driveX, driveY, rotatePower, rotateRightFrontMotorAngle, fieldDriveEnabled);
         frontRightWheel.rotateAndDrive(coor.getAngle(), coor.getPower());
 
