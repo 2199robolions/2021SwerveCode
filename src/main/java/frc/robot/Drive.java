@@ -302,7 +302,7 @@ public class Drive {
         swervePower = Math.sqrt((swerveX * swerveX) + (swerveY * swerveY));
         swerveAngle = Math.toDegrees(Math.atan2(swerveX, swerveY));
 
-        //If we are rotating CCW, and we are not crab driving, then the robot will flip the wheel angles and powers
+        //If we are rotating counter-clockwise, and we are not crab driving, then the robot will flip the wheel angles and powers
         //This keeps the wheels in the same position when turning both ways, making small rotations easier
         if ((rotatePower < 0) && (crabX == 0 && crabY == 0)) {
             swervePower *= -1;
